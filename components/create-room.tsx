@@ -3,10 +3,15 @@
 import { useState } from "react";
 import { createRoomAndRedirect } from "@/lib/actions";
 import { Button } from "./ui/button";
+import EmojiSelector from "./emoji-selector";
 
 export default function CreateRoom() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState<
+    "girlfriend" | "boyfriend" | null
+  >(null);
+  const [selectedEmoji, setSelectedEmoji] = useState<string>("");
 
   const handleSubmit = async (formData: FormData) => {
     setIsLoading(true);
@@ -19,6 +24,11 @@ export default function CreateRoom() {
       setError(err instanceof Error ? err.message : "Unknown error occurred");
       setIsLoading(false);
     }
+  };
+
+  const handleRoleChange = (role: "girlfriend" | "boyfriend") => {
+    setSelectedRole(role);
+    setSelectedEmoji(""); // Reset emoji when role changes
   };
 
   return (
@@ -67,6 +77,7 @@ export default function CreateRoom() {
                 value="girlfriend"
                 required
                 disabled={isLoading}
+                onChange={() => handleRoleChange("girlfriend")}
                 className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 disabled:cursor-not-allowed"
               />
               <span className="ml-2 text-sm text-gray-700">Girlfriend 💕</span>
@@ -78,6 +89,7 @@ export default function CreateRoom() {
                 value="boyfriend"
                 required
                 disabled={isLoading}
+                onChange={() => handleRoleChange("boyfriend")}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 disabled:cursor-not-allowed"
               />
               <span className="ml-2 text-sm text-gray-700">Boyfriend 💙</span>
@@ -85,10 +97,20 @@ export default function CreateRoom() {
           </div>
         </div>
 
+        {selectedRole && (
+          <EmojiSelector
+            role={selectedRole}
+            selectedEmoji={selectedEmoji}
+            onEmojiSelect={setSelectedEmoji}
+            name="emoji"
+            disabled={isLoading}
+          />
+        )}
+
         <Button
           type="submit"
           variant="shadow"
-          disabled={isLoading}
+          disabled={isLoading || !selectedRole || !selectedEmoji}
           className="w-full"
         >
           {isLoading ? (
@@ -96,6 +118,10 @@ export default function CreateRoom() {
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
               Creating Room...
             </div>
+          ) : !selectedRole ? (
+            "Select Your Role"
+          ) : !selectedEmoji ? (
+            "Choose Your Avatar"
           ) : (
             "Create Room"
           )}

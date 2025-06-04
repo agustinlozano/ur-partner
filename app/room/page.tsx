@@ -2,7 +2,7 @@ import CreateRoom from "@/components/create-room";
 
 export default function RoomPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-200 to-blue-50 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50/60 via-purple-200/60 to-blue-50/60 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold text-gray-900 mb-6">

@@ -123,3 +123,19 @@
     @apply bg-background text-foreground h-full;
   }
 }
+
+@property --border-angle {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+
+@keyframes border-spin {
+  100% {
+    --border-angle: 360deg;
+  }
+}
+
+.animate-border {
+  animation: border-spin 7s linear infinite;
+}

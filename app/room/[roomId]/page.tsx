@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { getRoomData } from "@/lib/actions";
 import Link from "next/link";
 import ActiveRoomSaver from "@/components/active-room-saver";
+import CopyRoomId from "@/components/copy-room-id";
 
 interface PageProps {
   params: Promise<{ roomId: string }>;
@@ -147,11 +148,7 @@ export default async function RoomDetailPage({
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
                 Share this Room ID with your partner
               </h3>
-              <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                <code className="text-2xl font-mono font-bold text-purple-600">
-                  {roomId}
-                </code>
-              </div>
+              <CopyRoomId roomId={roomId} />
               <p className="text-gray-600 text-sm">
                 Your partner can join by visiting <strong>/join</strong> and
                 entering this room ID

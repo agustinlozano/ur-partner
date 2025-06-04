@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createRoomAndRedirect } from "@/lib/actions";
+import { Button } from "./ui/button";
 
 export default function CreateRoom() {
   const [isLoading, setIsLoading] = useState(false);
@@ -14,6 +15,7 @@ export default function CreateRoom() {
     try {
       await createRoomAndRedirect(formData);
     } catch (err) {
+      console.error(err);
       setError(err instanceof Error ? err.message : "Unknown error occurred");
       setIsLoading(false);
     }
@@ -83,10 +85,11 @@ export default function CreateRoom() {
           </div>
         </div>
 
-        <button
+        <Button
           type="submit"
+          variant="shadow"
           disabled={isLoading}
-          className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:from-pink-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          className="w-full"
         >
           {isLoading ? (
             <div className="flex items-center justify-center gap-2">
@@ -94,9 +97,9 @@ export default function CreateRoom() {
               Creating Room...
             </div>
           ) : (
-            "Create Room 🚀"
+            "Create Room"
           )}
-        </button>
+        </Button>
       </form>
 
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">

@@ -2,19 +2,19 @@ import PersonalityForm from "@/components/personality-form";
 import SheetTest from "@/components/sheet-test";
 import Diagnostics from "@/components/diagnostics";
 import Link from "next/link";
+import { HandHeart } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-200 to-blue-50">
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            Describe Your Partner 🤍
+            Imagine ur Partner
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Enter a room with your special someone and upload 9 categorized
-            images that represent their personality. Discover how you see each
-            other through animals, places, characters, and more.
+            Describe your partner's personality through images. Discover how you
+            see each other through animals, places, characters, and more.
           </p>
         </div>
 
@@ -25,7 +25,7 @@ export default function Home() {
               className="block p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-100"
             >
               <div className="text-center">
-                <div className="text-4xl mb-3">🚀</div>
+                <div className="text-4xl mb-3">🖤</div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">
                   Create Room
                 </h2>
@@ -40,7 +40,7 @@ export default function Home() {
               className="block p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-100"
             >
               <div className="text-center">
-                <div className="text-4xl mb-3">🤝</div>
+                <div className="text-4xl mb-3">🤍</div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">
                   Join Room
                 </h2>

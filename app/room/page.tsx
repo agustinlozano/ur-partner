@@ -2,16 +2,15 @@ import CreateRoom from "@/components/create-room";
 
 export default function RoomPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-200 to-blue-50 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Describe Your Partner 🤍
+          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+            Imagine ur Partner
           </h1>
-          <p className="text-lg text-gray-600 max-w-lg mx-auto">
-            Create a room to share personality images with your special someone.
-            Discover how you see each other through 9 carefully chosen
-            categories.
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+            Describe your partner's personality through images. Discover how you
+            see each other through animals, places, characters, and more.
           </p>
         </div>
 

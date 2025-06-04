@@ -14,16 +14,18 @@ export const setupSheetHeaders = async () => {
     // Read the first row to check if headers exist
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "A1:P1",
+      range: "A1:R1",
     });
 
     const firstRow = response.data.values?.[0];
 
-    // Expected headers according to project description
+    // Expected headers according to project description + emoji columns
     const expectedHeaders = [
       "room_id",
       "girlfriend_name",
       "boyfriend_name",
+      "girlfriend_emoji",
+      "boyfriend_emoji",
       "animal",
       "place",
       "plant",
@@ -49,7 +51,7 @@ export const setupSheetHeaders = async () => {
 
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: "A1:P1",
+        range: "A1:R1",
         valueInputOption: "USER_ENTERED",
         requestBody: {
           values: [expectedHeaders],

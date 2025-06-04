@@ -39,6 +39,8 @@ export async function GET(request: Request, context: RouteContext) {
         room_id: room.room_id,
         girlfriend_name: room.girlfriend_name,
         boyfriend_name: room.boyfriend_name,
+        girlfriend_emoji: room.girlfriend_emoji,
+        boyfriend_emoji: room.boyfriend_emoji,
         created_at: room.created_at,
         is_full: isFull,
         missing_role: isGirlfriendMissing

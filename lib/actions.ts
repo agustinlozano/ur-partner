@@ -11,6 +11,7 @@ import { redirect } from "next/navigation";
 export interface CreateRoomInput {
   role: "girlfriend" | "boyfriend";
   name: string;
+  emoji: string;
 }
 
 export interface CreateRoomResult {
@@ -22,6 +23,7 @@ export interface CreateRoomResult {
 export interface JoinRoomInput {
   roomId: string;
   name: string;
+  emoji: string;
 }
 
 export interface JoinRoomResult {
@@ -51,6 +53,13 @@ export async function createRoom(
       };
     }
 
+    if (!input.emoji.trim()) {
+      return {
+        success: false,
+        error: "Emoji is required",
+      };
+    }
+
     // Generate unique room ID
     let roomId = generateRoomId();
     let attempts = 0;
@@ -73,12 +82,14 @@ export async function createRoom(
       };
     }
 
-    // Prepare the row data
+    // Prepare the row data (updated with emoji columns)
     const now = new Date().toISOString();
     const rowData = [
       roomId, // room_id
       input.role === "girlfriend" ? input.name : "", // girlfriend_name
       input.role === "boyfriend" ? input.name : "", // boyfriend_name
+      input.role === "girlfriend" ? input.emoji : "", // girlfriend_emoji
+      input.role === "boyfriend" ? input.emoji : "", // boyfriend_emoji
       "", // animal
       "", // place
       "", // plant
@@ -95,7 +106,7 @@ export async function createRoom(
     ];
 
     // Add to Google Sheet
-    await appendToSheet(spreadsheetId, "A:P", [rowData]);
+    await appendToSheet(spreadsheetId, "A:R", [rowData]);
 
     return {
       success: true,
@@ -135,6 +146,13 @@ export async function joinRoom(input: JoinRoomInput): Promise<JoinRoomResult> {
       };
     }
 
+    if (!input.emoji.trim()) {
+      return {
+        success: false,
+        error: "Emoji is required",
+      };
+    }
+
     // Find the existing room
     const existingRoom = await findRoomByRoomId(input.roomId);
 
@@ -162,7 +180,7 @@ export async function joinRoom(input: JoinRoomInput): Promise<JoinRoomResult> {
 
     // Find the row index in the sheet to update
     const allData = await import("./sheets").then((m) =>
-      m.readSheetData(spreadsheetId, "A:P")
+      m.readSheetData(spreadsheetId, "A:R")
     );
 
     if (!allData || allData.length <= 1) {
@@ -188,12 +206,16 @@ export async function joinRoom(input: JoinRoomInput): Promise<JoinRoomResult> {
       };
     }
 
-    // Prepare updated row data
+    // Prepare updated row data (updated with emoji columns)
     const now = new Date().toISOString();
     const updatedRowData = [
       existingRoom.room_id,
       assignedRole === "girlfriend" ? input.name : existingRoom.girlfriend_name,
       assignedRole === "boyfriend" ? input.name : existingRoom.boyfriend_name,
+      assignedRole === "girlfriend"
+        ? input.emoji
+        : existingRoom.girlfriend_emoji,
+      assignedRole === "boyfriend" ? input.emoji : existingRoom.boyfriend_emoji,
       existingRoom.animal,
       existingRoom.place,
       existingRoom.plant,
@@ -210,7 +232,7 @@ export async function joinRoom(input: JoinRoomInput): Promise<JoinRoomResult> {
     ];
 
     // Update the specific row
-    await updateSheetRow(spreadsheetId, `A${rowIndex}:P${rowIndex}`, [
+    await updateSheetRow(spreadsheetId, `A${rowIndex}:R${rowIndex}`, [
       updatedRowData,
     ]);
 
@@ -231,8 +253,9 @@ export async function joinRoom(input: JoinRoomInput): Promise<JoinRoomResult> {
 export async function createRoomAndRedirect(formData: FormData) {
   const role = formData.get("role") as "girlfriend" | "boyfriend";
   const name = formData.get("name") as string;
+  const emoji = formData.get("emoji") as string;
 
-  const result = await createRoom({ role, name });
+  const result = await createRoom({ role, name, emoji });
 
   if (result.success && result.room_id) {
     redirect(`/room/${result.room_id}`);
@@ -244,8 +267,9 @@ export async function createRoomAndRedirect(formData: FormData) {
 export async function joinRoomAndRedirect(formData: FormData) {
   const roomId = formData.get("roomId") as string;
   const name = formData.get("name") as string;
+  const emoji = formData.get("emoji") as string;
 
-  const result = await joinRoom({ roomId, name });
+  const result = await joinRoom({ roomId, name, emoji });
 
   if (result.success && result.room_id) {
     redirect(`/room/${result.room_id}`);

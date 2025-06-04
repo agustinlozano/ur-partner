@@ -109,7 +109,7 @@ export const findRoomByRoomId = async (roomId: string) => {
       throw new Error("SPREADSHEET_ID not configured");
     }
 
-    const data = await readSheetData(spreadsheetId, "A:P"); // Read all columns
+    const data = await readSheetData(spreadsheetId, "A:R"); // Extended to include emoji columns
 
     if (!data || data.length <= 1) {
       return null;
@@ -125,24 +125,26 @@ export const findRoomByRoomId = async (roomId: string) => {
       return null;
     }
 
-    // Map the row data to room object
+    // Map the row data to room object (updated with emoji columns)
     const room = {
       room_id: roomRow[0] || "",
       girlfriend_name: roomRow[1] || "",
       boyfriend_name: roomRow[2] || "",
-      animal: roomRow[3] || "",
-      place: roomRow[4] || "",
-      plant: roomRow[5] || "",
-      character: roomRow[6] || "",
-      season: roomRow[7] || "",
-      hobby: roomRow[8] || "",
-      food: roomRow[9] || "",
-      colour: roomRow[10] || "",
-      drink: roomRow[11] || "",
-      girlfriend_ready: roomRow[12] || "",
-      boyfriend_ready: roomRow[13] || "",
-      created_at: roomRow[14] || "",
-      updated_at: roomRow[15] || "",
+      girlfriend_emoji: roomRow[3] || "💕", // Default emoji if not set
+      boyfriend_emoji: roomRow[4] || "💙", // Default emoji if not set
+      animal: roomRow[5] || "",
+      place: roomRow[6] || "",
+      plant: roomRow[7] || "",
+      character: roomRow[8] || "",
+      season: roomRow[9] || "",
+      hobby: roomRow[10] || "",
+      food: roomRow[11] || "",
+      colour: roomRow[12] || "",
+      drink: roomRow[13] || "",
+      girlfriend_ready: roomRow[14] || "",
+      boyfriend_ready: roomRow[15] || "",
+      created_at: roomRow[16] || "",
+      updated_at: roomRow[17] || "",
     };
 
     // Check if room is expired

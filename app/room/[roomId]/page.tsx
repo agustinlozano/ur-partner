@@ -1,13 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { getRoomData } from "@/lib/actions";
 import Link from "next/link";
+import ActiveRoomSaver from "@/components/active-room-saver";
 
 interface PageProps {
   params: Promise<{ roomId: string }>;
+  searchParams?: Promise<{
+    new?: string;
+    role?: "girlfriend" | "boyfriend";
+    name?: string;
+    emoji?: string;
+  }>;
 }
 
-export default async function RoomDetailPage({ params }: PageProps) {
+export default async function RoomDetailPage({
+  params,
+  searchParams,
+}: PageProps) {
   const { roomId } = await params;
+  const searchParamsData = searchParams ? await searchParams : {};
   const room = await getRoomData(roomId);
 
   if (!room) {
@@ -45,6 +56,19 @@ export default async function RoomDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50/60 via-purple-200/60 to-blue-50/60 py-12 px-4">
+      {/* Save active room data if coming from new room creation/join */}
+      {searchParamsData.new === "true" &&
+        searchParamsData.role &&
+        searchParamsData.name &&
+        searchParamsData.emoji && (
+          <ActiveRoomSaver
+            roomId={roomId}
+            role={searchParamsData.role}
+            name={decodeURIComponent(searchParamsData.name)}
+            emoji={decodeURIComponent(searchParamsData.emoji)}
+          />
+        )}
+
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">

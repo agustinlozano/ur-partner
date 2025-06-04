@@ -250,6 +250,23 @@ export async function joinRoom(input: JoinRoomInput): Promise<JoinRoomResult> {
   }
 }
 
+// New function to save active room data to localStorage via client-side
+export async function setActiveRoomData(
+  roomId: string,
+  role: "girlfriend" | "boyfriend",
+  name: string,
+  emoji: string
+) {
+  // This will be handled client-side, but we need the structure
+  return {
+    room_id: roomId,
+    role,
+    name,
+    emoji,
+    created_at: new Date().toISOString(),
+  };
+}
+
 export async function createRoomAndRedirect(formData: FormData) {
   const role = formData.get("role") as "girlfriend" | "boyfriend";
   const name = formData.get("name") as string;
@@ -258,7 +275,11 @@ export async function createRoomAndRedirect(formData: FormData) {
   const result = await createRoom({ role, name, emoji });
 
   if (result.success && result.room_id) {
-    redirect(`/room/${result.room_id}`);
+    redirect(
+      `/room/${result.room_id}?new=true&role=${role}&name=${encodeURIComponent(
+        name
+      )}&emoji=${encodeURIComponent(emoji)}`
+    );
   } else {
     throw new Error(result.error || "Failed to create room");
   }
@@ -271,8 +292,12 @@ export async function joinRoomAndRedirect(formData: FormData) {
 
   const result = await joinRoom({ roomId, name, emoji });
 
-  if (result.success && result.room_id) {
-    redirect(`/room/${result.room_id}`);
+  if (result.success && result.room_id && result.role) {
+    redirect(
+      `/room/${result.room_id}?new=true&role=${
+        result.role
+      }&name=${encodeURIComponent(name)}&emoji=${encodeURIComponent(emoji)}`
+    );
   } else {
     throw new Error(result.error || "Failed to join room");
   }

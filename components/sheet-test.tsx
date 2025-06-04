@@ -12,32 +12,58 @@ export default function SheetTest() {
   const [data, setData] = useState<SheetData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [setupLoading, setSetupLoading] = useState(false);
+
+  const fetchSheetData = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/sheets");
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      setData(result.data || []);
+    } catch (err) {
+      console.error("Error fetching sheet data:", err);
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const setupSheet = async () => {
+    try {
+      setSetupLoading(true);
+      const response = await fetch("/api/setup", { method: "POST" });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      // After setup, refresh the data
+      await fetchSheetData();
+    } catch (err) {
+      console.error("Error setting up sheet:", err);
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setSetupLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchSheetData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/api/sheets");
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        if (result.error) {
-          throw new Error(result.error);
-        }
-
-        setData(result.data || []);
-      } catch (err) {
-        console.error("Error fetching sheet data:", err);
-        setError(err instanceof Error ? err.message : "Unknown error");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchSheetData();
   }, []);
 
@@ -61,10 +87,27 @@ export default function SheetTest() {
         <h2 className="text-xl font-bold mb-4 text-red-600">
           Error Testing Google Sheets
         </h2>
-        <div className="bg-red-50 border border-red-200 rounded p-4">
+        <div className="bg-red-50 border border-red-200 rounded p-4 mb-4">
           <p className="text-red-700">{error}</p>
         </div>
-        <div className="mt-4 text-sm text-gray-600">
+
+        <div className="mb-4">
+          <button
+            onClick={setupSheet}
+            disabled={setupLoading}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed mr-2"
+          >
+            {setupLoading ? "Setting up..." : "Setup Sheet Headers"}
+          </button>
+          <button
+            onClick={fetchSheetData}
+            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+          >
+            Retry
+          </button>
+        </div>
+
+        <div className="text-sm text-gray-600">
           <p>Make sure you have:</p>
           <ul className="list-disc list-inside mt-2 space-y-1">
             <li>GOOGLE_SERVICE_ACCOUNT_EMAIL environment variable set</li>
@@ -82,6 +125,22 @@ export default function SheetTest() {
       <h2 className="text-xl font-bold mb-4 text-green-600">
         ✅ Google Sheets Connection Test
       </h2>
+
+      <div className="mb-4">
+        <button
+          onClick={setupSheet}
+          disabled={setupLoading}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed mr-2"
+        >
+          {setupLoading ? "Setting up..." : "Setup/Update Headers"}
+        </button>
+        <button
+          onClick={fetchSheetData}
+          className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+        >
+          Refresh Data
+        </button>
+      </div>
 
       {data.length === 0 ? (
         <div className="bg-yellow-50 border border-yellow-200 rounded p-4">
@@ -133,8 +192,8 @@ export default function SheetTest() {
 
       <div className="mt-4 text-sm text-gray-500">
         <p>
-          This component is reading from your Google Sheet with headers:
-          session_id, girlfriend_name, boyfriend_name
+          This component is reading from your Google Sheet. Click "Setup/Update
+          Headers" to configure the correct room structure.
         </p>
       </div>
     </div>

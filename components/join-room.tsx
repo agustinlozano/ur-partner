@@ -3,16 +3,19 @@
 import { useState } from "react";
 import { joinRoomAndRedirect } from "@/lib/actions";
 import { Button } from "./ui/button";
+import EmojiSelector from "./emoji-selector";
 
 export default function JoinRoom() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [roomInfo, setRoomInfo] = useState<any>(null);
   const [checkingRoom, setCheckingRoom] = useState(false);
+  const [selectedEmoji, setSelectedEmoji] = useState<string>("");
 
   const checkRoom = async (roomId: string) => {
     if (!roomId.trim()) {
       setRoomInfo(null);
+      setSelectedEmoji(""); // Reset emoji when room changes
       return;
     }
 
@@ -24,13 +27,16 @@ export default function JoinRoom() {
       if (data.success) {
         setRoomInfo(data.room);
         setError(null);
+        setSelectedEmoji(""); // Reset emoji when new room is found
       } else {
         setRoomInfo(null);
         setError(data.error);
+        setSelectedEmoji("");
       }
     } catch (err) {
       setRoomInfo(null);
       setError("Failed to check room");
+      setSelectedEmoji("");
     } finally {
       setCheckingRoom(false);
     }
@@ -126,11 +132,11 @@ export default function JoinRoom() {
                   </p>
                   <div className="grid grid-cols-2 gap-2 mt-1">
                     <div className="flex items-center gap-2">
-                      <span>💕</span>
+                      <span>{roomInfo.girlfriend_emoji || "💕"}</span>
                       <span>{roomInfo.girlfriend_name || "Waiting..."}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span>💙</span>
+                      <span>{roomInfo.boyfriend_emoji || "💙"}</span>
                       <span>{roomInfo.boyfriend_name || "Waiting..."}</span>
                     </div>
                   </div>
@@ -139,8 +145,8 @@ export default function JoinRoom() {
                       <p className="text-blue-800 text-xs">
                         <strong>You will join as:</strong>{" "}
                         {missingRole === "girlfriend"
-                          ? "Girlfriend 💕"
-                          : "Boyfriend 💙"}
+                          ? "Girlfriend"
+                          : "Boyfriend"}
                       </p>
                     </div>
                   )}
@@ -151,29 +157,39 @@ export default function JoinRoom() {
         )}
 
         {roomInfo && missingRole && (
-          <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Your Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              required
+          <>
+            <div>
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Your Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                disabled={isLoading}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                placeholder="Enter your name"
+              />
+            </div>
+
+            <EmojiSelector
+              role={missingRole}
+              selectedEmoji={selectedEmoji}
+              onEmojiSelect={setSelectedEmoji}
+              name="emoji"
               disabled={isLoading}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-              placeholder="Enter your name"
             />
-          </div>
+          </>
         )}
 
         <Button
           type="submit"
           variant="shadow"
-          disabled={isLoading || !roomInfo || !missingRole}
+          disabled={isLoading || !roomInfo || !missingRole || !selectedEmoji}
           className="w-full"
         >
           {isLoading ? (
@@ -185,6 +201,8 @@ export default function JoinRoom() {
             "Enter Room ID"
           ) : !missingRole ? (
             "Room is Full"
+          ) : !selectedEmoji ? (
+            "Choose Your Avatar"
           ) : (
             `Join as ${
               missingRole === "girlfriend" ? "Girlfriend" : "Boyfriend"
@@ -205,7 +223,7 @@ export default function JoinRoom() {
                 <li>Ask your partner for their Room ID</li>
                 <li>Enter the 8-character Room ID above</li>
                 <li>We'll automatically assign your role</li>
-                <li>Enter your name and join the room</li>
+                <li>Choose your avatar and enter your name</li>
               </ul>
             </div>
           </div>

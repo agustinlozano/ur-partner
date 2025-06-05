@@ -3,11 +3,11 @@ import GradientBackground from "@/components/gradient-background";
 import Link from "next/link";
 
 interface JoinPageProps {
-  searchParams: { room_id?: string };
+  searchParams: Promise<{ roomId?: string }>;
 }
 
 export default async function JoinPage({ searchParams }: JoinPageProps) {
-  const { room_id } = await searchParams;
+  const params = await searchParams;
 
   return (
     <GradientBackground className="py-12 px-4">
@@ -22,7 +22,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
           </p>
         </div>
 
-        <JoinRoom initialRoomId={room_id} />
+        <JoinRoom initialRoomId={params.roomId} />
 
         <div className="mt-8 text-center space-y-8">
           <p className="text-sm text-primary/75">

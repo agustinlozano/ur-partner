@@ -6,7 +6,6 @@ import {
   findRoomByRoomId,
   updateSheetRow,
 } from "./sheets";
-import { redirect } from "next/navigation";
 
 export interface CreateRoomInput {
   role: "girlfriend" | "boyfriend";
@@ -275,13 +274,19 @@ export async function createRoomAndRedirect(formData: FormData) {
   const result = await createRoom({ role, name, emoji });
 
   if (result.success && result.room_id) {
-    redirect(
-      `/room/${result.room_id}?new=true&role=${role}&name=${encodeURIComponent(
+    return {
+      success: true,
+      redirectUrl: `/room/${
+        result.room_id
+      }?new=true&role=${role}&name=${encodeURIComponent(
         name
-      )}&emoji=${encodeURIComponent(emoji)}`
-    );
+      )}&emoji=${encodeURIComponent(emoji)}`,
+    };
   } else {
-    throw new Error(result.error || "Failed to create room");
+    return {
+      success: false,
+      error: result.error || "Failed to create room",
+    };
   }
 }
 
@@ -293,13 +298,17 @@ export async function joinRoomAndRedirect(formData: FormData) {
   const result = await joinRoom({ roomId, name, emoji });
 
   if (result.success && result.room_id && result.role) {
-    redirect(
-      `/room/${result.room_id}?new=true&role=${
+    return {
+      success: true,
+      redirectUrl: `/room/${result.room_id}?new=true&role=${
         result.role
-      }&name=${encodeURIComponent(name)}&emoji=${encodeURIComponent(emoji)}`
-    );
+      }&name=${encodeURIComponent(name)}&emoji=${encodeURIComponent(emoji)}`,
+    };
   } else {
-    throw new Error(result.error || "Failed to join room");
+    return {
+      success: false,
+      error: result.error || "Failed to join room",
+    };
   }
 }
 

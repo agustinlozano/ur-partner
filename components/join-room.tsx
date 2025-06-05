@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { joinRoomAndRedirect } from "@/lib/actions";
 import { Button } from "./ui/button";
 import EmojiSelector from "./emoji-selector";
 
 export default function JoinRoom() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [roomInfo, setRoomInfo] = useState<any>(null);
@@ -59,7 +61,14 @@ export default function JoinRoom() {
     setError(null);
 
     try {
-      await joinRoomAndRedirect(formData);
+      const result = await joinRoomAndRedirect(formData);
+
+      if (result.success && result.redirectUrl) {
+        router.push(result.redirectUrl);
+      } else {
+        setError(result.error || "Failed to join room");
+        setIsLoading(false);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error occurred");
       setIsLoading(false);

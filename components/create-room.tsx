@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createRoomAndRedirect } from "@/lib/actions";
 import { Button } from "./ui/button";
+import { capitalize } from "@/lib/utils";
 import EmojiSelector from "./emoji-selector";
 
 export default function CreateRoom() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<
@@ -17,10 +20,21 @@ export default function CreateRoom() {
     setIsLoading(true);
     setError(null);
 
+    const name = formData.get("name") as string;
+    const capitalizedName = capitalize(name);
+
+    formData.set("name", capitalizedName);
+
     try {
-      await createRoomAndRedirect(formData);
+      const result = await createRoomAndRedirect(formData);
+
+      if (result.success && result.redirectUrl) {
+        router.push(result.redirectUrl);
+      } else {
+        setError(result.error || "Failed to create room");
+        setIsLoading(false);
+      }
     } catch (err) {
-      console.error(err);
       setError(err instanceof Error ? err.message : "Unknown error occurred");
       setIsLoading(false);
     }

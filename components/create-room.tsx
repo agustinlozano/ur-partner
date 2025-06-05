@@ -201,7 +201,7 @@ export default function CreateRoom() {
             name="name"
             required
             disabled={isPending}
-            className="w-full px-3 py-2 border bg-primary/5 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+            className="w-full px-3 py-2 border bg-primary/5 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:cursor-not-allowed"
             placeholder="Enter your name"
           />
         </div>

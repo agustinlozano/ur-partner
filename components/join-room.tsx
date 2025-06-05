@@ -1,12 +1,58 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useActionState,
+  useTransition,
+} from "react";
+import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { joinRoomAndRedirect } from "@/lib/actions";
 import { Button } from "./ui/button";
 import EmojiSelector from "./emoji-selector";
 import { useActiveRoom } from "@/hooks/use-active-room";
 import { capitalize } from "@/lib/utils";
+
+// Componente moderno para el botón usando useFormStatus
+function SubmitButton({
+  roomInfo,
+  missingRole,
+  selectedEmoji,
+}: {
+  roomInfo: any;
+  missingRole: string | null;
+  selectedEmoji: string;
+}) {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button
+      type="submit"
+      variant="shadow"
+      disabled={pending || !roomInfo || !missingRole || !selectedEmoji}
+      className="w-full"
+    >
+      {pending ? (
+        <div className="flex items-center justify-center gap-2">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          Joining Room...
+        </div>
+      ) : !roomInfo ? (
+        "Enter Room ID"
+      ) : !missingRole ? (
+        "Room is Full"
+      ) : !selectedEmoji ? (
+        "Choose Your Avatar"
+      ) : (
+        `Join as ${
+          missingRole === "girlfriend" ? "Girlfriend" : "Boyfriend"
+        } 💫`
+      )}
+    </Button>
+  );
+}
 
 interface JoinRoomProps {
   initialRoomId?: string;
@@ -15,12 +61,44 @@ interface JoinRoomProps {
 export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
   const router = useRouter();
   const { activeRoom } = useActiveRoom();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
   const [roomInfo, setRoomInfo] = useState<any>(null);
   const [checkingRoom, setCheckingRoom] = useState(false);
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
   const roomIdInputRef = useRef<HTMLInputElement>(null);
+
+  // Action moderna con useActionState
+  const [state, formAction] = useActionState(
+    async (prevState: any, formData: FormData) => {
+      try {
+        const name = formData.get("name") as string;
+        const capitalizedName = capitalize(name);
+        formData.set("name", capitalizedName);
+
+        const result = await joinRoomAndRedirect(formData);
+
+        if (result.success && result.redirectUrl) {
+          startTransition(() => {
+            router.push(result.redirectUrl);
+          });
+          return { success: true, error: null };
+        } else {
+          return {
+            success: false,
+            error: result.error || "Failed to join room",
+          };
+        }
+      } catch (err) {
+        console.error("Error joining room:", err);
+        return {
+          success: false,
+          error: err instanceof Error ? err.message : "Unknown error occurred",
+        };
+      }
+    },
+    { success: false, error: null }
+  );
 
   // Pre-complete room ID if provided and check it automatically
   useEffect(() => {
@@ -31,9 +109,12 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
     }
   }, [initialRoomId]);
 
+  const [checkRoomError, setCheckRoomError] = useState<string | null>(null);
+
   const checkRoom = async (roomId: string) => {
     if (!roomId.trim()) {
       setRoomInfo(null);
+      setCheckRoomError(null);
       setSelectedEmoji(""); // Reset emoji when room changes
       return;
     }
@@ -44,28 +125,31 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
       roomId.toUpperCase() === activeRoom.room_id.toUpperCase()
     ) {
       setRoomInfo(null);
-      setError("You are already in this room! Go to your active room instead.");
+      setCheckRoomError(
+        "You are already in this room! Go to your active room instead."
+      );
       setSelectedEmoji("");
       return;
     }
 
     setCheckingRoom(true);
+    setCheckRoomError(null);
     try {
       const response = await fetch(`/api/room-info/${roomId}`);
       const data = await response.json();
 
       if (data.success) {
         setRoomInfo(data.room);
-        setError(null);
+        setCheckRoomError(null);
         setSelectedEmoji(""); // Reset emoji when new room is found
       } else {
         setRoomInfo(null);
-        setError(data.error);
+        setCheckRoomError(data.error);
         setSelectedEmoji("");
       }
     } catch (err) {
       setRoomInfo(null);
-      setError("Failed to check room");
+      setCheckRoomError("Failed to check room");
       setSelectedEmoji("");
     } finally {
       setCheckingRoom(false);
@@ -82,28 +166,6 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
     }, 500);
 
     return () => clearTimeout(timer);
-  };
-
-  const handleSubmit = async (formData: FormData) => {
-    setIsLoading(true);
-    setError(null);
-
-    const name = formData.get("name") as string;
-    formData.set("name", capitalize(name));
-
-    try {
-      const result = await joinRoomAndRedirect(formData);
-
-      if (result.success && result.redirectUrl) {
-        router.push(result.redirectUrl);
-      } else {
-        setError(result.error || "Failed to join room");
-        setIsLoading(false);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error occurred");
-      setIsLoading(false);
-    }
   };
 
   const missingRole = roomInfo
@@ -194,13 +256,15 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
         </p>
       </div>
 
-      {error && (
+      {(state.error || checkRoomError) && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg dark:bg-red-950 dark:border-red-800">
-          <p className="text-red-700 text-sm dark:text-red-300">{error}</p>
+          <p className="text-red-700 text-sm dark:text-red-300">
+            {state.error || checkRoomError}
+          </p>
         </div>
       )}
 
-      <form action={handleSubmit} className="space-y-4">
+      <form action={formAction} className="space-y-4">
         <div>
           <label
             htmlFor="roomId"
@@ -214,9 +278,9 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
             id="roomId"
             name="roomId"
             required
-            disabled={isLoading}
+            disabled={isPending}
             onChange={handleRoomIdChange}
-            className="w-full px-3 py-2 border bg-primary/5 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed font-mono text-center text-lg tracking-wider"
+            className="w-full px-3 py-2 border bg-primary/5 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:cursor-not-allowed font-mono text-center text-lg tracking-wider"
             placeholder="Enter Room ID"
             maxLength={8}
             style={{ textTransform: "uppercase" }}
@@ -294,8 +358,8 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
                 id="name"
                 name="name"
                 required
-                disabled={isLoading}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                disabled={isPending}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:cursor-not-allowed"
                 placeholder="Enter your name"
               />
             </div>
@@ -305,34 +369,16 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
               selectedEmoji={selectedEmoji}
               onEmojiSelect={setSelectedEmoji}
               name="emoji"
-              disabled={isLoading}
+              disabled={isPending}
             />
           </>
         )}
 
-        <Button
-          type="submit"
-          variant="shadow"
-          disabled={isLoading || !roomInfo || !missingRole || !selectedEmoji}
-          className="w-full"
-        >
-          {isLoading ? (
-            <div className="flex items-center justify-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              Joining Room...
-            </div>
-          ) : !roomInfo ? (
-            "Enter Room ID"
-          ) : !missingRole ? (
-            "Room is Full"
-          ) : !selectedEmoji ? (
-            "Choose Your Avatar"
-          ) : (
-            `Join as ${
-              missingRole === "girlfriend" ? "Girlfriend" : "Boyfriend"
-            } 💫`
-          )}
-        </Button>
+        <SubmitButton
+          roomInfo={roomInfo}
+          missingRole={missingRole}
+          selectedEmoji={selectedEmoji}
+        />
       </form>
 
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-950 dark:border-blue-800">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import ActiveRoomSaver from "@/components/active-room-saver";
 import CopyRoomId from "@/components/copy-room-id";
 import AudioTrigger from "@/components/audio-trigger";
+import { cn } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ roomId: string }>;
@@ -85,7 +86,13 @@ export default async function RoomDetailPage({
 
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           {/* Girlfriend Card */}
-          <div className="bg-card/60 rounded-xl shadow-lg p-6 border">
+          <div
+            className={cn(
+              "bg-card/60 rounded-xl shadow-lg p-6 border",
+              "bg-amber-100/50 dark:bg-amber-900/25 backdrop-blur-sm",
+              "border-amber-400 dark:border-amber-800"
+            )}
+          >
             <div className="text-center">
               <div className="text-4xl mb-3">
                 {room.girlfriend_emoji || "💕"}
@@ -93,10 +100,10 @@ export default async function RoomDetailPage({
               <h2 className="text-xl font-semibold mb-2">Girlfriend</h2>
               {room.girlfriend_name ? (
                 <div>
-                  <p className="text-lg text-pink-600 font-medium mb-2">
+                  <p className="text-lg text-amber-600 font-medium mb-2">
                     {room.girlfriend_name}
                   </p>
-                  <span className="inline-block bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
+                  <span className="inline-block bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 text-sm px-3 py-1 rounded-full">
                     ✅ Joined
                   </span>
                 </div>
@@ -112,7 +119,13 @@ export default async function RoomDetailPage({
           </div>
 
           {/* Boyfriend Card */}
-          <div className="bg-card/60 rounded-xl shadow-lg p-6 border">
+          <div
+            className={cn(
+              "bg-card/60 rounded-xl shadow-lg p-6 border",
+              "bg-blue-100/50 dark:bg-blue-900/25 backdrop-blur-sm",
+              "border-blue-400 dark:border-blue-800"
+            )}
+          >
             <div className="text-center">
               <div className="text-4xl mb-3">
                 {room.boyfriend_emoji || "💙"}
@@ -123,7 +136,7 @@ export default async function RoomDetailPage({
                   <p className="text-lg text-blue-600 font-medium mb-2">
                     {room.boyfriend_name}
                   </p>
-                  <span className="inline-block bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
+                  <span className="inline-block bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 text-sm px-3 py-1 rounded-full">
                     ✅ Joined
                   </span>
                 </div>

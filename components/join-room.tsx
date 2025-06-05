@@ -98,17 +98,17 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
     : null;
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-lg">
+    <div className="max-w-md mx-auto p-6 bg-card/60 rounded-xl shadow-lg">
       <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Join a Room</h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-2xl font-bold">Join a Room</h1>
+        <p className="text-primary/85 mt-2">
           Enter the room ID shared by your partner
         </p>
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-700 text-sm">{error}</p>
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg dark:bg-red-950 dark:border-red-800">
+          <p className="text-red-700 text-sm dark:text-red-300">{error}</p>
         </div>
       )}
 
@@ -128,7 +128,7 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
             required
             disabled={isLoading}
             onChange={handleRoomIdChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed font-mono text-center text-lg tracking-wider"
+            className="w-full px-3 py-2 border bg-primary/5 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed font-mono text-center text-lg tracking-wider"
             placeholder="Enter Room ID"
             maxLength={8}
             style={{ textTransform: "uppercase" }}
@@ -143,14 +143,14 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
         </div>
 
         {roomInfo && (
-          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="p-4 bg-green-50 border border-green-200 rounded-lg dark:bg-green-950 dark:border-green-800">
             <div className="flex items-start gap-3">
               <div className="text-green-500 text-xl">✅</div>
               <div>
-                <h3 className="text-sm font-medium text-green-800">
+                <h3 className="text-sm font-medium text-green-800 dark:text-green-400">
                   Room Found!
                 </h3>
-                <div className="mt-1 text-sm text-green-700">
+                <div className="mt-1 text-sm text-green-700 dark:text-green-300">
                   <p>
                     <strong>Participants:</strong>
                   </p>
@@ -163,8 +163,8 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
                     </div>
                   </div>
                   {missingRole && (
-                    <div className="mt-2 p-2 bg-blue-100 rounded">
-                      <p className="text-blue-800 text-xs">
+                    <div className="mt-2 p-2 bg-blue-100 rounded border border-blue-200 dark:bg-blue-950 dark:border-blue-800">
+                      <p className="text-blue-800 text-xs dark:text-blue-300">
                         <strong>You will join as:</strong>{" "}
                         {missingRole === "girlfriend"
                           ? "Girlfriend"
@@ -233,14 +233,16 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
         </Button>
       </form>
 
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-950 dark:border-blue-800">
         <div className="flex items-start">
           <div className="flex-shrink-0">
             <span className="text-blue-500">ℹ️</span>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">How to Join</h3>
-            <div className="mt-1 text-sm text-blue-700">
+            <h3 className="text-sm font-medium text-blue-800 dark:text-blue-400">
+              How to Join
+            </h3>
+            <div className="mt-1 text-sm text-blue-700 dark:text-blue-300">
               <ul className="list-disc list-inside space-y-1">
                 <li>Ask your partner for their Room ID</li>
                 <li>Enter the 8-character Room ID above</li>

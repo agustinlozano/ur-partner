@@ -22,12 +22,12 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
 
         <JoinRoom initialRoomId={room_id} />
 
-        <div className="mt-8 text-center space-y-2">
+        <div className="mt-8 text-center space-y-8">
           <p className="text-sm text-primary/75">
             Don't have a Room ID?{" "}
             <Link
               href="/room"
-              className="text-purple-600 hover:text-purple-700 font-medium"
+              className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium"
             >
               Create a new room
             </Link>
@@ -35,7 +35,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
           <p className="text-sm text-primary/75">
             <Link
               href="/"
-              className="text-purple-600 hover:text-purple-700 font-medium"
+              className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium"
             >
               ← Back to Home
             </Link>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Copy, Check } from "lucide-react";
 
 interface CopyRoomIdProps {
@@ -10,9 +10,19 @@ interface CopyRoomIdProps {
 export default function CopyRoomId({ roomId }: CopyRoomIdProps) {
   const [copied, setCopied] = useState(false);
 
+  const [domain, setDomain] = useState("");
+
+  useEffect(() => {
+    setDomain(
+      process.env.NODE_ENV === "development"
+        ? "http://localhost:3000"
+        : `https://${window.location.hostname}`
+    );
+  }, []);
+
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(roomId);
+      await navigator.clipboard.writeText(`${domain}/join/${roomId}`);
       setCopied(true);
 
       // Reset the copied state after 2 seconds

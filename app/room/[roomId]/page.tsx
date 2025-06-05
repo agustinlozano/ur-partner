@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { getRoomData } from "@/lib/actions";
+import GradientBackground from "@/components/gradient-background";
 import Link from "next/link";
 import ActiveRoomSaver from "@/components/active-room-saver";
 import CopyRoomId from "@/components/copy-room-id";
@@ -24,7 +25,7 @@ export default async function RoomDetailPage({
 
   if (!room) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50/60 via-purple-200/60 to-blue-50/60 flex items-center justify-center px-4">
+      <GradientBackground className="flex items-center justify-center px-4">
         <div className="max-w-md mx-auto text-center">
           <div className="bg-white rounded-xl shadow-lg p-8">
             <div className="text-6xl mb-4">😔</div>
@@ -43,7 +44,7 @@ export default async function RoomDetailPage({
             </Link>
           </div>
         </div>
-      </div>
+      </GradientBackground>
     );
   }
 
@@ -56,7 +57,7 @@ export default async function RoomDetailPage({
     : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50/60 via-purple-200/60 to-blue-50/60 py-12 px-4">
+    <GradientBackground className="py-12 px-4">
       {/* Save active room data if coming from new room creation/join */}
       {searchParamsData.new === "true" &&
         searchParamsData.role &&
@@ -222,6 +223,6 @@ export default async function RoomDetailPage({
           </Link>
         </div>
       </div>
-    </div>
+    </GradientBackground>
   );
 }

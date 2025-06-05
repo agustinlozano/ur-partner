@@ -1,10 +1,11 @@
 import SheetTest from "@/components/sheet-test";
 import Diagnostics from "@/components/diagnostics";
+import GradientBackground from "@/components/gradient-background";
 import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50/60 via-purple-200/60 to-blue-100/60">
+    <GradientBackground variant="blue">
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold mb-6">Imagine ur Partner</h1>
@@ -18,7 +19,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-4">
             <Link
               href="/room"
-              className="block p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-200 border"
+              className="block p-6 bg-card/75 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-200 border"
             >
               <div className="text-center">
                 <div className="text-4xl mb-3">🖤</div>
@@ -31,7 +32,7 @@ export default function Home() {
 
             <Link
               href="/join"
-              className="block p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-200 border"
+              className="block p-6 bg-card/75 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-200 border"
             >
               <div className="text-center">
                 <div className="text-4xl mb-3">🤍</div>
@@ -43,7 +44,7 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6 border">
+          <div className="bg-card/75 rounded-xl shadow-lg p-6 border">
             <h3 className="text-lg font-semibold mb-4">How it works:</h3>
             <div className="space-y-3 text-sm text-primary/75">
               <div className="flex items-center gap-3">
@@ -93,6 +94,6 @@ export default function Home() {
           </details>
         </div>
       </div>
-    </div>
+    </GradientBackground>
   );
 }

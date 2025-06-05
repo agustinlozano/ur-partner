@@ -1,4 +1,5 @@
 import JoinRoom from "@/components/join-room";
+import GradientBackground from "@/components/gradient-background";
 import Link from "next/link";
 
 interface JoinPageProps {
@@ -9,7 +10,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
   const { room_id } = await searchParams;
   console.log(room_id);
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50/60 via-purple-200/60 to-blue-50/60 py-12 px-4">
+    <GradientBackground className="py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4">Join Your Partner's Room</h1>
@@ -41,6 +42,6 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
           </p>
         </div>
       </div>
-    </div>
+    </GradientBackground>
   );
 }

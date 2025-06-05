@@ -6,10 +6,8 @@ export default function RoomPage() {
     <GradientBackground className="py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            Imagine ur Partner
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+          <h1 className="text-5xl font-bold mb-6">Imagine ur Partner</h1>
+          <p className="text-xl text-primary/90 max-w-3xl mx-auto mb-8">
             Describe your partner's personality through images. Discover how you
             see each other through animals, places, characters, and more.
           </p>

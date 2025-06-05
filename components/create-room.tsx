@@ -50,24 +50,22 @@ export default function CreateRoom() {
   // If there's an active room, show it instead of the create form
   if (activeRoom) {
     return (
-      <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-lg">
+      <div className="max-w-md mx-auto p-6 bg-card rounded-xl shadow-lg">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Active Room Found
-          </h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-2xl font-bold">Active Room Found</h1>
+          <p className="text-primary/85 mt-2">
             You already have an active room in progress
           </p>
         </div>
 
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-4">
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-4 dark:bg-blue-950 dark:border-blue-800">
           <div className="flex items-start gap-3">
             <div className="text-blue-500 text-xl">🎯</div>
             <div>
-              <h3 className="text-sm font-medium text-blue-800">
+              <h3 className="text-sm font-medium text-blue-800 dark:text-blue-300">
                 Current Room Details
               </h3>
-              <div className="mt-2 space-y-1 text-sm text-blue-700">
+              <div className="mt-2 space-y-1 text-sm text-blue-700 dark:text-blue-300">
                 <p>
                   <strong>Room ID:</strong> {activeRoom.room_id}
                 </p>
@@ -110,14 +108,16 @@ export default function CreateRoom() {
           </Button>
         </div>
 
-        <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+        <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg dark:bg-amber-950 dark:border-amber-800">
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <span className="text-amber-500">⚠️</span>
+              <span className="text-amber-300">⚠️</span>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-amber-800">Note</h3>
-              <p className="mt-1 text-sm text-amber-700">
+              <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-400">
+                Note
+              </h3>
+              <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
                 Creating a new room will abandon your current room. Make sure
                 your partner knows before proceeding.
               </p>
@@ -129,10 +129,10 @@ export default function CreateRoom() {
   }
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-lg">
+    <div className="max-w-md mx-auto p-6 bg-card/60 rounded-xl shadow-lg">
       <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Create a Room</h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-2xl font-bold">Create a Room</h1>
+        <p className="text-primary/85 mt-2">
           Start your personality sharing journey with your partner
         </p>
       </div>
@@ -147,7 +147,7 @@ export default function CreateRoom() {
         <div>
           <label
             htmlFor="name"
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-medium text-primary/60 mb-2"
           >
             Your Name
           </label>
@@ -157,13 +157,13 @@ export default function CreateRoom() {
             name="name"
             required
             disabled={isLoading}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+            className="w-full px-3 py-2 border bg-primary/5 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             placeholder="Enter your name"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+          <label className="block text-sm font-medium text-primary/60 mb-3">
             Your Role in the Relationship
           </label>
           <div className="space-y-2">
@@ -175,9 +175,11 @@ export default function CreateRoom() {
                 required
                 disabled={isLoading}
                 onChange={() => handleRoleChange("girlfriend")}
-                className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 disabled:cursor-not-allowed"
+                className="h-4 w-4 text-pink-600 focus:ring-pink-500 disabled:cursor-not-allowed"
               />
-              <span className="ml-2 text-sm text-gray-700">Girlfriend 💛</span>
+              <span className="ml-2 text-sm text-primary/60">
+                Girlfriend 💛
+              </span>
             </label>
             <label className="flex items-center">
               <input
@@ -187,9 +189,9 @@ export default function CreateRoom() {
                 required
                 disabled={isLoading}
                 onChange={() => handleRoleChange("boyfriend")}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 disabled:cursor-not-allowed"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed"
               />
-              <span className="ml-2 text-sm text-gray-700">Boyfriend 🩶</span>
+              <span className="ml-2 text-sm text-primary/60">Boyfriend 🩶</span>
             </label>
           </div>
         </div>
@@ -225,16 +227,16 @@ export default function CreateRoom() {
         </Button>
       </form>
 
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-950 dark:border-blue-800">
         <div className="flex items-start">
           <div className="flex-shrink-0">
             <span className="text-blue-500">ℹ️</span>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">
+            <h3 className="text-sm font-medium text-blue-800 dark:text-blue-300">
               Room Information
             </h3>
-            <div className="mt-1 text-sm text-blue-700">
+            <div className="mt-1 text-sm text-blue-700 dark:text-blue-300">
               <ul className="list-disc list-inside space-y-1">
                 <li>Rooms expire after 2.5 hours</li>
                 <li>Share the room ID with your partner</li>

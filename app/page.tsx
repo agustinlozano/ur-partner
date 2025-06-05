@@ -70,13 +70,13 @@ export default function Home() {
             <h3 className="text-lg font-semibold mb-4">How it works:</h3>
             <div className="space-y-3 text-sm text-primary/75">
               <div className="flex items-center gap-3">
-                <span className="bg-purple-100 text-purple-600 dark:text-purple-400 dark:bg-purple-950 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+                <span className="border bg-purple-100 text-purple-600 dark:text-purple-400 dark:bg-purple-950 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
                   1
                 </span>
                 <p>Create or join a room with your partner</p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="bg-purple-100 text-purple-600 dark:text-purple-400 dark:bg-purple-950 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+                <span className="border bg-purple-100 text-purple-600 dark:text-purple-400 dark:bg-purple-950 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
                   2
                 </span>
                 <p>
@@ -85,7 +85,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="bg-purple-100 text-purple-600 dark:text-purple-400 dark:bg-purple-950 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+                <span className="border bg-purple-100 text-purple-600 dark:text-purple-400 dark:bg-purple-950 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
                   3
                 </span>
                 <p>

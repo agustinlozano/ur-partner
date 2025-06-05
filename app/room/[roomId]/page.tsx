@@ -4,6 +4,7 @@ import GradientBackground from "@/components/gradient-background";
 import Link from "next/link";
 import ActiveRoomSaver from "@/components/active-room-saver";
 import CopyRoomId from "@/components/copy-room-id";
+import AudioTrigger from "@/components/audio-trigger";
 
 interface PageProps {
   params: Promise<{ roomId: string }>;
@@ -68,6 +69,9 @@ export default async function RoomDetailPage({
             emoji={decodeURIComponent(searchParamsData.emoji)}
           />
         )}
+
+      {/* Trigger audio playback when landing on a new room */}
+      <AudioTrigger shouldPlay={searchParamsData.new === "true"} />
 
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">

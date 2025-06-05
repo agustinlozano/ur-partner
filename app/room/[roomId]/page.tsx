@@ -205,7 +205,7 @@ export default async function RoomDetailPage({
         <div className="mt-8 text-center">
           <Link
             href="/"
-            className="text-purple-600 hover:text-purple-700 font-medium"
+            className="text-purple-600 hover:text-purple-700 font-medium dark:text-purple-400 dark:hover:text-purple-300"
           >
             ← Back to Home
           </Link>

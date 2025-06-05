@@ -16,11 +16,11 @@ export default function RoomPage() {
         <CreateRoom />
 
         <div className="mt-8 text-center">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-primary/85">
             Already have a room?{" "}
             <a
               href="/join"
-              className="text-purple-600 hover:text-purple-700 font-medium"
+              className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium"
             >
               Join existing room
             </a>

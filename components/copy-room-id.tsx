@@ -51,13 +51,13 @@ export default function CopyRoomId({ roomId }: CopyRoomIdProps) {
         className="bg-gray-50 hover:bg-gray-100 rounded-lg p-4 border-2 border-dashed border-gray-300 hover:border-purple-400 transition-all duration-200 cursor-pointer group"
       >
         <div className="flex items-center justify-center gap-3">
-          <code className="text-2xl font-mono select-none font-bold text-purple-600 group-hover:text-purple-700 transition-colors">
+          <code className="text-2xl font-mono select-none font-bold text-gradient group-hover:text-purple-700 transition-colors">
             {roomId}
           </code>
 
           <div className="text-gray-400 group-hover:text-purple-500 transition-colors">
             {copied ? (
-              <Check className="h-5 w-5 text-green-600" />
+              <Check className="h-5 w-5 text-emerald-600" />
             ) : (
               <Copy className="h-5 w-5" />
             )}
@@ -70,7 +70,7 @@ export default function CopyRoomId({ roomId }: CopyRoomIdProps) {
       </div>
 
       {copied && (
-        <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-sm px-3 py-1 rounded-lg shadow-lg animate-fade-in-out z-10">
+        <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-emerald-200 border border-emerald-400 text-sm px-3 py-1 rounded-lg shadow-lg animate-fade-in-out z-10">
           <div className="flex items-center gap-1">
             <Check className="h-3 w-3" />
             Copied!

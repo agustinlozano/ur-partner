@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50/60 via-purple-200/60 to-blue-50/60">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50/60 via-purple-200/60 to-blue-100/60">
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold mb-6">Imagine ur Partner</h1>

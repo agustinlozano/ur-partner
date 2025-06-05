@@ -2,6 +2,7 @@ import SheetTest from "@/components/sheet-test";
 import Diagnostics from "@/components/diagnostics";
 import GradientBackground from "@/components/gradient-background";
 import Link from "next/link";
+import { enviroment } from "@/lib/env";
 
 export default function Home() {
   return (
@@ -83,13 +84,21 @@ export default function Home() {
 
         {/* Development/Testing section - hidden in production */}
         <div className="mt-16 max-w-2xl mx-auto">
-          <details className="bg-gray-100 border rounded-lg p-4">
+          <details className="bg-secondary/50 border rounded-lg p-4">
             <summary className="cursor-pointer text-primary/75 font-medium">
               🔧 Development Tools
             </summary>
             <div className="mt-4 space-y-4">
-              <Diagnostics />
-              <SheetTest />
+              {enviroment === "test" ? (
+                <>
+                  <Diagnostics />
+                  <SheetTest />
+                </>
+              ) : (
+                <p className="text-red-500 dark:text-red-300">
+                  You must be an admin to see this section.
+                </p>
+              )}
             </div>
           </details>
         </div>

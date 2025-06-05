@@ -9,7 +9,9 @@ export default function Home() {
     <GradientBackground variant="blue">
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-6">Imagine ur Partner</h1>
+          <h1 className="text-5xl font-bold mb-6 sr-only">
+            Imagine ur Partner
+          </h1>
           <p className="text-xl text-primary/75 max-w-3xl mx-auto mb-8">
             Describe your partner's personality through images. Discover how you
             see each other through animals, places, characters, and more.
@@ -20,12 +22,16 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-4">
             <Link
               href="/room"
-              className="block p-6 bg-card/75 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-200 border"
+              className="block p-6 bg-card/75 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 hover:bg-card/90 transition-all duration-300 border group"
             >
               <div className="text-center">
-                <div className="text-4xl mb-3">🖤</div>
-                <h2 className="text-xl font-semibold mb-2">Create Room</h2>
-                <p className="text-primary/75 text-sm">
+                <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
+                  🖤
+                </div>
+                <h2 className="text-xl font-semibold mb-2 group-hover:text-purple-600 transition-colors duration-300">
+                  Create Room
+                </h2>
+                <p className="text-primary/75 text-sm group-hover:text-primary/90 transition-colors duration-300">
                   Start a new personality sharing session with your partner
                 </p>
               </div>
@@ -33,12 +39,16 @@ export default function Home() {
 
             <Link
               href="/join"
-              className="block p-6 bg-card/75 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-200 border"
+              className="block p-6 bg-card/75 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 hover:bg-card/90 transition-all duration-300 border group"
             >
               <div className="text-center">
-                <div className="text-4xl mb-3">🤍</div>
-                <h2 className="text-xl font-semibold mb-2">Join Room</h2>
-                <p className="text-primary/75 text-sm">
+                <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
+                  🤍
+                </div>
+                <h2 className="text-xl font-semibold mb-2 group-hover:text-purple-600 transition-colors duration-300">
+                  Join Room
+                </h2>
+                <p className="text-primary/75 text-sm group-hover:text-primary/90 transition-colors duration-300">
                   Enter an existing room using a room ID from your partner
                 </p>
               </div>

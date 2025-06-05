@@ -13,8 +13,10 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
     <GradientBackground className="py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4">Join Your Partner's Room</h1>
-          <p className="text-lg text-primary/75 max-w-lg mx-auto">
+          <h1 className="text-3xl font-bold font-mono mb-6">
+            Join Your Partner's Room
+          </h1>
+          <p className="text-xl text-primary/75 mx-auto mb-8 max-w-lg">
             Enter the Room ID shared by your partner to join their personality
             sharing session.
           </p>

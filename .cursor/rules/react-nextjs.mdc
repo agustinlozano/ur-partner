@@ -1,0 +1,14 @@
+---
+description: Rules for when working with React & Next.js code
+globs: 
+alwaysApply: false
+---
+    You always use the latest stable versions of React v19, Next.js v14, TailwindCSS, and TS, and you are familiar with the latest features and best practices.
+
+    Technical preferences:
+
+    - Always use new React API (use, useTransition, useOptimistic, useFormStatus, useAcitionState, etc.);
+    - Always use kebab-case for component names (e.g. my-component.tsx);
+    - Always add loading and error states to data fetching components;
+    - Implement error handling and error logging;
+    - Functional component syntax;

@@ -12,16 +12,26 @@ interface ActiveRoom {
 
 export function useActiveRoom() {
   const [activeRoom, setActiveRoom] = useState<ActiveRoom | null>(null);
+  const [forceRefresh, setForceRefresh] = useState(0);
+
+  // Function to refresh the active room state
+  const refreshActiveRoom = useCallback(() => {
+    setForceRefresh((prev) => prev + 1);
+  }, []);
 
   // Memoize setActive and clearActive to prevent infinite loops
   const setActive = useCallback((room: ActiveRoom) => {
     setActiveRoom(room);
     localStorage.setItem("activeRoom", JSON.stringify(room));
+    // Trigger a refresh to ensure all components see the new state
+    setForceRefresh((prev) => prev + 1);
   }, []);
 
   const clearActive = useCallback(() => {
     setActiveRoom(null);
     localStorage.removeItem("activeRoom");
+    // Trigger a refresh to ensure all components see the cleared state
+    setForceRefresh((prev) => prev + 1);
   }, []);
 
   // Function to verify if room still exists on server
@@ -42,7 +52,7 @@ export function useActiveRoom() {
     [clearActive]
   );
 
-  // Load active room from localStorage on mount
+  // Load active room from localStorage on mount and when forceRefresh changes
   useEffect(() => {
     const stored = localStorage.getItem("activeRoom");
     if (stored) {
@@ -61,13 +71,44 @@ export function useActiveRoom() {
         } else {
           // Room expired, clear it
           localStorage.removeItem("activeRoom");
+          setActiveRoom(null);
         }
       } catch (error) {
         console.error("Error loading active room:", error);
         localStorage.removeItem("activeRoom");
+        setActiveRoom(null);
       }
+    } else {
+      setActiveRoom(null);
     }
-  }, [verifyRoomExists]); // Only depend on verifyRoomExists
+  }, [verifyRoomExists, forceRefresh]); // Include forceRefresh as dependency
+
+  // Listen for storage events (when localStorage changes in other tabs/components)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "activeRoom") {
+        refreshActiveRoom();
+      }
+    };
+
+    // Listen for storage events
+    window.addEventListener("storage", handleStorageChange);
+
+    // Also listen for a custom event for same-page localStorage changes
+    const handleCustomStorageChange = () => {
+      refreshActiveRoom();
+    };
+
+    window.addEventListener("activeRoomChanged", handleCustomStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener(
+        "activeRoomChanged",
+        handleCustomStorageChange
+      );
+    };
+  }, [refreshActiveRoom]);
 
   // Compute if room is expired as a memoized value
   const isRoomExpired = useMemo(() => {
@@ -87,5 +128,6 @@ export function useActiveRoom() {
     clearActive,
     isRoomExpired,
     verifyRoomExists,
+    refreshActiveRoom,
   };
 }

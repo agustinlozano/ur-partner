@@ -8,10 +8,16 @@ import { useRouter, usePathname } from "next/navigation";
 import { X, Users, Clock, ChevronUp, ChevronDown } from "lucide-react";
 
 export default function FloatingRoomMenu() {
-  const { activeRoom, clearActive, isRoomExpired } = useActiveRoom();
+  const { activeRoom, clearActive, isRoomExpired, refreshActiveRoom } =
+    useActiveRoom();
   const [isExpanded, setIsExpanded] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+
+  // Refresh active room state when pathname changes
+  useEffect(() => {
+    refreshActiveRoom();
+  }, [pathname, refreshActiveRoom]);
 
   // Check if room is expired and clear it if needed
   useEffect(() => {

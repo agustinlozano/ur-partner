@@ -27,6 +27,9 @@ export default function ActiveRoomSaver({
       emoji,
       created_at: new Date().toISOString(),
     });
+
+    // Dispatch custom event to notify other components about the change
+    window.dispatchEvent(new Event("activeRoomChanged"));
   }, [roomId, role, name, emoji, setActive]);
 
   // This component doesn't render anything

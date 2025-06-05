@@ -222,12 +222,14 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
             style={{ textTransform: "uppercase" }}
           />
 
-          {checkingRoom && (
-            <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
-              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-purple-500"></div>
-              <span>Checking room...</span>
-            </div>
-          )}
+          <div className="mt-2 flex items-center gap-2 text-sm text-gray-500 h-6">
+            {checkingRoom && (
+              <>
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-purple-500"></div>
+                <span>Checking room...</span>
+              </>
+            )}
+          </div>
         </div>
 
         {roomInfo && (

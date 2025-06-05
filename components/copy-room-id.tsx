@@ -80,7 +80,7 @@ export default function CopyRoomId({ roomId }: CopyRoomIdProps) {
       </div>
 
       {copied && (
-        <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-emerald-200 border border-emerald-400 text-sm px-3 py-1 rounded-lg shadow-lg animate-fade-in-out z-10">
+        <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-emerald-200 border border-emerald-400 dark:bg-emerald-950 dark:border-emerald-800 text-sm px-3 py-1 rounded-lg shadow-lg animate-fade-in-out z-10">
           <div className="flex items-center gap-1">
             <Check className="h-3 w-3" />
             Copied!

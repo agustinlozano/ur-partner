@@ -192,8 +192,9 @@ export default function SheetTest() {
 
       <div className="mt-4 text-sm text-gray-500">
         <p>
-          This component is reading from your Google Sheet. Click "Setup/Update
-          Headers" to configure the correct room structure.
+          This component is reading from your Google Sheet. Click
+          &quot;Setup/Update Headers&quot; to configure the correct room
+          structure.
         </p>
       </div>
     </div>

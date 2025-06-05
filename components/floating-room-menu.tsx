@@ -201,8 +201,8 @@ export default function FloatingRoomMenu() {
                       <DialogHeader>
                         <DialogTitle>Leave Room?</DialogTitle>
                         <DialogDescription>
-                          Are you sure you want to leave this room? You'll need
-                          the room ID to rejoin.
+                          Are you sure you want to leave this room? You&apos;ll
+                          need the room ID to rejoin.
                         </DialogDescription>
                       </DialogHeader>
                       <DialogFooter>

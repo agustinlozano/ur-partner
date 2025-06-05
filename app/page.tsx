@@ -14,8 +14,9 @@ export default function Home() {
             Imagine ur Partner
           </h1>
           <p className="text-xl text-primary/75 mx-auto mb-8">
-            Describe your partner's personality through images. Discover how you
-            see each other through animals, places, characters, and more.
+            Describe your partner&apos;s personality through images. Discover
+            how you see each other through animals, places, characters, and
+            more.
           </p>
         </div>
 

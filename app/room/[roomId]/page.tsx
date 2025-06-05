@@ -33,8 +33,8 @@ export default async function RoomDetailPage({
             <div className="text-6xl mb-4">😔</div>
             <h1 className="text-2xl font-bold mb-4">Room Not Found</h1>
             <p className="text-primary/85 mb-6">
-              This room doesn't exist or has expired. Rooms automatically expire
-              after 2.5 hours for privacy.
+              This room doesn&apos;t exist or has expired. Rooms automatically
+              expire after 2.5 hours for privacy.
             </p>
             <Link
               href="/room"

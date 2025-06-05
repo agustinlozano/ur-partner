@@ -14,7 +14,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold font-mono mb-6">
-            Join Your Partner's Room
+            Join Your Partner&apos;s Room
           </h1>
           <p className="text-xl text-primary/75 mx-auto mb-8 max-w-lg">
             Enter the Room ID shared by your partner to join their personality
@@ -26,7 +26,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
 
         <div className="mt-8 text-center space-y-8">
           <p className="text-sm text-primary/75">
-            Don't have a Room ID?{" "}
+            Don&apos;t have a Room ID?{" "}
             <Link
               href="/room"
               className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium"

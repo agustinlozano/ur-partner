@@ -175,8 +175,8 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
               </h3>
               <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
                 You can only be in one room at a time. If you want to join a
-                different room, you'll need to leave your current room first
-                from the room page.
+                different room, you&apos;ll need to leave your current room
+                first from the room page.
               </p>
             </div>
           </div>

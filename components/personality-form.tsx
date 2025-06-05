@@ -123,7 +123,7 @@ export default function Component() {
             Partner Personality Gallery
           </h1>
           <p className="text-muted-foreground mb-4">
-            Upload photos that represent your partner's unique personality
+            Upload photos that represent your partner&apos;s unique personality
           </p>
           <div className="text-sm text-muted-foreground">
             {uploadedCount}/9 categories completed
@@ -248,7 +248,8 @@ export default function Component() {
               Gallery Complete!
             </h3>
             <p className="text-sm text-muted-foreground">
-              You've captured all aspects of your partner's personality.
+              You&apos;ve captured all aspects of your partner&apos;s
+              personality.
             </p>
           </div>
         )}

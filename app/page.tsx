@@ -25,7 +25,7 @@ export default function Home() {
             <Link
               href="/room"
               className={cn(
-                "block p-6 rounded-xl shadow-lg border group",
+                "block p-6 rounded-xl shadow-lg border group select-none",
                 "bg-amber-100/50 dark:bg-amber-900/25 backdrop-blur-sm",
                 "border-amber-400 dark:border-amber-800",
                 "hover:shadow-xl hover:scale-105 transition-all duration-300"
@@ -47,7 +47,7 @@ export default function Home() {
             <Link
               href="/join"
               className={cn(
-                "block p-6 rounded-xl shadow-lg border group",
+                "block p-6 rounded-xl shadow-lg border group select-none",
                 "bg-purple-100/50 dark:bg-purple-900/25 backdrop-blur-sm",
                 "border-purple-400 dark:border-purple-800",
                 "hover:shadow-xl hover:scale-105 transition-all duration-300"
@@ -111,7 +111,7 @@ export default function Home() {
               🔧 Development Tools
             </summary>
             <div className="mt-4 space-y-4">
-              {enviroment === "test" ? (
+              {enviroment === "development" ? (
                 <>
                   <Diagnostics />
                   <SheetTest />

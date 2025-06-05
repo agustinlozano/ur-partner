@@ -6,9 +6,11 @@ import { createRoomAndRedirect } from "@/lib/actions";
 import { Button } from "./ui/button";
 import { capitalize } from "@/lib/utils";
 import EmojiSelector from "./emoji-selector";
+import { useActiveRoom } from "@/hooks/use-active-room";
 
 export default function CreateRoom() {
   const router = useRouter();
+  const { activeRoom, clearActive } = useActiveRoom();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<
@@ -44,6 +46,87 @@ export default function CreateRoom() {
     setSelectedRole(role);
     setSelectedEmoji(""); // Reset emoji when role changes
   };
+
+  // If there's an active room, show it instead of the create form
+  if (activeRoom) {
+    return (
+      <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-lg">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Active Room Found
+          </h1>
+          <p className="text-gray-600 mt-2">
+            You already have an active room in progress
+          </p>
+        </div>
+
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-4">
+          <div className="flex items-start gap-3">
+            <div className="text-blue-500 text-xl">🎯</div>
+            <div>
+              <h3 className="text-sm font-medium text-blue-800">
+                Current Room Details
+              </h3>
+              <div className="mt-2 space-y-1 text-sm text-blue-700">
+                <p>
+                  <strong>Room ID:</strong> {activeRoom.room_id}
+                </p>
+                <p>
+                  <strong>Your Role:</strong>{" "}
+                  {activeRoom.role === "girlfriend"
+                    ? "Girlfriend"
+                    : "Boyfriend"}
+                </p>
+                <p>
+                  <strong>Your Name:</strong> {activeRoom.name}
+                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span>{activeRoom.emoji}</span>
+                  <span>Your Avatar</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <Button
+            onClick={() => router.push(`/room/${activeRoom.room_id}`)}
+            variant="shadow"
+            className="w-full"
+          >
+            Go to Active Room
+          </Button>
+
+          <Button
+            onClick={() => {
+              clearActive();
+              window.location.reload(); // Refresh to show create form
+            }}
+            variant="outline"
+            className="w-full"
+          >
+            Leave Current Room & Create New
+          </Button>
+        </div>
+
+        <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <span className="text-amber-500">⚠️</span>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-amber-800">Note</h3>
+              <p className="mt-1 text-sm text-amber-700">
+                Creating a new room will abandon your current room. Make sure
+                your partner knows before proceeding.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-lg">

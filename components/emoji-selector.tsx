@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 interface EmojiSelectorProps {
   role: "girlfriend" | "boyfriend" | null;
   selectedEmoji: string;
@@ -17,35 +15,8 @@ export default function EmojiSelector({
   name,
   disabled = false,
 }: EmojiSelectorProps) {
-  const girlfriendEmojis = [
-    "👧",
-    "👧🏻",
-    "👧🏼",
-    "👧🏽",
-    "👧🏾",
-    "👧🏿",
-    "👱‍♀️",
-    "👱🏻‍♀️",
-    "👱🏼‍♀️",
-    "👱🏽‍♀️",
-    "👱🏾‍♀️",
-    "👱🏿‍♀️",
-  ];
-
-  const boyfriendEmojis = [
-    "👦",
-    "👦🏻",
-    "👦🏼",
-    "👦🏽",
-    "👦🏾",
-    "👦🏿",
-    "👱‍♂️",
-    "👱🏻‍♂️",
-    "👱🏼‍♂️",
-    "👱🏽‍♂️",
-    "👱🏾‍♂️",
-    "👱🏿‍♂️",
-  ];
+  const girlfriendEmojis = ["👧", "👧🏻", "👧🏼", "👧🏽", "👧🏾", "👧🏿"];
+  const boyfriendEmojis = ["👦", "👦🏻", "👦🏼", "👦🏽", "👦🏾", "👦🏿"];
 
   const getEmojisForRole = () => {
     if (role === "girlfriend") return girlfriendEmojis;

@@ -1,7 +1,13 @@
 import JoinRoom from "@/components/join-room";
 import Link from "next/link";
 
-export default function JoinPage() {
+interface JoinPageProps {
+  searchParams: { room_id?: string };
+}
+
+export default async function JoinPage({ searchParams }: JoinPageProps) {
+  const { room_id } = await searchParams;
+  console.log(room_id);
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50/60 via-purple-200/60 to-blue-50/60 py-12 px-4">
       <div className="max-w-2xl mx-auto">
@@ -13,7 +19,7 @@ export default function JoinPage() {
           </p>
         </div>
 
-        <JoinRoom />
+        <JoinRoom initialRoomId={room_id} />
 
         <div className="mt-8 text-center space-y-2">
           <p className="text-sm text-primary/75">

@@ -1,18 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { joinRoomAndRedirect } from "@/lib/actions";
 import { Button } from "./ui/button";
 import EmojiSelector from "./emoji-selector";
 
-export default function JoinRoom() {
+interface JoinRoomProps {
+  initialRoomId?: string;
+}
+
+export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [roomInfo, setRoomInfo] = useState<any>(null);
   const [checkingRoom, setCheckingRoom] = useState(false);
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
+  const roomIdInputRef = useRef<HTMLInputElement>(null);
+
+  // Pre-complete room ID if provided and check it automatically
+  useEffect(() => {
+    if (initialRoomId && roomIdInputRef.current) {
+      const formattedRoomId = initialRoomId.toUpperCase();
+      roomIdInputRef.current.value = formattedRoomId;
+      checkRoom(formattedRoomId);
+    }
+  }, [initialRoomId]);
 
   const checkRoom = async (roomId: string) => {
     if (!roomId.trim()) {
@@ -107,6 +121,7 @@ export default function JoinRoom() {
             Room ID
           </label>
           <input
+            ref={roomIdInputRef}
             type="text"
             id="roomId"
             name="roomId"
@@ -130,7 +145,7 @@ export default function JoinRoom() {
         {roomInfo && (
           <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-start gap-3">
-              <div className="text-green-500 text-lg">✅</div>
+              <div className="text-green-500 text-xl">✅</div>
               <div>
                 <h3 className="text-sm font-medium text-green-800">
                   Room Found!
@@ -139,14 +154,12 @@ export default function JoinRoom() {
                   <p>
                     <strong>Participants:</strong>
                   </p>
-                  <div className="grid grid-cols-2 gap-2 mt-1">
+                  <div className="flex flex-col gap-2 mt-1">
                     <div className="flex items-center gap-2">
-                      <span>{roomInfo.girlfriend_emoji || "💕"}</span>
-                      <span>{roomInfo.girlfriend_name || "Waiting..."}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span>{roomInfo.boyfriend_emoji || "💙"}</span>
-                      <span>{roomInfo.boyfriend_name || "Waiting..."}</span>
+                      <span>{roomInfo.boyfriend_emoji || "💕"}</span>
+                      <span>
+                        {roomInfo.girlfriend_name || roomInfo.boyfriend_name}
+                      </span>
                     </div>
                   </div>
                   {missingRole && (

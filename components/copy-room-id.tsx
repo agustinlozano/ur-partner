@@ -58,7 +58,7 @@ export default function CopyRoomId({ roomId }: CopyRoomIdProps) {
     <div className="relative mb-4">
       <div
         onClick={copyToClipboard}
-        className="bg-gray-50 hover:bg-gray-100 rounded-lg p-4 border-2 border-dashed border-gray-300 hover:border-purple-400 transition-all duration-200 cursor-pointer group"
+        className="bg-primary/5 hover:bg-primary/10 rounded-lg p-4 border-2 border-dashed hover:border-purple-400 transition-all duration-200 cursor-pointer group"
       >
         <div className="flex items-center justify-center gap-3">
           <code className="text-2xl font-mono select-none font-bold text-gradient group-hover:text-purple-700 transition-colors">
@@ -74,7 +74,7 @@ export default function CopyRoomId({ roomId }: CopyRoomIdProps) {
           </div>
         </div>
 
-        <p className="text-xs select-none text-gray-500 text-center mt-2 group-hover:text-gray-600 transition-colors">
+        <p className="text-xs select-none text-primary/60 text-center mt-2 group-hover:text-primary/90 transition-colors">
           {copied ? "Copied to clipboard!" : "Click to copy to clipboard"}
         </p>
       </div>

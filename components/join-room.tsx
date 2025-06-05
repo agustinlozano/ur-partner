@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { joinRoomAndRedirect } from "@/lib/actions";
 import { Button } from "./ui/button";
 import EmojiSelector from "./emoji-selector";
+import { useActiveRoom } from "@/hooks/use-active-room";
+import { capitalize } from "@/lib/utils";
 
 interface JoinRoomProps {
   initialRoomId?: string;
@@ -12,6 +14,7 @@ interface JoinRoomProps {
 
 export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
   const router = useRouter();
+  const { activeRoom } = useActiveRoom();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [roomInfo, setRoomInfo] = useState<any>(null);
@@ -32,6 +35,17 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
     if (!roomId.trim()) {
       setRoomInfo(null);
       setSelectedEmoji(""); // Reset emoji when room changes
+      return;
+    }
+
+    // Check if trying to join the same room that's already active
+    if (
+      activeRoom &&
+      roomId.toUpperCase() === activeRoom.room_id.toUpperCase()
+    ) {
+      setRoomInfo(null);
+      setError("You are already in this room! Go to your active room instead.");
+      setSelectedEmoji("");
       return;
     }
 
@@ -74,6 +88,9 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
     setIsLoading(true);
     setError(null);
 
+    const name = formData.get("name") as string;
+    formData.set("name", capitalize(name));
+
     try {
       const result = await joinRoomAndRedirect(formData);
 
@@ -96,6 +113,77 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
       ? "boyfriend"
       : null
     : null;
+
+  // If there's an active room, show it prominently
+  if (activeRoom) {
+    return (
+      <div className="max-w-md mx-auto p-6 bg-card/60 rounded-xl shadow-lg">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold">Active Room Found</h1>
+          <p className="text-primary/85 mt-2">
+            You already have an active room in progress
+          </p>
+        </div>
+
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-4 dark:bg-blue-950 dark:border-blue-800">
+          <div className="flex items-start gap-3">
+            <div className="text-blue-500 text-xl">🎯</div>
+            <div>
+              <h3 className="text-sm font-medium text-blue-800 dark:text-blue-300">
+                Current Room Details
+              </h3>
+              <div className="mt-2 space-y-1 text-sm text-blue-700 dark:text-blue-300">
+                <p>
+                  <strong>Room ID:</strong> {activeRoom.room_id}
+                </p>
+                <p>
+                  <strong>Your Role:</strong>{" "}
+                  {activeRoom.role === "girlfriend"
+                    ? "Girlfriend"
+                    : "Boyfriend"}
+                </p>
+                <p>
+                  <strong>Your Name:</strong> {activeRoom.name}
+                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span>{activeRoom.emoji}</span>
+                  <span>Your Avatar</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3 mb-6">
+          <Button
+            onClick={() => router.push(`/room/${activeRoom.room_id}`)}
+            variant="shadow"
+            className="w-full"
+          >
+            Go to Active Room
+          </Button>
+        </div>
+
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg dark:bg-amber-950 dark:border-amber-800">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <span className="text-amber-500">⚠️</span>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-400">
+                Want to Join a Different Room?
+              </h3>
+              <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                You can only be in one room at a time. If you want to join a
+                different room, you'll need to leave your current room first
+                from the room page.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto p-6 bg-card/60 rounded-xl shadow-lg">

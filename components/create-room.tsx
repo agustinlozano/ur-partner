@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState, useOptimistic, useTransition } from "react";
+import { useState, useActionState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createRoomAndRedirect } from "@/lib/actions";

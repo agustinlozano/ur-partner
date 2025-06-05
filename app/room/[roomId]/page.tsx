@@ -185,7 +185,10 @@ export default async function RoomDetailPage({
             <div>
               <span className="text-gray-500">Created:</span>
               <span className="ml-2">
-                {new Date(room.created_at).toLocaleString()}
+                {new Date(room.created_at).toLocaleString("en-US", {
+                  dateStyle: "long",
+                  timeStyle: "short",
+                })}
               </span>
             </div>
             <div>
@@ -201,7 +204,10 @@ export default async function RoomDetailPage({
               <span className="ml-2">
                 {new Date(
                   new Date(room.created_at).getTime() + 2.5 * 60 * 60 * 1000
-                ).toLocaleString()}
+                ).toLocaleString("en-US", {
+                  dateStyle: "long",
+                  timeStyle: "short",
+                })}
               </span>
             </div>
           </div>

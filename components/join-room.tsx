@@ -243,12 +243,24 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
                     <strong>Participants:</strong>
                   </p>
                   <div className="flex flex-col gap-2 mt-1">
-                    <div className="flex items-center gap-2">
-                      <span>{roomInfo.boyfriend_emoji || "💕"}</span>
-                      <span>
-                        {roomInfo.girlfriend_name || roomInfo.boyfriend_name}
-                      </span>
-                    </div>
+                    {roomInfo.girlfriend_name && (
+                      <div className="flex items-center gap-2">
+                        <span>{roomInfo.girlfriend_emoji || "💕"}</span>
+                        <span>{roomInfo.girlfriend_name}</span>
+                        <span className="text-xs text-green-600 dark:text-green-400">
+                          (Girlfriend)
+                        </span>
+                      </div>
+                    )}
+                    {roomInfo.boyfriend_name && (
+                      <div className="flex items-center gap-2">
+                        <span>{roomInfo.boyfriend_emoji || "💙"}</span>
+                        <span>{roomInfo.boyfriend_name}</span>
+                        <span className="text-xs text-green-600 dark:text-green-400">
+                          (Boyfriend)
+                        </span>
+                      </div>
+                    )}
                   </div>
                   {missingRole && (
                     <div className="mt-2 p-2 bg-blue-100 rounded border border-blue-200 dark:bg-blue-950 dark:border-blue-800">

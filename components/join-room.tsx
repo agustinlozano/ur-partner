@@ -119,7 +119,7 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
     return (
       <div className="max-w-md mx-auto p-6 bg-card/60 rounded-xl shadow-lg">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold">Active Room Found</h1>
+          <h1 className="text-2xl font-bold font-mono">Active Room Found</h1>
           <p className="text-primary/85 mt-2">
             You already have an active room in progress
           </p>

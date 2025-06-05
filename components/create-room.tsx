@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useActionState, useOptimistic, useTransition } from "react";
+import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createRoomAndRedirect } from "@/lib/actions";
 import { Button } from "./ui/button";
@@ -8,39 +9,80 @@ import { capitalize } from "@/lib/utils";
 import EmojiSelector from "./emoji-selector";
 import { useActiveRoom } from "@/hooks/use-active-room";
 
+// Componente moderno para el botón usando useFormStatus
+function SubmitButton({
+  selectedRole,
+  selectedEmoji,
+}: {
+  selectedRole: "girlfriend" | "boyfriend" | null;
+  selectedEmoji: string;
+}) {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button
+      type="submit"
+      variant="shadow"
+      disabled={pending || !selectedRole || !selectedEmoji}
+      className="w-full"
+    >
+      {pending ? (
+        <div className="flex items-center justify-center gap-2">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          Creating Room...
+        </div>
+      ) : !selectedRole ? (
+        "Select Your Role"
+      ) : !selectedEmoji ? (
+        "Choose Your Avatar"
+      ) : (
+        "Create Room"
+      )}
+    </Button>
+  );
+}
+
 export default function CreateRoom() {
   const router = useRouter();
   const { activeRoom, clearActive } = useActiveRoom();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
   const [selectedRole, setSelectedRole] = useState<
     "girlfriend" | "boyfriend" | null
   >(null);
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
 
-  const handleSubmit = async (formData: FormData) => {
-    setIsLoading(true);
-    setError(null);
+  // Action moderna con useActionState
+  const [state, formAction] = useActionState(
+    async (prevState: any, formData: FormData) => {
+      try {
+        const name = formData.get("name") as string;
+        const capitalizedName = capitalize(name);
+        formData.set("name", capitalizedName);
 
-    const name = formData.get("name") as string;
-    const capitalizedName = capitalize(name);
+        const result = await createRoomAndRedirect(formData);
 
-    formData.set("name", capitalizedName);
-
-    try {
-      const result = await createRoomAndRedirect(formData);
-
-      if (result.success && result.redirectUrl) {
-        router.push(result.redirectUrl);
-      } else {
-        setError(result.error || "Failed to create room");
-        setIsLoading(false);
+        if (result.success && result.redirectUrl) {
+          startTransition(() => {
+            router.push(result.redirectUrl);
+          });
+          return { success: true, error: null };
+        } else {
+          return {
+            success: false,
+            error: result.error || "Failed to create room",
+          };
+        }
+      } catch (err) {
+        console.error("Error creating room:", err);
+        return {
+          success: false,
+          error: err instanceof Error ? err.message : "Unknown error occurred",
+        };
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error occurred");
-      setIsLoading(false);
-    }
-  };
+    },
+    { success: false, error: null }
+  );
 
   const handleRoleChange = (role: "girlfriend" | "boyfriend") => {
     setSelectedRole(role);
@@ -137,13 +179,15 @@ export default function CreateRoom() {
         </p>
       </div>
 
-      {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-700 text-sm">{error}</p>
+      {state.error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg dark:bg-red-950 dark:border-red-800">
+          <p className="text-red-700 text-sm dark:text-red-300">
+            {state.error}
+          </p>
         </div>
       )}
 
-      <form action={handleSubmit} className="space-y-4">
+      <form action={formAction} className="space-y-4">
         <div>
           <label
             htmlFor="name"
@@ -156,7 +200,7 @@ export default function CreateRoom() {
             id="name"
             name="name"
             required
-            disabled={isLoading}
+            disabled={isPending}
             className="w-full px-3 py-2 border bg-primary/5 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             placeholder="Enter your name"
           />
@@ -173,7 +217,7 @@ export default function CreateRoom() {
                 name="role"
                 value="girlfriend"
                 required
-                disabled={isLoading}
+                disabled={isPending}
                 onChange={() => handleRoleChange("girlfriend")}
                 className="h-4 w-4 text-pink-600 focus:ring-pink-500 disabled:cursor-not-allowed"
               />
@@ -187,7 +231,7 @@ export default function CreateRoom() {
                 name="role"
                 value="boyfriend"
                 required
-                disabled={isLoading}
+                disabled={isPending}
                 onChange={() => handleRoleChange("boyfriend")}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed"
               />
@@ -202,29 +246,14 @@ export default function CreateRoom() {
             selectedEmoji={selectedEmoji}
             onEmojiSelect={setSelectedEmoji}
             name="emoji"
-            disabled={isLoading}
+            disabled={isPending}
           />
         )}
 
-        <Button
-          type="submit"
-          variant="shadow"
-          disabled={isLoading || !selectedRole || !selectedEmoji}
-          className="w-full"
-        >
-          {isLoading ? (
-            <div className="flex items-center justify-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              Creating Room...
-            </div>
-          ) : !selectedRole ? (
-            "Select Your Role"
-          ) : !selectedEmoji ? (
-            "Choose Your Avatar"
-          ) : (
-            "Create Room"
-          )}
-        </Button>
+        <SubmitButton
+          selectedRole={selectedRole}
+          selectedEmoji={selectedEmoji}
+        />
       </form>
 
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-950 dark:border-blue-800">

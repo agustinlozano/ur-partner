@@ -8,7 +8,7 @@ interface JoinPageProps {
 
 export default async function JoinPage({ searchParams }: JoinPageProps) {
   const { room_id } = await searchParams;
-  console.log(room_id);
+
   return (
     <GradientBackground className="py-12 px-4">
       <div className="max-w-2xl mx-auto">

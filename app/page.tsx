@@ -3,32 +3,38 @@ import Diagnostics from "@/components/diagnostics";
 import GradientBackground from "@/components/gradient-background";
 import Link from "next/link";
 import { enviroment } from "@/lib/env";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   return (
     <GradientBackground variant="blue">
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-12 max-w-2xl">
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-6 sr-only">
+          <h1 className="text-4xl font-bold mb-6 font-mono">
             Imagine ur Partner
           </h1>
-          <p className="text-xl text-primary/75 max-w-3xl mx-auto mb-8">
+          <p className="text-xl text-primary/75 mx-auto mb-8">
             Describe your partner's personality through images. Discover how you
             see each other through animals, places, characters, and more.
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="mx-auto space-y-6">
           <div className="grid md:grid-cols-2 gap-4">
             <Link
               href="/room"
-              className="block p-6 bg-card/75 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 hover:bg-card/90 transition-all duration-300 border group"
+              className={cn(
+                "block p-6 rounded-xl shadow-lg border group",
+                "bg-amber-100/50 dark:bg-amber-900/25 backdrop-blur-sm",
+                "border-amber-400 dark:border-amber-800",
+                "hover:shadow-xl hover:scale-105 transition-all duration-300"
+              )}
             >
               <div className="text-center">
                 <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
                   🖤
                 </div>
-                <h2 className="text-xl font-semibold mb-2 group-hover:text-purple-600 transition-colors duration-300">
+                <h2 className="text-xl font-semibold mb-2 group-hover:text-amber-600 transition-colors duration-300">
                   Create Room
                 </h2>
                 <p className="text-primary/75 text-sm group-hover:text-primary/90 transition-colors duration-300">
@@ -39,7 +45,12 @@ export default function Home() {
 
             <Link
               href="/join"
-              className="block p-6 bg-card/75 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 hover:bg-card/90 transition-all duration-300 border group"
+              className={cn(
+                "block p-6 rounded-xl shadow-lg border group",
+                "bg-purple-100/50 dark:bg-purple-900/25 backdrop-blur-sm",
+                "border-purple-400 dark:border-purple-800",
+                "hover:shadow-xl hover:scale-105 transition-all duration-300"
+              )}
             >
               <div className="text-center">
                 <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">

@@ -50,7 +50,7 @@ export default function CreateRoom() {
   // If there's an active room, show it instead of the create form
   if (activeRoom) {
     return (
-      <div className="max-w-md mx-auto p-6 bg-card rounded-xl shadow-lg">
+      <div className="max-w-md mx-auto p-6 bg-card rounded-xl shadow-lg border">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold">Active Room Found</h1>
           <p className="text-primary/85 mt-2">
@@ -129,7 +129,7 @@ export default function CreateRoom() {
   }
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-card/60 rounded-xl shadow-lg">
+    <div className="max-w-md mx-auto p-6 bg-card/60 rounded-xl shadow-lg border">
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold">Create a Room</h1>
         <p className="text-primary/85 mt-2">

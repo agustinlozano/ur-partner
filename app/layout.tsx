@@ -42,8 +42,8 @@ export default function RootLayout({
                 "dark:bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)]"
               )}
             ></div>
-            <div className="absolute bottom-0 left-0 right-0 top-0 bg-gradient-to-br from-indigo-950/20 via-transparent to-purple-950/20"></div>
-            <div className="absolute bottom-0 left-0 right-0 top-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.15),transparent)]"></div>
+            {/* <div className="absolute bottom-0 left-0 right-0 top-0 bg-gradient-to-br from-indigo-950/20 via-transparent to-purple-950/20"></div>
+            <div className="absolute bottom-0 left-0 right-0 top-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.15),transparent)]"></div> */}
             <div className="relative z-10">{children}</div>
             <FloatingRoomMenu />
             <ThemeToggleButton />

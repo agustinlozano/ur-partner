@@ -196,9 +196,9 @@ export default function PersonalityForm({
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-muted rounded-full h-1 mb-8">
+        <div className="w-full bg-muted rounded-full h-2 mb-8 border">
           <div
-            className="bg-foreground h-1 rounded-full transition-all duration-300"
+            className="bg-foreground h-2 rounded-full transition-all duration-300"
             style={{ width: `${(uploadedCount / 9) * 100}%` }}
           ></div>
         </div>
@@ -300,7 +300,7 @@ export default function PersonalityForm({
                 size="lg"
                 onClick={handleReady}
                 disabled={!isComplete}
-                className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+                variant={"shadow"}
               >
                 {isComplete
                   ? "Ready! 🎉"

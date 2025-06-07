@@ -44,7 +44,7 @@ export default function EmojiSelector({
             disabled={disabled}
             onClick={() => onEmojiSelect(emoji)}
             className={`
-              p-1 md:p-3 text-2xl rounded-lg border-2 transition-all duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50
+              p-1 md:p-2 text-2xl rounded-lg border-2 transition-all duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50
               ${
                 selectedEmoji === emoji
                   ? "border-purple-300 dark:border-purple-500 bg-purple-100 shadow-md dark:bg-purple-950"

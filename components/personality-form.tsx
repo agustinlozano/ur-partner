@@ -286,7 +286,7 @@ export default function PersonalityForm({
                   <Card
                     key={category.id}
                     tabIndex={0}
-                    className={`group transition-all duration-200 hover:shadow-md focus:ring-2 focus:ring-foreground/20 focus:outline-none ${
+                    className={`group transition-all duration-200 select-none hover:shadow-md focus:ring-2 focus:ring-foreground/20 focus:outline-none ${
                       hasImage
                         ? "border-foreground/20 bg-muted/50"
                         : isDraggedOver

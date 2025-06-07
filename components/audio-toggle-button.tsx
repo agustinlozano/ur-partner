@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { useAudio } from "@/components/audio-provider";
 
 export default function AudioToggleButton() {
-  const { isMuted, isPlaying, toggleMute } = useAudio();
+  const { mounted, isMuted, isPlaying, toggleMute, play } = useAudio();
 
-  if (!isPlaying) {
+  if (!mounted) {
     return null;
   }
 
@@ -15,7 +15,13 @@ export default function AudioToggleButton() {
       <Button
         variant="outline"
         size="icon"
-        onClick={toggleMute}
+        onClick={() => {
+          if (isPlaying) {
+            toggleMute();
+          } else {
+            play();
+          }
+        }}
         className="w-10 h-10 rounded-full bg-background/80 backdrop-blur-sm border-border/50 hover:bg-background/90"
         title={isMuted ? "Unmute audio" : "Mute audio"}
       >

@@ -6,14 +6,16 @@ interface AudioPlayerState {
   isPlaying: boolean;
   isMuted: boolean;
   volume: number;
+  mounted: boolean;
 }
 
 export function useAudioPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [state, setState] = useState<AudioPlayerState>({
     isPlaying: false,
-    isMuted: false,
-    volume: 0.5,
+    isMuted: true,
+    volume: 0.05,
+    mounted: false,
   });
 
   const initializeAudio = useCallback(
@@ -35,15 +37,15 @@ export function useAudioPlayer() {
   );
 
   const play = useCallback(async () => {
-    if (audioRef.current && !state.isMuted) {
+    if (audioRef.current && state.isMuted) {
       try {
         await audioRef.current.play();
-        setState((prev) => ({ ...prev, isPlaying: true }));
+        setState((prev) => ({ ...prev, isPlaying: true, isMuted: false }));
       } catch (error) {
         console.log("Audio play failed:", error);
       }
     }
-  }, [state.isMuted]);
+  }, []);
 
   const pause = useCallback(() => {
     if (audioRef.current) {
@@ -77,6 +79,12 @@ export function useAudioPlayer() {
     }
   }, []);
 
+  const mount = useCallback(async () => {
+    if (audioRef.current) {
+      setState((prev) => ({ ...prev, mounted: true }));
+    }
+  }, []);
+
   // Cleanup audio on unmount
   useEffect(() => {
     return () => {
@@ -94,5 +102,6 @@ export function useAudioPlayer() {
     pause,
     toggleMute,
     setVolume,
+    mount,
   };
 }

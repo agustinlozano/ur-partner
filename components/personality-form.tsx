@@ -162,7 +162,7 @@ export default function PersonalityForm({
 
   return (
     <GradientBackground className="min-h-screen p-4">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto pb-24">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <Button
@@ -193,14 +193,6 @@ export default function PersonalityForm({
           <div className="text-sm text-muted-foreground">
             {uploadedCount}/9 categories completed
           </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="w-full bg-muted rounded-full h-2 mb-8 border">
-          <div
-            className="bg-foreground h-2 rounded-full transition-all duration-300"
-            style={{ width: `${(uploadedCount / 9) * 100}%` }}
-          ></div>
         </div>
 
         {!isReady ? (
@@ -353,6 +345,23 @@ export default function PersonalityForm({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Fixed Progress Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 px-6 py-2 pb-4 bg-background/95 backdrop-blur-sm border-t">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-end mb-2">
+            <span className="text-xs text-muted-foreground">
+              {uploadedCount}/9
+            </span>
+          </div>
+          <div className="w-full bg-muted rounded-full h-3 border">
+            <div
+              className="bg-foreground h-3 rounded-full transition-all duration-300"
+              style={{ width: `${(uploadedCount / 9) * 100}%` }}
+            ></div>
+          </div>
+        </div>
       </div>
     </GradientBackground>
   );

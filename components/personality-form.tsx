@@ -40,7 +40,7 @@ const categories = [
     id: "character",
     name: "Character",
     icon: User,
-    description: "Fictional inspiration",
+    description: "Fictional inspiration (up to 5)",
   },
   {
     id: "season",
@@ -78,9 +78,9 @@ export default function PersonalityForm({
   roomId,
   onBack,
 }: PersonalityFormProps) {
-  const [uploadedImages, setUploadedImages] = useState<Record<string, string>>(
-    {}
-  );
+  const [uploadedImages, setUploadedImages] = useState<
+    Record<string, string | string[]>
+  >({});
   const [dragOver, setDragOver] = useState<string | null>(null);
   const [focusedCard, setFocusedCard] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -117,10 +117,27 @@ export default function PersonalityForm({
     if (file && file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setUploadedImages((prev) => ({
-          ...prev,
-          [categoryId]: e.target?.result as string,
-        }));
+        const newImageUrl = e.target?.result as string;
+
+        setUploadedImages((prev) => {
+          if (categoryId === "character") {
+            // For character category, support up to 5 images
+            const currentImages = (prev[categoryId] as string[]) || [];
+            if (currentImages.length < 5) {
+              return {
+                ...prev,
+                [categoryId]: [...currentImages, newImageUrl],
+              };
+            }
+            return prev; // Don't add if already 5 images
+          } else {
+            // For other categories, single image
+            return {
+              ...prev,
+              [categoryId]: newImageUrl,
+            };
+          }
+        });
       };
       reader.readAsDataURL(file);
     }
@@ -184,10 +201,26 @@ export default function PersonalityForm({
     }
   };
 
-  const removeImage = (categoryId: string) => {
+  const removeImage = (categoryId: string, imageIndex?: number) => {
     setUploadedImages((prev) => {
       const newImages = { ...prev };
-      delete newImages[categoryId];
+
+      if (categoryId === "character" && typeof imageIndex === "number") {
+        // For character category, remove specific image by index
+        const currentImages = (prev[categoryId] as string[]) || [];
+        const updatedImages = currentImages.filter(
+          (_, index) => index !== imageIndex
+        );
+        if (updatedImages.length === 0) {
+          delete newImages[categoryId];
+        } else {
+          newImages[categoryId] = updatedImages;
+        }
+      } else {
+        // For other categories, remove the single image
+        delete newImages[categoryId];
+      }
+
       return newImages;
     });
   };
@@ -241,6 +274,13 @@ export default function PersonalityForm({
                 const Icon = category.icon;
                 const hasImage = uploadedImages[category.id];
                 const isDraggedOver = dragOver === category.id;
+                const isCharacterCategory = category.id === "character";
+                const characterImages = isCharacterCategory
+                  ? (uploadedImages[category.id] as string[]) || []
+                  : [];
+                const canAddMore = isCharacterCategory
+                  ? characterImages.length < 5
+                  : !hasImage;
 
                 return (
                   <Card
@@ -292,25 +332,75 @@ export default function PersonalityForm({
                         onDragLeave={handleDragLeave}
                       >
                         {hasImage ? (
-                          <div className="relative aspect-square">
-                            <Image
-                              src={
-                                uploadedImages[category.id] ||
-                                "/placeholder.svg"
-                              }
-                              alt={`${category.name} image`}
-                              fill
-                              className="object-cover rounded-md"
-                            />
-                            <Button
-                              variant="destructive"
-                              size="icon"
-                              className="absolute top-2 right-2 w-5 h-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => removeImage(category.id)}
-                            >
-                              <X className="w-3 h-3" />
-                            </Button>
-                          </div>
+                          isCharacterCategory ? (
+                            // Multiple images for character category
+                            <div className="grid grid-cols-2 gap-2 p-2">
+                              {characterImages.map((imageUrl, index) => (
+                                <div
+                                  key={index}
+                                  className="relative aspect-square"
+                                >
+                                  <Image
+                                    src={imageUrl || "/placeholder.svg"}
+                                    alt={`${category.name} image ${index + 1}`}
+                                    fill
+                                    className="object-cover rounded-md"
+                                  />
+                                  <Button
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute top-1 right-1 w-4 h-4 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() =>
+                                      removeImage(category.id, index)
+                                    }
+                                  >
+                                    <X className="w-2 h-2" />
+                                  </Button>
+                                </div>
+                              ))}
+                              {canAddMore && (
+                                <label className="aspect-square border border-dashed border-border rounded-md flex items-center justify-center cursor-pointer hover:border-foreground/30 transition-colors">
+                                  <div className="text-center">
+                                    <Upload className="w-4 h-4 mx-auto mb-1 text-muted-foreground" />
+                                    <span className="text-xs text-muted-foreground">
+                                      {characterImages.length}/5
+                                    </span>
+                                  </div>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file)
+                                        handleFileUpload(category.id, file);
+                                    }}
+                                  />
+                                </label>
+                              )}
+                            </div>
+                          ) : (
+                            // Single image for other categories
+                            <div className="relative aspect-square">
+                              <Image
+                                src={
+                                  (uploadedImages[category.id] as string) ||
+                                  "/placeholder.svg"
+                                }
+                                alt={`${category.name} image`}
+                                fill
+                                className="object-cover rounded-md"
+                              />
+                              <Button
+                                variant="destructive"
+                                size="icon"
+                                className="absolute top-2 right-2 w-5 h-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => removeImage(category.id)}
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          )
                         ) : (
                           <label className="flex flex-col items-center justify-center aspect-square cursor-pointer p-4">
                             <Upload className="w-6 h-6 mb-2 text-muted-foreground" />

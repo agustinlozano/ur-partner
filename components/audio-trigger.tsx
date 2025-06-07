@@ -10,18 +10,16 @@ interface AudioTriggerProps {
 export default function AudioTrigger({
   shouldPlay = false,
 }: AudioTriggerProps) {
-  const { play } = useAudio();
+  const { mount } = useAudio();
 
   useEffect(() => {
     if (shouldPlay) {
       // Add a small delay to ensure smooth user experience
-      const timer = setTimeout(() => {
-        play().catch(console.log);
-      }, 500);
+      const timer = setTimeout(() => mount(), 500);
 
       return () => clearTimeout(timer);
     }
-  }, [shouldPlay, play]);
+  }, [shouldPlay, mount]);
 
-  return null; // This component doesn't render anything
+  return null;
 }

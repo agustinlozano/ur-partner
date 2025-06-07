@@ -7,7 +7,9 @@ interface AudioContextType {
   isPlaying: boolean;
   isMuted: boolean;
   volume: number;
+  mounted: boolean;
   initializeAudio: (audioSrc: string) => void;
+  mount: () => Promise<void>;
   play: () => Promise<void>;
   pause: () => void;
   toggleMute: () => void;

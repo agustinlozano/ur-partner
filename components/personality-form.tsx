@@ -82,12 +82,13 @@ export default function PersonalityForm({
     {}
   );
   const [dragOver, setDragOver] = useState<string | null>(null);
+  const [focusedCard, setFocusedCard] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [currentUser, setCurrentUser] = useState<string>("");
 
   // Load current user info from localStorage
   useEffect(() => {
-    const userData = localStorage.getItem(`room_${roomId}_user`);
+    const userData = localStorage.getItem("activeRoom");
     if (userData) {
       const user = JSON.parse(userData);
       setCurrentUser(user.name || "You");
@@ -143,6 +144,46 @@ export default function PersonalityForm({
     setDragOver(null);
   };
 
+  const handlePaste = async (e: React.ClipboardEvent, categoryId: string) => {
+    e.preventDefault();
+
+    try {
+      const clipboardItems = await navigator.clipboard.read();
+
+      for (const clipboardItem of clipboardItems) {
+        for (const type of clipboardItem.types) {
+          if (type.startsWith("image/")) {
+            const blob = await clipboardItem.getType(type);
+            const file = new File(
+              [blob],
+              `pasted-image.${type.split("/")[1]}`,
+              { type }
+            );
+            handleFileUpload(categoryId, file);
+            return;
+          }
+        }
+      }
+
+      // Fallback: check clipboard data from the event
+      const items = e.clipboardData?.items;
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          if (item.type.startsWith("image/")) {
+            const file = item.getAsFile();
+            if (file) {
+              handleFileUpload(categoryId, file);
+              return;
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.log("Paste not supported or no image in clipboard");
+    }
+  };
+
   const removeImage = (categoryId: string) => {
     setUploadedImages((prev) => {
       const newImages = { ...prev };
@@ -190,9 +231,6 @@ export default function PersonalityForm({
           <p className="text-muted-foreground mb-4">
             Upload photos that represent your partner&apos;s unique personality
           </p>
-          <div className="text-sm text-muted-foreground">
-            {uploadedCount}/9 categories completed
-          </div>
         </div>
 
         {!isReady ? (
@@ -207,20 +245,26 @@ export default function PersonalityForm({
                 return (
                   <Card
                     key={category.id}
-                    className={`group transition-all duration-200 hover:shadow-md ${
+                    tabIndex={0}
+                    className={`group transition-all duration-200 hover:shadow-md focus:ring-2 focus:ring-foreground/20 focus:outline-none ${
                       hasImage
                         ? "border-foreground/20 bg-muted/50"
                         : isDraggedOver
                         ? "border-foreground/40 bg-muted"
+                        : focusedCard === category.id
+                        ? "border-foreground/30"
                         : "border-border hover:border-foreground/30"
                     }`}
+                    onFocus={() => setFocusedCard(category.id)}
+                    onBlur={() => setFocusedCard(null)}
+                    onPaste={(e) => handlePaste(e, category.id)}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 rounded-md bg-muted">
                           <Icon className="w-4 h-4 text-muted-foreground" />
                         </div>
-                        <div>
+                        <div className="flex-1">
                           <h3 className="font-medium text-foreground">
                             {category.name}
                           </h3>
@@ -228,6 +272,11 @@ export default function PersonalityForm({
                             {category.description}
                           </p>
                         </div>
+                        {focusedCard === category.id && (
+                          <div className="text-xs text-muted-foreground bg-foreground/10 px-2 py-1 rounded">
+                            ⌘V to paste
+                          </div>
+                        )}
                       </div>
 
                       <div

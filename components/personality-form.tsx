@@ -95,23 +95,23 @@ export default function PersonalityForm({
     }
 
     // Load saved images from localStorage
-    const savedImages = localStorage.getItem(
-      `room_${roomId}_images_${currentUser}`
-    );
-    if (savedImages) {
-      setUploadedImages(JSON.parse(savedImages));
-    }
+    // const savedImages = localStorage.getItem(
+    //   `room_${roomId}_images_${currentUser}`
+    // );
+    // if (savedImages) {
+    //   setUploadedImages(JSON.parse(savedImages));
+    // }
   }, [roomId, currentUser]);
 
   // Save images to localStorage whenever they change
-  useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem(
-        `room_${roomId}_images_${currentUser}`,
-        JSON.stringify(uploadedImages)
-      );
-    }
-  }, [uploadedImages, roomId, currentUser]);
+  // useEffect(() => {
+  //   if (currentUser) {
+  //     localStorage.setItem(
+  //       `room_${roomId}_images_${currentUser}`,
+  //       JSON.stringify(uploadedImages)
+  //     );
+  //   }
+  // }, [uploadedImages, roomId, currentUser]);
 
   const handleFileUpload = (categoryId: string, file: File) => {
     if (file && file.type.startsWith("image/")) {

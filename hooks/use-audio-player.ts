@@ -14,7 +14,7 @@ export function useAudioPlayer() {
   const [state, setState] = useState<AudioPlayerState>({
     isPlaying: false,
     isMuted: true,
-    volume: 0.05,
+    volume: 0.02,
     mounted: false,
   });
 

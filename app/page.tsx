@@ -11,7 +11,7 @@ export default function Home() {
     <GradientBackground variant="blue">
       <div className="container mx-auto px-4 py-12 max-w-2xl">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-6 font-mono">
+          <h1 className="text-4xl font-bold mb-6 font-mono text-gradient">
             Imagine ur Partner
           </h1>
           <p className="text-xl text-primary/75 mx-auto mb-8">

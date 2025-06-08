@@ -15,18 +15,25 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
     total: 9,
     isReady: false,
   });
+  const [currentUserReady, setCurrentUserReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [userRole, setUserRole] = useState<string>("");
+  const [isRevealing, setIsRevealing] = useState(false);
 
-  // Get user role from localStorage
+  // Get user role and check if current user is ready
   useEffect(() => {
     const userData = localStorage.getItem("activeRoom");
     if (userData) {
       const user = JSON.parse(userData);
       setUserRole(user.role || "girlfriend");
+
+      // Check if current user is ready from localStorage
+      const userReadyKey = `room_${roomId}_ready_${user.name}`;
+      const isUserReady = localStorage.getItem(userReadyKey) === "true";
+      setCurrentUserReady(isUserReady);
     }
-  }, []);
+  }, [roomId]);
 
   // Polling hook - only active when drawer is open
   useEffect(() => {
@@ -64,6 +71,42 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
     (partnerProgress.completed.length / partnerProgress.total) * 100
   );
 
+  // Check if both users are ready
+  const bothReady = currentUserReady && partnerProgress.isReady;
+
+  // Handle reveal button click
+  const handleReveal = async () => {
+    if (!bothReady) return;
+
+    setIsRevealing(true);
+    try {
+      const response = await fetch(`/api/room/${roomId}/reveal`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userRole,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Redirect to reveal page or show results
+        window.location.href = `/room/${roomId}/reveal`;
+      } else {
+        console.error("Reveal failed:", data.error);
+        alert("Error starting reveal. Please try again.");
+      }
+    } catch (error) {
+      console.error("Failed to start reveal:", error);
+      alert("Error starting reveal. Please try again.");
+    } finally {
+      setIsRevealing(false);
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       {/* Partner Status Header */}
@@ -84,6 +127,37 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
           )}
         </div>
       </div>
+
+      {/* Both Ready - Show Reveal Button */}
+      {bothReady && (
+        <div className="text-center p-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+          <div className="text-4xl mb-3">✨</div>
+          <div className="font-bold text-purple-800 dark:text-purple-200 text-lg mb-2">
+            Both Ready!
+          </div>
+          <div className="text-sm text-purple-600 dark:text-purple-400 mb-4">
+            Time to discover how you see each other...
+          </div>
+
+          <button
+            onClick={handleReveal}
+            disabled={isRevealing}
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:hover:scale-100 shadow-lg"
+          >
+            {isRevealing ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                <span>Starting Reveal...</span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center gap-2">
+                <span>🔮</span>
+                <span>Reveal Personalities</span>
+              </div>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Progress Overview */}
       <div className="space-y-4">
@@ -109,6 +183,7 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
       {/* Categories Progress */}
       <div className="space-y-3">
         <h3 className="font-medium text-center">Category Progress</h3>
+
         <div className="grid grid-cols-3 gap-3">
           {categories.map((category) => {
             const Icon = category.icon;
@@ -140,14 +215,14 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
       </div>
 
       {/* Ready Status */}
-      {partnerProgress.isReady && (
+      {partnerProgress.isReady && !bothReady && (
         <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
           <div className="text-2xl mb-2">🎉</div>
           <div className="font-medium text-green-800 dark:text-green-200">
             Your partner is ready!
           </div>
           <div className="text-sm text-green-600 dark:text-green-400 mt-1">
-            Both galleries are complete. Get ready for the reveal!
+            Complete your gallery and click Ready to continue!
           </div>
         </div>
       )}

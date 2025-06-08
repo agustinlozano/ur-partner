@@ -236,9 +236,9 @@ export default function PersonalityForm({
 
   return (
     <GradientBackground className="min-h-screen p-4">
-      <div className="max-w-6xl mx-auto pb-24">
+      <div className="max-w-6xl mx-auto pb-28">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-12">
           <Button
             variant="ghost"
             onClick={onBack}
@@ -247,18 +247,31 @@ export default function PersonalityForm({
             <ArrowLeft className="w-4 h-4" />
             Back to Room
           </Button>
-          <div className="text-center">
-            <div className="text-sm text-muted-foreground mb-1">
-              Room {roomId}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Playing as: {currentUser}
+          <div className="text-center absolute top-4 left-1/2 transform -translate-x-1/2">
+            <div className="inline-flex items-center gap-2 sm:gap-4 bg-card/60 rounded-full px-3 sm:px-6 py-2 sm:py-3 border backdrop-blur-sm">
+              <div className="hidden sm:flex items-center gap-1.5 sm:gap-2">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs font-mono sm:text-sm font-medium text-foreground">
+                  Room {roomId}
+                </span>
+              </div>
+              <div className="hidden sm:block w-px h-3 sm:h-4 bg-border"></div>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                  <span className="text-xs font-bold text-white">
+                    {currentUser?.charAt(0)?.toUpperCase() || "?"}
+                  </span>
+                </div>
+                <span className="text-xs sm:text-sm text-muted-foreground max-w-20 sm:max-w-none truncate">
+                  {currentUser}
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-semibold text-foreground mb-2">
+          <h1 className="text-3xl font-mono font-semibold text-foreground mb-2">
             Partner Personality Gallery
           </h1>
           <p className="text-muted-foreground mb-4">

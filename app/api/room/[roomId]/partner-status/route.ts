@@ -85,9 +85,9 @@ export async function GET(
     // Check if partner is ready
     const partnerReady =
       partnerRole === "girlfriend"
-        ? roomData.girlfriend_ready === "true" ||
+        ? roomData.girlfriend_ready.toLowerCase() === "true" ||
           roomData.girlfriend_ready === true
-        : roomData.boyfriend_ready === "true" ||
+        : roomData.boyfriend_ready.toLowerCase() === "true" ||
           roomData.boyfriend_ready === true;
 
     const progress = {

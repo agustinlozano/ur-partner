@@ -47,7 +47,8 @@ export default function FloatingRoomMenu() {
   // Don't show on the room page itself
   if (
     pathname === `/room/${activeRoom.room_id}` ||
-    pathname === `/room/${activeRoom.room_id}/personality`
+    pathname === `/room/${activeRoom.room_id}/personality` ||
+    pathname === `/room/${activeRoom.room_id}/reveal`
   )
     return null;
 

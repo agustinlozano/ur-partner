@@ -4,6 +4,7 @@ import GradientBackground from "@/components/gradient-background";
 import Link from "next/link";
 import { enviroment } from "@/lib/env";
 import { cn } from "@/lib/utils";
+import { Sparkles } from "@/components/sparkles";
 
 export default function Home() {
   return (
@@ -26,7 +27,7 @@ export default function Home() {
               href="/room"
               className={cn(
                 "block p-6 rounded-xl shadow-lg border group select-none",
-                "bg-amber-100/50 dark:bg-amber-900/25 backdrop-blur-sm",
+                "bg-amber-100/50 dark:bg-amber-900/25",
                 "border-amber-400 dark:border-amber-800",
                 "hover:shadow-xl hover:scale-105 transition-all duration-300"
               )}
@@ -35,7 +36,7 @@ export default function Home() {
                 <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
                   🖤
                 </div>
-                <h2 className="text-xl font-semibold mb-2 group-hover:text-amber-600 transition-colors duration-300">
+                <h2 className="text-xl font-mono font-semibold mb-2 group-hover:text-amber-600 transition-colors duration-300">
                   Create Room
                 </h2>
                 <p className="text-primary/75 text-sm group-hover:text-primary/90 transition-colors duration-300">
@@ -48,7 +49,7 @@ export default function Home() {
               href="/join"
               className={cn(
                 "block p-6 rounded-xl shadow-lg border group select-none",
-                "bg-purple-100/50 dark:bg-purple-900/25 backdrop-blur-sm",
+                "bg-purple-100/50 dark:bg-purple-900/25",
                 "border-purple-400 dark:border-purple-800",
                 "hover:shadow-xl hover:scale-105 transition-all duration-300"
               )}
@@ -57,7 +58,7 @@ export default function Home() {
                 <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
                   🤍
                 </div>
-                <h2 className="text-xl font-semibold mb-2 group-hover:text-purple-600 transition-colors duration-300">
+                <h2 className="text-xl font-mono font-semibold mb-2 group-hover:text-purple-600 transition-colors duration-300">
                   Join Room
                 </h2>
                 <p className="text-primary/75 text-sm group-hover:text-primary/90 transition-colors duration-300">
@@ -67,9 +68,19 @@ export default function Home() {
             </Link>
           </div>
 
+          <Sparkles
+            density={800}
+            speed={1.2}
+            size={1.2}
+            direction="top"
+            opacitySpeed={2}
+            color="#9810fa"
+            className="absolute inset-x-0 bottom-0 h-full w-full -z-10"
+          />
+
           <div className="bg-card/75 rounded-xl shadow-lg p-6 border">
             <h3 className="text-lg font-semibold mb-4">How it works:</h3>
-            <div className="space-y-3 text-sm text-primary/75">
+            <div className="space-y-3 text-sm text-primary/90">
               <div className="flex items-center gap-3">
                 <span className="border bg-purple-100 text-purple-600 dark:text-purple-400 dark:bg-purple-950 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
                   1

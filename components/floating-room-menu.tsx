@@ -45,7 +45,11 @@ export default function FloatingRoomMenu() {
   if (!activeRoom || isRoomExpired) return null;
 
   // Don't show on the room page itself
-  if (pathname === `/room/${activeRoom.room_id}`) return null;
+  if (
+    pathname === `/room/${activeRoom.room_id}` ||
+    pathname === `/room/${activeRoom.room_id}/personality`
+  )
+    return null;
 
   const timeRemaining = () => {
     const createdAt = new Date(activeRoom.created_at);
@@ -98,6 +102,7 @@ export default function FloatingRoomMenu() {
                     onClick={() => setIsExpanded(true)}
                     className="h-6 w-6 p-0"
                   >
+                    <span className="sr-only">Expand room menu</span>
                     <ChevronUp className="h-3 w-3" />
                   </Button>
                   <Tooltip>
@@ -108,6 +113,7 @@ export default function FloatingRoomMenu() {
                         onClick={goToRoom}
                         className="h-6 w-6 p-0"
                       >
+                        <span className="sr-only">Go to room</span>
                         <Users className="h-3 w-3" />
                       </Button>
                     </TooltipTrigger>

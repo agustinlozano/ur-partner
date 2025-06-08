@@ -30,6 +30,8 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { enviroment } from "@/lib/env";
+import Marquee from "@/components/ui/marquee";
+import { cn } from "@/lib/utils";
 
 const categories = [
   {
@@ -575,18 +577,32 @@ export default function PersonalityForm({
           </>
         ) : (
           /* Ready State */
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="bg-card/60 rounded-xl shadow-lg p-8 border">
-              <div className="text-6xl mb-4">🎉</div>
-              <h2 className="text-2xl font-semibold mb-4">
-                You&apos;re Ready!
-              </h2>
-              <p className="text-muted-foreground mb-6 text-pretty">
-                You&apos;ve completed your personality gallery with all 9
-                categories. Now waiting for your partner to finish their gallery
-                too.
-              </p>
+          <div className="max-w-7xl mx-auto">
+            {/* Celebration Header */}
+            <div className="max-w-2xl mx-auto text-center mb-8">
+              <div className="bg-card/60 rounded-xl shadow-lg p-8 border">
+                <div className="text-6xl mb-4">🎉</div>
+                <h2 className="text-2xl font-semibold mb-4">
+                  You&apos;re Ready!
+                </h2>
+                <p className="text-muted-foreground mb-6 text-pretty">
+                  You&apos;ve completed your personality gallery with all 9
+                  categories. Here&apos;s a beautiful review of your
+                  partner&apos;s personality!
+                </p>
+              </div>
+            </div>
 
+            {/* Personality Gallery Marquee */}
+            <div className="mb-12">
+              <h3 className="text-xl font-semibold text-center mb-6">
+                Your Partner&apos;s Personality Gallery ✨
+              </h3>
+              <CategoryMarquee uploadedImages={uploadedImages} />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="max-w-2xl mx-auto text-center">
               <div className="flex flex-col sm:flex-row gap-3 justify-center mb-12 mt-10">
                 <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
                   <DrawerTrigger asChild>
@@ -639,6 +655,104 @@ export default function PersonalityForm({
     </GradientBackground>
   );
 }
+
+// Component for displaying each category in the marquee
+const CategoryCard = ({
+  category,
+  images,
+}: {
+  category: (typeof categories)[0];
+  images: string | string[];
+}) => {
+  const Icon = category.icon;
+  const imageArray = Array.isArray(images) ? images : [images];
+  const displayImage = imageArray[0]; // Show first image for the card
+
+  return (
+    <figure
+      className={cn(
+        "relative w-64 cursor-pointer overflow-hidden rounded-xl border p-4",
+        // light styles
+        "border-gray-950/[.1] bg-gray-950/[.01] hover:bg-gray-950/[.05]",
+        // dark styles
+        "dark:border-gray-50/[.1] dark:bg-gray-50/[.10] dark:hover:bg-gray-50/[.15]"
+      )}
+    >
+      <div className="flex flex-row items-end gap-3 mb-3">
+        <div className="p-2 rounded-md bg-muted/50">
+          <Icon className="w-4 h-4 text-muted-foreground" />
+        </div>
+        <div className="flex flex-col">
+          <figcaption className="text-sm font-medium dark:text-white">
+            {category.name}
+          </figcaption>
+          <p className="text-xs font-medium dark:text-white/60">
+            {category.description}
+          </p>
+        </div>
+        {Array.isArray(images) && images.length > 1 && (
+          <div className="ml-auto text-xs bg-muted px-2 py-1 rounded-full">
+            +{images.length}
+          </div>
+        )}
+      </div>
+
+      <div className="relative aspect-[4/3] rounded-md overflow-hidden bg-muted">
+        <Image
+          src={displayImage || "/placeholder.svg"}
+          alt={`${category.name} image`}
+          fill
+          className="object-cover"
+        />
+      </div>
+    </figure>
+  );
+};
+
+// Marquee component for displaying all categories
+const CategoryMarquee = ({
+  uploadedImages,
+}: {
+  uploadedImages: Record<string, string | string[]>;
+}) => {
+  const completedCategories = categories.filter(
+    (category) => uploadedImages[category.id]
+  );
+  const firstRow = completedCategories.slice(
+    0,
+    Math.ceil(completedCategories.length / 2)
+  );
+  const secondRow = completedCategories.slice(
+    Math.ceil(completedCategories.length / 2)
+  );
+
+  return (
+    <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-lg border bg-background py-10 md:shadow-xl">
+      <Marquee pauseOnHover className="[--duration:25s]">
+        {firstRow.map((category) => (
+          <CategoryCard
+            key={category.id}
+            category={category}
+            images={uploadedImages[category.id]}
+          />
+        ))}
+      </Marquee>
+      {secondRow.length > 0 && (
+        <Marquee reverse pauseOnHover className="[--duration:25s]">
+          {secondRow.map((category) => (
+            <CategoryCard
+              key={category.id}
+              category={category}
+              images={uploadedImages[category.id]}
+            />
+          ))}
+        </Marquee>
+      )}
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-white dark:from-background"></div>
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-white dark:from-background"></div>
+    </div>
+  );
+};
 
 // Partner Tracker Component
 interface PartnerTrackerProps {

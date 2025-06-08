@@ -7,7 +7,6 @@ import Link from "next/link";
 import ActiveRoomSaver from "@/components/active-room-saver";
 import CopyRoomId from "@/components/copy-room-id";
 import AudioTrigger from "@/components/audio-trigger";
-import PersonalityForm from "@/components/personality-form";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 
@@ -33,7 +32,6 @@ interface RoomData {
 export default function RoomDetailPage({ params, searchParams }: PageProps) {
   const [roomData, setRoomData] = useState<RoomData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showPersonalityForm, setShowPersonalityForm] = useState(false);
   const [roomId, setRoomId] = useState<string>("");
   const [searchParamsData, setSearchParamsData] = useState<{
     new?: string;
@@ -89,16 +87,6 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
           </div>
         </div>
       </GradientBackground>
-    );
-  }
-
-  // Show personality form if user has started the quiz
-  if (showPersonalityForm) {
-    return (
-      <PersonalityForm
-        roomId={roomId}
-        onBack={() => setShowPersonalityForm(false)}
-      />
     );
   }
 
@@ -229,11 +217,10 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
                 Both partners have joined the room. You can now start uploading
                 your personality images.
               </p>
-              <Button
-                variant="shadow"
-                onClick={() => setShowPersonalityForm(true)}
-              >
-                Start Personality Quiz
+              <Button variant="shadow" asChild>
+                <Link href={`/room/${roomId}/personality`}>
+                  Start Personality Quiz
+                </Link>
               </Button>
             </div>
           </div>

@@ -321,11 +321,32 @@ export default function PersonalityForm({
                   categories. Here&apos;s a beautiful review of your
                   partner&apos;s personality!
                 </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8 mt-10">
+                  <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+                    <DrawerTrigger asChild>
+                      <Button variant="shadow">
+                        🔍 Track Partner Progress
+                      </Button>
+                    </DrawerTrigger>
+                    <DrawerContent>
+                      <DrawerHeader>
+                        <DrawerTitle className="font-mono">
+                          Partner Progress Tracker
+                        </DrawerTitle>
+                        <DrawerDescription>
+                          Real-time updates on your partner&apos;s gallery
+                          completion
+                        </DrawerDescription>
+                      </DrawerHeader>
+                      <PartnerTracker roomId={roomId} isOpen={drawerOpen} />
+                    </DrawerContent>
+                  </Drawer>
+                </div>
               </div>
             </div>
 
             {/* Personality Gallery Marquee */}
-            <div className="mb-12">
+            <div className="my-12">
               <h3 className="text-xl font-semibold text-center mb-6">
                 Your Partner&apos;s Personality Gallery ✨
               </h3>
@@ -334,26 +355,6 @@ export default function PersonalityForm({
 
             {/* Action Buttons */}
             <div className="max-w-2xl mx-auto text-center">
-              <div className="flex flex-col sm:flex-row gap-3 justify-center mb-12 mt-10">
-                <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-                  <DrawerTrigger asChild>
-                    <Button variant="shadow">🔍 Track Partner Progress</Button>
-                  </DrawerTrigger>
-                  <DrawerContent>
-                    <DrawerHeader>
-                      <DrawerTitle className="font-mono">
-                        Partner Progress Tracker
-                      </DrawerTitle>
-                      <DrawerDescription>
-                        Real-time updates on your partner&apos;s gallery
-                        completion
-                      </DrawerDescription>
-                    </DrawerHeader>
-                    <PartnerTracker roomId={roomId} isOpen={drawerOpen} />
-                  </DrawerContent>
-                </Drawer>
-              </div>
-
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button variant="outline" onClick={() => setIsReady(false)}>
                   Edit Gallery

@@ -93,6 +93,7 @@ export default function PersonalityForm({
   const [focusedCard, setFocusedCard] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [currentUser, setCurrentUser] = useState<string>("");
+  const [userRole, setUserRole] = useState<string>("");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Load current user info from localStorage
@@ -101,6 +102,7 @@ export default function PersonalityForm({
     if (userData) {
       const user = JSON.parse(userData);
       setCurrentUser(user.name || "You");
+      setUserRole(user.role || "girlfriend");
     }
 
     // Load saved images from localStorage
@@ -122,6 +124,31 @@ export default function PersonalityForm({
   //   }
   // }, [uploadedImages, roomId, currentUser]);
 
+  // Helper function to update progress in backend
+  const updateCategoryProgress = async (
+    categoryId: string,
+    hasData: boolean
+  ) => {
+    if (!userRole) return;
+
+    try {
+      await fetch(`/api/room/${roomId}/update-progress`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          category: categoryId,
+          hasData,
+          userRole,
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to update progress:", error);
+      // Non-blocking error - continue with local state
+    }
+  };
+
   const handleFileUpload = (categoryId: string, file: File) => {
     if (file && file.type.startsWith("image/")) {
       const reader = new FileReader();
@@ -129,23 +156,38 @@ export default function PersonalityForm({
         const newImageUrl = e.target?.result as string;
 
         setUploadedImages((prev) => {
+          let newState;
+          let shouldUpdateProgress = false;
+
           if (categoryId === "character") {
             // For character category, support up to 5 images
             const currentImages = (prev[categoryId] as string[]) || [];
             if (currentImages.length < 5) {
-              return {
+              newState = {
                 ...prev,
                 [categoryId]: [...currentImages, newImageUrl],
               };
+              // Update progress if this is the first image for character category
+              shouldUpdateProgress = currentImages.length === 0;
+            } else {
+              newState = prev; // Don't add if already 5 images
             }
-            return prev; // Don't add if already 5 images
           } else {
             // For other categories, single image
-            return {
+            newState = {
               ...prev,
               [categoryId]: newImageUrl,
             };
+            // Update progress if this category didn't have an image before
+            shouldUpdateProgress = !prev[categoryId];
           }
+
+          // Update backend progress if needed
+          if (shouldUpdateProgress) {
+            updateCategoryProgress(categoryId, true);
+          }
+
+          return newState;
         });
       };
       reader.readAsDataURL(file);
@@ -213,6 +255,7 @@ export default function PersonalityForm({
   const removeImage = (categoryId: string, imageIndex?: number) => {
     setUploadedImages((prev) => {
       const newImages = { ...prev };
+      let shouldUpdateProgress = false;
 
       if (categoryId === "character" && typeof imageIndex === "number") {
         // For character category, remove specific image by index
@@ -222,12 +265,21 @@ export default function PersonalityForm({
         );
         if (updatedImages.length === 0) {
           delete newImages[categoryId];
+          shouldUpdateProgress = true; // Category became empty
         } else {
           newImages[categoryId] = updatedImages;
         }
       } else {
         // For other categories, remove the single image
+        if (prev[categoryId]) {
+          shouldUpdateProgress = true; // Category had image and now will be empty
+        }
         delete newImages[categoryId];
+      }
+
+      // Update backend progress if category became empty
+      if (shouldUpdateProgress) {
+        updateCategoryProgress(categoryId, false);
       }
 
       return newImages;

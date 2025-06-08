@@ -29,6 +29,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import { enviroment } from "@/lib/env";
 
 const categories = [
   {
@@ -295,6 +296,34 @@ export default function PersonalityForm({
   const uploadedCount = Object.keys(uploadedImages).length;
   const isComplete = uploadedCount === 9;
 
+  // Predefined images mapping
+  const predefinedImages = {
+    animal: "/cele-partner/animal.png",
+    place: "/cele-partner/place.jpg",
+    plant: "/cele-partner/plant.jpg",
+    character: [
+      "/cele-partner/character-blair.avif",
+      "/cele-partner/character-dee-dee.webp",
+      "/cele-partner/character-heidi.png",
+      "/cele-partner/character-kelly.jpg",
+      "/cele-partner/character-maddy copy.jpg",
+    ],
+    season: "/cele-partner/season.webp",
+    hobby: "/cele-partner/hobby.jpg",
+    food: "/cele-partner/food.png",
+    colour: "/cele-partner/color.jpg",
+    drink: "/cele-partner/drink.png",
+  };
+
+  const fillWithPredefinedImages = () => {
+    setUploadedImages(predefinedImages);
+
+    // Update progress for all categories
+    Object.keys(predefinedImages).forEach((categoryId) => {
+      updateCategoryProgress(categoryId, true);
+    });
+  };
+
   return (
     <GradientBackground className="min-h-screen p-4">
       <div className="max-w-6xl mx-auto pb-28">
@@ -511,6 +540,16 @@ export default function PersonalityForm({
                   ? "Ready! 🎉"
                   : `Upload All Images (${uploadedCount}/9)`}
               </Button>
+              {enviroment === "development" && (
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  onClick={fillWithPredefinedImages}
+                  disabled={isComplete}
+                >
+                  ✨ Fill with Demo Images
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="lg"

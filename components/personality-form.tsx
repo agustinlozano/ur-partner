@@ -271,10 +271,10 @@ export default function PersonalityForm({
         </div>
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-mono font-semibold text-foreground mb-2">
+          <h1 className="text-2xl md:text-3xl font-mono font-semibold text-foreground mb-2">
             Partner Personality Gallery
           </h1>
-          <p className="text-muted-foreground mb-4">
+          <p className="text-muted-foreground mb-4 text-pretty">
             Upload photos that represent your partner&apos;s unique personality
           </p>
         </div>
@@ -351,7 +351,7 @@ export default function PersonalityForm({
                               {characterImages.map((imageUrl, index) => (
                                 <div
                                   key={index}
-                                  className="relative aspect-square"
+                                  className="relative aspect-[4/3] sm:aspect-square"
                                 >
                                   <Image
                                     src={imageUrl || "/placeholder.svg"}
@@ -372,7 +372,7 @@ export default function PersonalityForm({
                                 </div>
                               ))}
                               {canAddMore && (
-                                <label className="aspect-square border border-dashed border-border rounded-md flex items-center justify-center cursor-pointer hover:border-foreground/30 transition-colors">
+                                <label className="aspect-[4/3] sm:aspect-square border border-dashed border-border rounded-md flex items-center justify-center cursor-pointer hover:border-foreground/30 transition-colors">
                                   <div className="text-center">
                                     <Upload className="w-4 h-4 mx-auto mb-1 text-muted-foreground" />
                                     <span className="text-xs text-muted-foreground">
@@ -394,7 +394,7 @@ export default function PersonalityForm({
                             </div>
                           ) : (
                             // Single image for other categories
-                            <div className="relative aspect-square">
+                            <div className="relative aspect-[4/3] sm:aspect-square">
                               <Image
                                 src={
                                   (uploadedImages[category.id] as string) ||
@@ -415,7 +415,7 @@ export default function PersonalityForm({
                             </div>
                           )
                         ) : (
-                          <label className="flex flex-col items-center justify-center aspect-square cursor-pointer p-4">
+                          <label className="flex flex-col items-center justify-center aspect-[4/3] sm:aspect-square cursor-pointer p-4">
                             <Upload className="w-6 h-6 mb-2 text-muted-foreground" />
                             <span className="text-xs text-muted-foreground text-center">
                               Drop or click to upload

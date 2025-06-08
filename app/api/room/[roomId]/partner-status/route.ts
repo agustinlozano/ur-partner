@@ -3,10 +3,10 @@ import { findRoomByRoomId } from "@/lib/sheets";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { roomId: string } }
+  { params }: { params: Promise<{ roomId: string }> }
 ) {
   try {
-    const { roomId } = params;
+    const { roomId } = await params;
 
     if (!roomId) {
       return Response.json({ error: "Room ID required" }, { status: 400 });

@@ -318,9 +318,9 @@ export default function PersonalityForm({
                           <Icon className="w-4 h-4 text-muted-foreground" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-medium text-foreground">
+                          <h2 className="font-mono font-medium text-foreground">
                             {category.name}
-                          </h3>
+                          </h2>
                           <p className="text-xs text-muted-foreground">
                             {category.description}
                           </p>

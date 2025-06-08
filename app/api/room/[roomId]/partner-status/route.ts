@@ -51,7 +51,10 @@ export async function GET(
     // Check which categories have data for the partner
     Object.entries(categoryMapping).forEach(([categoryId, value]) => {
       if (value && value.trim() !== "") {
-        partnerCompletedCategories.push(categoryId);
+        // Check if the value contains the partner's role (format: "role:timestamp")
+        if (value.includes(`${partnerRole}:`)) {
+          partnerCompletedCategories.push(categoryId);
+        }
       }
     });
 

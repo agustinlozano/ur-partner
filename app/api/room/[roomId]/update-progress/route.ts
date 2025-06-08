@@ -25,7 +25,7 @@ export async function POST(
     }
 
     // Read current sheet data to find the room row
-    const data = await readSheetData(spreadsheetId, "A:R");
+    const data = await readSheetData(spreadsheetId, "A:AA"); // Extended range
 
     if (!data || data.length <= 1) {
       return Response.json({ error: "Room not found" }, { status: 404 });
@@ -44,29 +44,46 @@ export async function POST(
       return Response.json({ error: "Room not found" }, { status: 404 });
     }
 
-    // Map category to column index (based on sheets.ts structure)
+    // Map category + role to column index (based on new structure)
     const categoryColumnMap: { [key: string]: number } = {
-      animal: 5, // Column F (index 5)
-      place: 6, // Column G (index 6)
-      plant: 7, // Column H (index 7)
-      character: 8, // Column I (index 8)
-      season: 9, // Column J (index 9)
-      hobby: 10, // Column K (index 10)
-      food: 11, // Column L (index 11)
-      colour: 12, // Column M (index 12)
-      drink: 13, // Column N (index 13)
+      // girlfriend columns (starting at index 5)
+      animal_girlfriend: 5,
+      place_girlfriend: 7,
+      plant_girlfriend: 9,
+      character_girlfriend: 11,
+      season_girlfriend: 13,
+      hobby_girlfriend: 15,
+      food_girlfriend: 17,
+      colour_girlfriend: 19,
+      drink_girlfriend: 21,
+      // boyfriend columns
+      animal_boyfriend: 6,
+      place_boyfriend: 8,
+      plant_boyfriend: 10,
+      character_boyfriend: 12,
+      season_boyfriend: 14,
+      hobby_boyfriend: 16,
+      food_boyfriend: 18,
+      colour_boyfriend: 20,
+      drink_boyfriend: 22,
     };
 
-    const columnIndex = categoryColumnMap[category];
+    // Create the key for the specific category + role combination
+    const columnKey = `${category}_${userRole}`;
+    const columnIndex = categoryColumnMap[columnKey];
+
     if (columnIndex === undefined) {
-      return Response.json({ error: "Invalid category" }, { status: 400 });
+      return Response.json(
+        {
+          error: `Invalid category-role combination: ${columnKey}`,
+        },
+        { status: 400 }
+      );
     }
 
     // Create the progress indicator value
-    // We'll store the user role and timestamp to track who completed what
-    const progressValue = hasData
-      ? `${userRole}:${new Date().toISOString()}`
-      : "";
+    // Since we now have separate columns per role, we just need the timestamp
+    const progressValue = hasData ? new Date().toISOString() : "";
 
     // Convert column index to letter notation
     const columnLetter = String.fromCharCode(65 + columnIndex); // A=65, B=66, etc.

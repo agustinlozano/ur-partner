@@ -32,29 +32,53 @@ export async function GET(
         : roomData.boyfriend_name;
 
     // Check which categories the partner has completed
-    // For now, we'll simulate this - in real implementation, this would come from the sheets
     const partnerCompletedCategories: string[] = [];
 
-    // Map sheet columns to category IDs
+    // Map sheet columns to category IDs based on partner role
     const categoryMapping = {
-      animal: roomData.animal,
-      place: roomData.place,
-      plant: roomData.plant,
-      character: roomData.character,
-      season: roomData.season,
-      hobby: roomData.hobby,
-      food: roomData.food,
-      colour: roomData.colour,
-      drink: roomData.drink,
+      animal:
+        partnerRole === "girlfriend"
+          ? roomData.animal_girlfriend
+          : roomData.animal_boyfriend,
+      place:
+        partnerRole === "girlfriend"
+          ? roomData.place_girlfriend
+          : roomData.place_boyfriend,
+      plant:
+        partnerRole === "girlfriend"
+          ? roomData.plant_girlfriend
+          : roomData.plant_boyfriend,
+      character:
+        partnerRole === "girlfriend"
+          ? roomData.character_girlfriend
+          : roomData.character_boyfriend,
+      season:
+        partnerRole === "girlfriend"
+          ? roomData.season_girlfriend
+          : roomData.season_boyfriend,
+      hobby:
+        partnerRole === "girlfriend"
+          ? roomData.hobby_girlfriend
+          : roomData.hobby_boyfriend,
+      food:
+        partnerRole === "girlfriend"
+          ? roomData.food_girlfriend
+          : roomData.food_boyfriend,
+      colour:
+        partnerRole === "girlfriend"
+          ? roomData.colour_girlfriend
+          : roomData.colour_boyfriend,
+      drink:
+        partnerRole === "girlfriend"
+          ? roomData.drink_girlfriend
+          : roomData.drink_boyfriend,
     };
 
     // Check which categories have data for the partner
     Object.entries(categoryMapping).forEach(([categoryId, value]) => {
       if (value && value.trim() !== "") {
-        // Check if the value contains the partner's role (format: "role:timestamp")
-        if (value.includes(`${partnerRole}:`)) {
-          partnerCompletedCategories.push(categoryId);
-        }
+        // Since we now have separate columns, any non-empty value means completion
+        partnerCompletedCategories.push(categoryId);
       }
     });
 

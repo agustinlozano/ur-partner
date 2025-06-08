@@ -81,7 +81,7 @@ export async function createRoom(
       };
     }
 
-    // Prepare the row data (updated with emoji columns)
+    // Prepare the row data (updated with separate role columns)
     const now = new Date().toISOString();
     const rowData = [
       roomId, // room_id
@@ -89,15 +89,24 @@ export async function createRoom(
       input.role === "boyfriend" ? input.name : "", // boyfriend_name
       input.role === "girlfriend" ? input.emoji : "", // girlfriend_emoji
       input.role === "boyfriend" ? input.emoji : "", // boyfriend_emoji
-      "", // animal
-      "", // place
-      "", // plant
-      "", // character
-      "", // season
-      "", // hobby
-      "", // food
-      "", // colour
-      "", // drink
+      "", // animal_girlfriend
+      "", // animal_boyfriend
+      "", // place_girlfriend
+      "", // place_boyfriend
+      "", // plant_girlfriend
+      "", // plant_boyfriend
+      "", // character_girlfriend
+      "", // character_boyfriend
+      "", // season_girlfriend
+      "", // season_boyfriend
+      "", // hobby_girlfriend
+      "", // hobby_boyfriend
+      "", // food_girlfriend
+      "", // food_boyfriend
+      "", // colour_girlfriend
+      "", // colour_boyfriend
+      "", // drink_girlfriend
+      "", // drink_boyfriend
       "", // girlfriend_ready
       "", // boyfriend_ready
       now, // created_at
@@ -105,7 +114,7 @@ export async function createRoom(
     ];
 
     // Add to Google Sheet
-    await appendToSheet(spreadsheetId, "A:R", [rowData]);
+    await appendToSheet(spreadsheetId, "A:AA", [rowData]);
 
     return {
       success: true,
@@ -179,7 +188,7 @@ export async function joinRoom(input: JoinRoomInput): Promise<JoinRoomResult> {
 
     // Find the row index in the sheet to update
     const allData = await import("./sheets").then((m) =>
-      m.readSheetData(spreadsheetId, "A:R")
+      m.readSheetData(spreadsheetId, "A:AA")
     );
 
     if (!allData || allData.length <= 1) {
@@ -205,7 +214,7 @@ export async function joinRoom(input: JoinRoomInput): Promise<JoinRoomResult> {
       };
     }
 
-    // Prepare updated row data (updated with emoji columns)
+    // Prepare updated row data (updated with separate role columns)
     const now = new Date().toISOString();
     const updatedRowData = [
       existingRoom.room_id,
@@ -215,15 +224,24 @@ export async function joinRoom(input: JoinRoomInput): Promise<JoinRoomResult> {
         ? input.emoji
         : existingRoom.girlfriend_emoji,
       assignedRole === "boyfriend" ? input.emoji : existingRoom.boyfriend_emoji,
-      existingRoom.animal,
-      existingRoom.place,
-      existingRoom.plant,
-      existingRoom.character,
-      existingRoom.season,
-      existingRoom.hobby,
-      existingRoom.food,
-      existingRoom.colour,
-      existingRoom.drink,
+      existingRoom.animal_girlfriend || "",
+      existingRoom.animal_boyfriend || "",
+      existingRoom.place_girlfriend || "",
+      existingRoom.place_boyfriend || "",
+      existingRoom.plant_girlfriend || "",
+      existingRoom.plant_boyfriend || "",
+      existingRoom.character_girlfriend || "",
+      existingRoom.character_boyfriend || "",
+      existingRoom.season_girlfriend || "",
+      existingRoom.season_boyfriend || "",
+      existingRoom.hobby_girlfriend || "",
+      existingRoom.hobby_boyfriend || "",
+      existingRoom.food_girlfriend || "",
+      existingRoom.food_boyfriend || "",
+      existingRoom.colour_girlfriend || "",
+      existingRoom.colour_boyfriend || "",
+      existingRoom.drink_girlfriend || "",
+      existingRoom.drink_boyfriend || "",
       existingRoom.girlfriend_ready,
       existingRoom.boyfriend_ready,
       existingRoom.created_at,
@@ -231,7 +249,7 @@ export async function joinRoom(input: JoinRoomInput): Promise<JoinRoomResult> {
     ];
 
     // Update the specific row
-    await updateSheetRow(spreadsheetId, `A${rowIndex}:R${rowIndex}`, [
+    await updateSheetRow(spreadsheetId, `A${rowIndex}:AA${rowIndex}`, [
       updatedRowData,
     ]);
 

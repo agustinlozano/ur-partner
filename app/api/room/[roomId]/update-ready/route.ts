@@ -25,7 +25,7 @@ export async function POST(
     }
 
     // Read current sheet data to find the room row
-    const data = await readSheetData(spreadsheetId, "A:R");
+    const data = await readSheetData(spreadsheetId, "A:AA"); // Extended range
 
     if (!data || data.length <= 1) {
       return Response.json({ error: "Room not found" }, { status: 404 });
@@ -45,8 +45,8 @@ export async function POST(
     }
 
     // Determine which column to update based on user role
-    // girlfriend_ready = Column O (index 14), boyfriend_ready = Column P (index 15)
-    const readyColumnIndex = userRole === "girlfriend" ? 14 : 15;
+    // girlfriend_ready = Column X (index 23), boyfriend_ready = Column Y (index 24)
+    const readyColumnIndex = userRole === "girlfriend" ? 23 : 24;
     const columnLetter = String.fromCharCode(65 + readyColumnIndex); // A=65, B=66, etc.
     const range = `${columnLetter}${roomRowIndex}`;
 

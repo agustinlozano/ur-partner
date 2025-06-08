@@ -1,24 +1,9 @@
 "use client";
 
 import type React from "react";
-
-import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Upload,
-  X,
-  Heart,
-  MapPin,
-  Leaf,
-  User,
-  Calendar,
-  Gamepad2,
-  UtensilsCrossed,
-  Palette,
-  Coffee,
-  ArrowLeft,
-} from "lucide-react";
+import { Upload, X, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import GradientBackground from "@/components/gradient-background";
 import {
@@ -30,301 +15,47 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { enviroment } from "@/lib/env";
-import Marquee from "@/components/ui/marquee";
-import { cn } from "@/lib/utils";
 
-const categories = [
-  {
-    id: "animal",
-    name: "Animal",
-    icon: Heart,
-    description: "Their spirit animal",
-  },
-  {
-    id: "place",
-    name: "Place",
-    icon: MapPin,
-    description: "Dream destination",
-  },
-  { id: "plant", name: "Plant", icon: Leaf, description: "Favorite flora" },
-  {
-    id: "character",
-    name: "Character",
-    icon: User,
-    description: "Fictional inspiration (up to 5)",
-  },
-  {
-    id: "season",
-    name: "Season",
-    icon: Calendar,
-    description: "Beloved time of year",
-  },
-  {
-    id: "hobby",
-    name: "Hobby",
-    icon: Gamepad2,
-    description: "Passionate pursuit",
-  },
-  {
-    id: "food",
-    name: "Food",
-    icon: UtensilsCrossed,
-    description: "Comfort cuisine",
-  },
-  {
-    id: "colour",
-    name: "Colour",
-    icon: Palette,
-    description: "Signature shade",
-  },
-  { id: "drink", name: "Drink", icon: Coffee, description: "Go-to beverage" },
-];
-
-interface PersonalityFormProps {
-  roomId: string;
-  onBack: () => void;
-}
+// Import separated components and constants
+import { usePersonalityForm } from "@/hooks/use-personality-form";
+import { CategoryMarquee } from "@/components/personality-form/category-marquee";
+import { PartnerTracker } from "@/components/personality-form/partner-tracker";
+import {
+  categories,
+  type PersonalityFormProps,
+} from "@/lib/personality-form-constants";
 
 export default function PersonalityForm({
   roomId,
   onBack,
 }: PersonalityFormProps) {
-  const [uploadedImages, setUploadedImages] = useState<
-    Record<string, string | string[]>
-  >({});
-  const [dragOver, setDragOver] = useState<string | null>(null);
-  const [focusedCard, setFocusedCard] = useState<string | null>(null);
-  const [isReady, setIsReady] = useState(false);
-  const [currentUser, setCurrentUser] = useState<string>("");
-  const [userRole, setUserRole] = useState<string>("");
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const {
+    // State
+    uploadedImages,
+    dragOver,
+    focusedCard,
+    isReady,
+    currentUser,
+    drawerOpen,
+    uploadedCount,
+    isComplete,
 
-  // Load current user info from localStorage
-  useEffect(() => {
-    const userData = localStorage.getItem("activeRoom");
-    if (userData) {
-      const user = JSON.parse(userData);
-      setCurrentUser(user.name || "You");
-      setUserRole(user.role || "girlfriend");
-    }
+    // State setters
+    setFocusedCard,
+    setIsReady,
+    setDrawerOpen,
 
-    // Load saved images from localStorage
-    // const savedImages = localStorage.getItem(
-    //   `room_${roomId}_images_${currentUser}`
-    // );
-    // if (savedImages) {
-    //   setUploadedImages(JSON.parse(savedImages));
-    // }
-  }, [roomId, currentUser]);
-
-  // Save images to localStorage whenever they change
-  // useEffect(() => {
-  //   if (currentUser) {
-  //     localStorage.setItem(
-  //       `room_${roomId}_images_${currentUser}`,
-  //       JSON.stringify(uploadedImages)
-  //     );
-  //   }
-  // }, [uploadedImages, roomId, currentUser]);
-
-  // Helper function to update progress in backend
-  const updateCategoryProgress = async (
-    categoryId: string,
-    hasData: boolean
-  ) => {
-    if (!userRole) return;
-
-    try {
-      await fetch(`/api/room/${roomId}/update-progress`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          category: categoryId,
-          hasData,
-          userRole,
-        }),
-      });
-    } catch (error) {
-      console.error("Failed to update progress:", error);
-      // Non-blocking error - continue with local state
-    }
-  };
-
-  const handleFileUpload = (categoryId: string, file: File) => {
-    if (file && file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const newImageUrl = e.target?.result as string;
-
-        setUploadedImages((prev) => {
-          let newState;
-          let shouldUpdateProgress = false;
-
-          if (categoryId === "character") {
-            // For character category, support up to 5 images
-            const currentImages = (prev[categoryId] as string[]) || [];
-            if (currentImages.length < 5) {
-              newState = {
-                ...prev,
-                [categoryId]: [...currentImages, newImageUrl],
-              };
-              // Update progress if this is the first image for character category
-              shouldUpdateProgress = currentImages.length === 0;
-            } else {
-              newState = prev; // Don't add if already 5 images
-            }
-          } else {
-            // For other categories, single image
-            newState = {
-              ...prev,
-              [categoryId]: newImageUrl,
-            };
-            // Update progress if this category didn't have an image before
-            shouldUpdateProgress = !prev[categoryId];
-          }
-
-          // Update backend progress if needed
-          if (shouldUpdateProgress) {
-            updateCategoryProgress(categoryId, true);
-          }
-
-          return newState;
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent, categoryId: string) => {
-    e.preventDefault();
-    setDragOver(null);
-    const files = Array.from(e.dataTransfer.files);
-    if (files[0]) {
-      handleFileUpload(categoryId, files[0]);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent, categoryId: string) => {
-    e.preventDefault();
-    setDragOver(categoryId);
-  };
-
-  const handleDragLeave = () => {
-    setDragOver(null);
-  };
-
-  const handlePaste = async (e: React.ClipboardEvent, categoryId: string) => {
-    e.preventDefault();
-
-    try {
-      const clipboardItems = await navigator.clipboard.read();
-
-      for (const clipboardItem of clipboardItems) {
-        for (const type of clipboardItem.types) {
-          if (type.startsWith("image/")) {
-            const blob = await clipboardItem.getType(type);
-            const file = new File(
-              [blob],
-              `pasted-image.${type.split("/")[1]}`,
-              { type }
-            );
-            handleFileUpload(categoryId, file);
-            return;
-          }
-        }
-      }
-
-      // Fallback: check clipboard data from the event
-      const items = e.clipboardData?.items;
-      if (items) {
-        for (let i = 0; i < items.length; i++) {
-          const item = items[i];
-          if (item.type.startsWith("image/")) {
-            const file = item.getAsFile();
-            if (file) {
-              handleFileUpload(categoryId, file);
-              return;
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.log("Paste not supported or no image in clipboard");
-    }
-  };
-
-  const removeImage = (categoryId: string, imageIndex?: number) => {
-    setUploadedImages((prev) => {
-      const newImages = { ...prev };
-      let shouldUpdateProgress = false;
-
-      if (categoryId === "character" && typeof imageIndex === "number") {
-        // For character category, remove specific image by index
-        const currentImages = (prev[categoryId] as string[]) || [];
-        const updatedImages = currentImages.filter(
-          (_, index) => index !== imageIndex
-        );
-        if (updatedImages.length === 0) {
-          delete newImages[categoryId];
-          shouldUpdateProgress = true; // Category became empty
-        } else {
-          newImages[categoryId] = updatedImages;
-        }
-      } else {
-        // For other categories, remove the single image
-        if (prev[categoryId]) {
-          shouldUpdateProgress = true; // Category had image and now will be empty
-        }
-        delete newImages[categoryId];
-      }
-
-      // Update backend progress if category became empty
-      if (shouldUpdateProgress) {
-        updateCategoryProgress(categoryId, false);
-      }
-
-      return newImages;
-    });
-  };
-
-  const handleReady = () => {
-    // Save ready state to localStorage
-    localStorage.setItem(`room_${roomId}_ready_${currentUser}`, "true");
-    setIsReady(true);
-  };
-
-  const uploadedCount = Object.keys(uploadedImages).length;
-  const isComplete = uploadedCount === 9;
-
-  // Predefined images mapping
-  const predefinedImages = {
-    animal: "/cele-partner/animal.png",
-    place: "/cele-partner/place.jpg",
-    plant: "/cele-partner/plant.jpg",
-    character: [
-      "/cele-partner/character-blair.avif",
-      "/cele-partner/character-dee-dee.webp",
-      "/cele-partner/character-heidi.png",
-      "/cele-partner/character-kelly.jpg",
-      "/cele-partner/character-maddy copy.jpg",
-    ],
-    season: "/cele-partner/season.webp",
-    hobby: "/cele-partner/hobby.jpg",
-    food: "/cele-partner/food.png",
-    colour: "/cele-partner/color.jpg",
-    drink: "/cele-partner/drink.png",
-  };
-
-  const fillWithPredefinedImages = () => {
-    setUploadedImages(predefinedImages);
-
-    // Update progress for all categories
-    Object.keys(predefinedImages).forEach((categoryId) => {
-      updateCategoryProgress(categoryId, true);
-    });
-  };
+    // Actions
+    handleFileUpload,
+    handleDrop,
+    handleDragOver,
+    handleDragLeave,
+    handlePaste,
+    removeImage,
+    handleReady,
+    fillWithPredefinedImages,
+    clearAllImages,
+  } = usePersonalityForm({ roomId });
 
   return (
     <GradientBackground className="min-h-screen p-4">
@@ -555,7 +286,7 @@ export default function PersonalityForm({
               <Button
                 variant="outline"
                 size="lg"
-                onClick={() => setUploadedImages({})}
+                onClick={clearAllImages}
                 disabled={uploadedCount === 0}
               >
                 Clear All
@@ -653,260 +384,5 @@ export default function PersonalityForm({
         </div>
       </div>
     </GradientBackground>
-  );
-}
-
-// Component for displaying each category in the marquee
-const CategoryCard = ({
-  category,
-  images,
-}: {
-  category: (typeof categories)[0];
-  images: string | string[];
-}) => {
-  const Icon = category.icon;
-  const imageArray = Array.isArray(images) ? images : [images];
-  const displayImage = imageArray[0]; // Show first image for the card
-
-  return (
-    <figure
-      className={cn(
-        "relative w-64 cursor-pointer overflow-hidden rounded-xl border p-4",
-        // light styles
-        "border-gray-950/[.1] bg-gray-950/[.01] hover:bg-gray-950/[.05]",
-        // dark styles
-        "dark:border-gray-50/[.1] dark:bg-gray-50/[.10] dark:hover:bg-gray-50/[.15]"
-      )}
-    >
-      <div className="flex flex-row items-end gap-3 mb-3">
-        <div className="p-2 rounded-md bg-muted/50">
-          <Icon className="w-4 h-4 text-muted-foreground" />
-        </div>
-        <div className="flex flex-col">
-          <figcaption className="text-sm font-medium dark:text-white">
-            {category.name}
-          </figcaption>
-          <p className="text-xs font-medium dark:text-white/60">
-            {category.description}
-          </p>
-        </div>
-        {Array.isArray(images) && images.length > 1 && (
-          <div className="ml-auto text-xs bg-muted px-2 py-1 rounded-full">
-            +{images.length}
-          </div>
-        )}
-      </div>
-
-      <div className="relative aspect-[4/3] rounded-md overflow-hidden bg-muted">
-        <Image
-          src={displayImage || "/placeholder.svg"}
-          alt={`${category.name} image`}
-          fill
-          className="object-cover"
-        />
-      </div>
-    </figure>
-  );
-};
-
-// Marquee component for displaying all categories
-const CategoryMarquee = ({
-  uploadedImages,
-}: {
-  uploadedImages: Record<string, string | string[]>;
-}) => {
-  const completedCategories = categories.filter(
-    (category) => uploadedImages[category.id]
-  );
-  const firstRow = completedCategories.slice(
-    0,
-    Math.ceil(completedCategories.length / 2)
-  );
-  const secondRow = completedCategories.slice(
-    Math.ceil(completedCategories.length / 2)
-  );
-
-  return (
-    <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-lg border bg-background py-10 md:shadow-xl">
-      <Marquee pauseOnHover className="[--duration:25s]">
-        {firstRow.map((category) => (
-          <CategoryCard
-            key={category.id}
-            category={category}
-            images={uploadedImages[category.id]}
-          />
-        ))}
-      </Marquee>
-      {secondRow.length > 0 && (
-        <Marquee reverse pauseOnHover className="[--duration:25s]">
-          {secondRow.map((category) => (
-            <CategoryCard
-              key={category.id}
-              category={category}
-              images={uploadedImages[category.id]}
-            />
-          ))}
-        </Marquee>
-      )}
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-white dark:from-background"></div>
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-white dark:from-background"></div>
-    </div>
-  );
-};
-
-// Partner Tracker Component
-interface PartnerTrackerProps {
-  roomId: string;
-  isOpen: boolean;
-}
-
-function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
-  const [partnerProgress, setPartnerProgress] = useState<{
-    completed: string[];
-    total: number;
-    isReady: boolean;
-    name?: string;
-  }>({
-    completed: [],
-    total: 9,
-    isReady: false,
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [userRole, setUserRole] = useState<string>("");
-
-  // Get user role from localStorage
-  useEffect(() => {
-    const userData = localStorage.getItem("activeRoom");
-    if (userData) {
-      const user = JSON.parse(userData);
-      setUserRole(user.role || "girlfriend");
-    }
-  }, []);
-
-  // Polling hook - only active when drawer is open
-  useEffect(() => {
-    if (!isOpen || !userRole) return;
-
-    const pollPartnerStatus = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(
-          `/api/room/${roomId}/partner-status?role=${userRole}`
-        );
-        const data = await response.json();
-
-        if (data.success) {
-          setPartnerProgress(data.progress);
-          setLastUpdate(new Date());
-        }
-      } catch (error) {
-        console.error("Failed to fetch partner status:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    // Initial fetch
-    pollPartnerStatus();
-
-    // Poll every 5 seconds (respecting Google Sheets limits: 300/min = 1 every 200ms, but we're being conservative)
-    const interval = setInterval(pollPartnerStatus, 5000);
-
-    return () => clearInterval(interval);
-  }, [isOpen, roomId, userRole]);
-
-  const progressPercentage = Math.round(
-    (partnerProgress.completed.length / partnerProgress.total) * 100
-  );
-
-  return (
-    <div className="p-6 space-y-6">
-      {/* Partner Status Header */}
-      <div className="text-center">
-        <div className="inline-flex items-center gap-3 bg-muted rounded-full px-4 py-2">
-          <div
-            className={`w-3 h-3 rounded-full ${
-              isLoading ? "bg-yellow-500 animate-pulse" : "bg-green-500"
-            }`}
-          />
-          <span className="text-sm font-medium">
-            {partnerProgress.name || "Your Partner"}
-          </span>
-          {lastUpdate && (
-            <span className="text-xs text-muted-foreground">
-              Updated {lastUpdate.toLocaleTimeString()}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Progress Overview */}
-      <div className="space-y-4">
-        <div className="text-center">
-          <div className="text-3xl font-bold font-mono mb-2">
-            {progressPercentage}%
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {partnerProgress.completed.length} of {partnerProgress.total}{" "}
-            categories completed
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
-          <div
-            className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${progressPercentage}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Categories Progress */}
-      <div className="space-y-3">
-        <h3 className="font-medium text-center">Category Progress</h3>
-        <div className="grid grid-cols-3 gap-3">
-          {categories.map((category) => {
-            const Icon = category.icon;
-            const isCompleted = partnerProgress.completed.includes(category.id);
-
-            return (
-              <div
-                key={category.id}
-                className={`p-3 rounded-lg border text-center transition-all duration-300 ${
-                  isCompleted
-                    ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800"
-                    : "bg-muted/50 border-border"
-                }`}
-              >
-                <Icon
-                  className={`w-5 h-5 mx-auto mb-2 ${
-                    isCompleted
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-muted-foreground"
-                  }`}
-                />
-                <div className="text-xs font-medium truncate">
-                  {category.name}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Ready Status */}
-      {partnerProgress.isReady && (
-        <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-          <div className="text-2xl mb-2">🎉</div>
-          <div className="font-medium text-green-800 dark:text-green-200">
-            Your partner is ready!
-          </div>
-          <div className="text-sm text-green-600 dark:text-green-400 mt-1">
-            Both galleries are complete. Get ready for the reveal!
-          </div>
-        </div>
-      )}
-    </div>
   );
 }

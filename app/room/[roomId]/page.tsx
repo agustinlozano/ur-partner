@@ -33,6 +33,10 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
   const [roomData, setRoomData] = useState<RoomData | null>(null);
   const [loading, setLoading] = useState(true);
   const [roomId, setRoomId] = useState<string>("");
+  const [currentUser, setCurrentUser] = useState<{
+    role?: "girlfriend" | "boyfriend";
+    name?: string;
+  } | null>(null);
   const [searchParamsData, setSearchParamsData] = useState<{
     new?: string;
     role?: "girlfriend" | "boyfriend";
@@ -47,6 +51,16 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
 
       setRoomId(id);
       setSearchParamsData(searchParams_);
+
+      // Load current user from localStorage
+      const userData = localStorage.getItem("activeRoom");
+      if (userData) {
+        const user = JSON.parse(userData);
+        setCurrentUser({
+          role: user.role,
+          name: user.name,
+        });
+      }
 
       const room = await getRoomData(id);
       setRoomData(room);
@@ -119,7 +133,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl mb-4 uppercase font-mono">Room {roomId}</h1>
-          <p className="text-lg text-primary/85">
+          <p className="text-lg text-primary/85 font-mono">
             {missingPartner
               ? `Waiting for ${missingPartner} to join...`
               : "Both partners are in the room!"}
@@ -130,11 +144,18 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
           {/* Girlfriend Card */}
           <div
             className={cn(
-              "bg-card/60 rounded-xl shadow-lg p-6 border",
+              "bg-card/60 rounded-xl shadow-lg p-6 border relative",
               "bg-amber-100/50 dark:bg-amber-900/25 backdrop-blur-sm",
               "border-amber-400 dark:border-amber-800"
             )}
           >
+            {currentUser?.role === "girlfriend" && (
+              <div className="absolute top-3 right-3">
+                <span className="bg-purple-200 border border-purple-400 text-purple-800 dark:bg-purple-900 dark:text-purple-200 dark:border-purple-700 text-xs font-bold px-2 py-1 rounded-full">
+                  You
+                </span>
+              </div>
+            )}
             <div className="text-center">
               <div className="text-4xl mb-3">
                 {roomData.girlfriend_emoji || "💕"}
@@ -163,11 +184,18 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
           {/* Boyfriend Card */}
           <div
             className={cn(
-              "bg-card/60 rounded-xl shadow-lg p-6 border",
+              "bg-card/60 rounded-xl shadow-lg p-6 border relative",
               "bg-blue-100/50 dark:bg-blue-900/25 backdrop-blur-sm",
               "border-blue-400 dark:border-blue-800"
             )}
           >
+            {currentUser?.role === "boyfriend" && (
+              <div className="absolute top-3 right-3">
+                <span className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 text-xs font-bold px-2 py-1 rounded-full">
+                  You
+                </span>
+              </div>
+            )}
             <div className="text-center">
               <div className="text-4xl mb-3">
                 {roomData.boyfriend_emoji || "💙"}

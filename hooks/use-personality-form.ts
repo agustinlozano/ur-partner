@@ -187,10 +187,27 @@ export function usePersonalityForm({ roomId }: UsePersonalityFormProps) {
     });
   };
 
-  const handleReady = () => {
+  const handleReady = async () => {
     // Save ready state to localStorage
     localStorage.setItem(`room_${roomId}_ready_${currentUser}`, "true");
     setIsReady(true);
+
+    // Update ready state in backend
+    try {
+      await fetch(`/api/room/${roomId}/update-ready`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userRole,
+          isReady: true,
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to update ready state:", error);
+      // Non-blocking error - continue with local state
+    }
   };
 
   const fillWithPredefinedImages = () => {

@@ -538,17 +538,17 @@ export default function PersonalityForm({
           /* Ready State */
           <div className="max-w-2xl mx-auto text-center">
             <div className="bg-card/60 rounded-xl shadow-lg p-8 border">
-              <div className="text-6xl mb-4">✅</div>
+              <div className="text-6xl mb-4">🎉</div>
               <h2 className="text-2xl font-semibold mb-4">
                 You&apos;re Ready!
               </h2>
-              <p className="text-muted-foreground mb-6">
+              <p className="text-muted-foreground mb-6 text-pretty">
                 You&apos;ve completed your personality gallery with all 9
                 categories. Now waiting for your partner to finish their gallery
                 too.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center mb-12 mt-10">
                 <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
                   <DrawerTrigger asChild>
                     <Button variant="shadow">🔍 Track Partner Progress</Button>
@@ -736,9 +736,6 @@ function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
                 <div className="text-xs font-medium truncate">
                   {category.name}
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {isCompleted ? "✅" : "⏳"}
-                </div>
               </div>
             );
           })}
@@ -754,16 +751,6 @@ function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
           </div>
           <div className="text-sm text-green-600 dark:text-green-400 mt-1">
             Both galleries are complete. Get ready for the reveal!
-          </div>
-        </div>
-      )}
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className="text-center py-2">
-          <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            Checking partner progress...
           </div>
         </div>
       )}

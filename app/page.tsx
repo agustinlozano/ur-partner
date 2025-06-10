@@ -30,7 +30,7 @@ export default function Home() {
               href="/room"
               className={cn(
                 "block p-6 rounded-xl shadow-lg border group select-none",
-                "bg-amber-200/50 dark:bg-amber-900/25",
+                "bg-gradient-to-t from-amber-400/20 to-amber-200/75 dark:from-amber-900/20 dark:to-amber-700/25",
                 "border-amber-400 dark:border-amber-800",
                 "hover:shadow-xl hover:scale-105 transition-all duration-300"
               )}
@@ -52,7 +52,7 @@ export default function Home() {
               href="/join"
               className={cn(
                 "block p-6 rounded-xl shadow-lg border group select-none",
-                "bg-purple-300/50 dark:bg-purple-900/25",
+                "bg-gradient-to-t from-purple-200/80 to-purple-600/30 dark:from-purple-900/20 dark:to-purple-700/25",
                 "border-purple-400 dark:border-purple-800",
                 "hover:shadow-xl hover:scale-105 transition-all duration-300"
               )}

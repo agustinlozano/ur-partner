@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Describe ur Partner",
+  title: "Imagine & describe your Partner",
   description: "Describe your partner's personality through images.",
 };
 

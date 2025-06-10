@@ -221,9 +221,7 @@ export default function CreateRoom() {
                 onChange={() => handleRoleChange("girlfriend")}
                 className="h-4 w-4 text-pink-600 focus:ring-pink-500 disabled:cursor-not-allowed"
               />
-              <span className="ml-2 text-sm text-primary/60">
-                Girlfriend 💛
-              </span>
+              <span className="ml-2 text-sm">Girlfriend 💛</span>
             </label>
             <label className="flex items-center">
               <input
@@ -235,7 +233,7 @@ export default function CreateRoom() {
                 onChange={() => handleRoleChange("boyfriend")}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed"
               />
-              <span className="ml-2 text-sm text-primary/60">Boyfriend 🩶</span>
+              <span className="ml-2 text-sm">Boyfriend 🩶</span>
             </label>
           </div>
         </div>

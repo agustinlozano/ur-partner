@@ -43,63 +43,73 @@ export default function RevealContent({ roomId }: RevealContentProps) {
   const [userRole, setUserRole] = useState<string>("");
   const [uploadedImages, setUploadedImages] = useState<any>({});
 
-  // Get user data and images from localStorage
+  // Get user data and images from sessionStorage
   useEffect(() => {
     const userData = localStorage.getItem("activeRoom");
     if (userData) {
       const user = JSON.parse(userData);
-      setUserRole(user.role || "girlfriend");
-    }
+      const role = user.role || "girlfriend";
+      setUserRole(role);
 
-    // Get uploaded images from localStorage
-    const imagesKey = `personality_images_${roomId}`;
-    const savedImages = localStorage.getItem(imagesKey);
-    if (savedImages) {
-      setUploadedImages(JSON.parse(savedImages));
+      // Get uploaded images from sessionStorage (saved during handleReady)
+      const imagesKey = `reveal_images_${roomId}_${role}`;
+      const savedImages = sessionStorage.getItem(imagesKey);
+      if (savedImages) {
+        setUploadedImages(JSON.parse(savedImages));
+      } else {
+        console.warn("No images found in sessionStorage for reveal");
+      }
     }
   }, [roomId]);
 
-  // Simulate the upload and processing stages
+  // Real upload and processing stages
   useEffect(() => {
-    if (!userRole) return;
+    if (!userRole || Object.keys(uploadedImages).length === 0) return;
 
     let currentMessageIndex = 0;
     let currentStepIndex = 0;
+    let hasStartedUploading = false;
 
     const progressInterval = setInterval(() => {
       setRevealState((prev) => {
-        const newProgress = Math.min(prev.progress + 5, 100);
+        const newProgress = Math.min(prev.progress + 3, 100); // Slower for real processing
 
         // Update messages based on progress
         let newMessage = prev.message;
         let newStep = prev.currentStep;
         let newStage = prev.stage;
 
-        if (newProgress < 30 && prev.stage === "loading") {
+        if (newProgress < 25 && prev.stage === "loading") {
           // Loading stage - show loading messages
           if (
-            newProgress % 15 === 0 &&
+            newProgress % 10 === 0 &&
             currentMessageIndex < LOADING_MESSAGES.length - 1
           ) {
             currentMessageIndex++;
             newMessage = LOADING_MESSAGES[currentMessageIndex];
           }
-        } else if (newProgress >= 30 && newProgress < 90) {
-          // Uploading stage
+        } else if (newProgress >= 25 && newProgress < 85) {
+          // Uploading stage - start real upload process
           if (prev.stage === "loading") {
             newStage = "uploading";
             currentStepIndex = 0;
+
+            // Start the actual upload process
+            if (!hasStartedUploading) {
+              hasStartedUploading = true;
+              startImageUpload();
+            }
           }
 
           if (
-            newProgress % 12 === 0 &&
+            newProgress % 8 === 0 &&
             currentStepIndex < UPLOADING_STEPS.length - 1
           ) {
             currentStepIndex++;
           }
           newStep = UPLOADING_STEPS[currentStepIndex];
           newMessage = "Processing your personality swap...";
-        } else if (newProgress >= 90) {
+        } else if (newProgress >= 85) {
           // Almost ready
           newStage = "ready";
           newMessage = "Your personality reveal is ready!";
@@ -117,10 +127,40 @@ export default function RevealContent({ roomId }: RevealContentProps) {
           currentStep: newStep,
         };
       });
-    }, 150); // Update every 150ms for smooth progress
+    }, 200); // Slower updates for real processing
 
     return () => clearInterval(progressInterval);
-  }, [userRole]);
+  }, [userRole, uploadedImages]);
+
+  // Function to start the image upload process
+  const startImageUpload = async () => {
+    try {
+      const response = await fetch(`/api/room/${roomId}/upload-images`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userRole,
+          images: uploadedImages,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log("Upload successful:", result.message);
+        // Clear sessionStorage after successful upload
+        sessionStorage.removeItem(`reveal_images_${roomId}_${userRole}`);
+      } else {
+        console.error("Upload failed:", result.error);
+        setRevealState((prev) => ({ ...prev, stage: "error" }));
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      setRevealState((prev) => ({ ...prev, stage: "error" }));
+    }
+  };
 
   if (revealState.stage === "error") {
     return (

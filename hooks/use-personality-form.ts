@@ -192,6 +192,14 @@ export function usePersonalityForm({ roomId }: UsePersonalityFormProps) {
     localStorage.setItem(`room_${roomId}_ready_${currentUser}`, "true");
     setIsReady(true);
 
+    // Save images to sessionStorage for reveal process
+    if (Object.keys(uploadedImages).length > 0) {
+      sessionStorage.setItem(
+        `reveal_images_${roomId}_${userRole}`,
+        JSON.stringify(uploadedImages)
+      );
+    }
+
     // Update ready state in backend
     try {
       await fetch(`/api/room/${roomId}/update-ready`, {

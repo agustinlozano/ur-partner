@@ -5,21 +5,24 @@ import Link from "next/link";
 import { enviroment } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { Sparkles } from "@/components/sparkles";
+import { BidirectionalBeam } from "@/components/bidirectional-animated-beam";
 
 export default function Home() {
   return (
     <GradientBackground variant="blue">
       <div className="container mx-auto px-4 py-12 max-w-2xl">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-6 font-mono text-gradient">
-            Imagine ur Partner
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-bold mb-6 font-mono text-gradient text-balance">
+            Imagine with ur Partner
           </h1>
-          <p className="text-xl text-primary/75 mx-auto mb-8">
+          <p className="text-xl text-primary/75 mx-auto">
             Describe your partner&apos;s personality through images. Discover
             how you see each other through animals, places, characters, and
             more.
           </p>
         </div>
+
+        <BidirectionalBeam className="mb-10" />
 
         <div className="mx-auto space-y-6">
           <div className="grid md:grid-cols-2 gap-4">
@@ -62,7 +65,7 @@ export default function Home() {
                   Join Room
                 </h2>
                 <p className="text-primary/75 text-sm group-hover:text-primary/90 transition-colors duration-300">
-                  Enter an existing room using a room ID from your partner
+                  Enter an existing one using a room ID from your partner
                 </p>
               </div>
             </Link>
@@ -78,17 +81,17 @@ export default function Home() {
             className="absolute inset-x-0 bottom-0 h-full w-full -z-10"
           />
 
-          <div className="bg-card/75 rounded-xl shadow-lg p-6 border">
-            <h3 className="text-lg font-semibold mb-4">How it works:</h3>
+          <div className="bg-card/75 rounded-xl shadow-lg p-6 mt-28 border">
+            <h3 className="text-lg font-semibold mb-4">How it works</h3>
             <div className="space-y-3 text-sm text-primary/90">
               <div className="flex items-center gap-3">
-                <span className="border bg-purple-100 text-purple-600 dark:text-purple-400 dark:bg-purple-950 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+                <span className="border bg-secondary rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
                   1
                 </span>
                 <p>Create or join a room with your partner</p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="border bg-purple-100 text-purple-600 dark:text-purple-400 dark:bg-purple-950 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+                <span className="border bg-secondary rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
                   2
                 </span>
                 <p>
@@ -97,7 +100,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="border bg-purple-100 text-purple-600 dark:text-purple-400 dark:bg-purple-950 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+                <span className="border bg-secondary rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
                   3
                 </span>
                 <p>

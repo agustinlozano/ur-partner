@@ -20,10 +20,12 @@ function SubmitButton({
   roomInfo,
   missingRole,
   selectedEmoji,
+  disabled,
 }: {
   roomInfo: any;
   missingRole: string | null;
   selectedEmoji: string;
+  disabled: boolean;
 }) {
   const { pending } = useFormStatus();
 
@@ -31,7 +33,9 @@ function SubmitButton({
     <Button
       type="submit"
       variant="shadow"
-      disabled={pending || !roomInfo || !missingRole || !selectedEmoji}
+      disabled={
+        pending || !roomInfo || !missingRole || !selectedEmoji || disabled
+      }
       className="w-full"
     >
       {pending ? (
@@ -66,6 +70,8 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
   const [roomInfo, setRoomInfo] = useState<any>(null);
   const [checkingRoom, setCheckingRoom] = useState(false);
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
+  const [name, setName] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
   const roomIdInputRef = useRef<HTMLInputElement>(null);
 
   // Action moderna con useActionState
@@ -247,6 +253,25 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
     );
   }
 
+  // Validación de nombre
+  function validateName(value: string): string | null {
+    const trimmed = value.trim();
+    if (!trimmed) return "Name is required";
+    if (trimmed.length < 2 || trimmed.length > 24)
+      return "Name must be 2-24 characters";
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü'\- ]+$/.test(trimmed))
+      return "Only letters, spaces, hyphens, apostrophes and accents allowed";
+    if (/^(.)\1{1,}$/.test(trimmed.replace(/ /g, "")))
+      return "Name cannot be a single repeated character";
+    return null;
+  }
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setName(value);
+    setNameError(validateName(value));
+  };
+
   return (
     <div className="max-w-md mx-auto p-6 bg-card/60 rounded-xl shadow-lg border">
       <div className="text-center mb-6">
@@ -361,7 +386,17 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
                 disabled={isPending}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:cursor-not-allowed"
                 placeholder="Enter your name"
+                autoComplete="off"
+                spellCheck={false}
+                value={name}
+                onChange={handleNameChange}
+                maxLength={24}
               />
+              {nameError && (
+                <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                  {nameError}
+                </p>
+              )}
             </div>
 
             <EmojiSelector
@@ -378,6 +413,7 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
           roomInfo={roomInfo}
           missingRole={missingRole}
           selectedEmoji={selectedEmoji}
+          disabled={!!nameError || !name.trim()}
         />
       </form>
 

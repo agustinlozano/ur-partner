@@ -132,9 +132,9 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
       {bothReady && (
         <div className="text-center p-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
           <div className="text-4xl mb-3">✨</div>
-          <div className="font-bold text-purple-800 dark:text-purple-200 text-lg mb-2">
+          <strong className="font-bold font-mono text-purple-800 dark:text-purple-200 text-lg mb-2">
             Both Ready!
-          </div>
+          </strong>
           <div className="text-sm text-purple-600 dark:text-purple-400 mb-4">
             Time to discover how you see each other...
           </div>

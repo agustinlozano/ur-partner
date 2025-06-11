@@ -1,10 +1,5 @@
 import { NextRequest } from "next/server";
-import { findRoomByRoomId, updateSheetRow, readSheetData } from "@/lib/sheets";
-import { put } from "@vercel/blob";
-
-interface ImageData {
-  [categoryId: string]: string | string[]; // base64 images from localStorage
-}
+import { findRoomByRoomId } from "@/lib/sheets";
 
 export async function POST(
   request: NextRequest,
@@ -43,10 +38,6 @@ export async function POST(
       );
     }
 
-    // For now, we'll just return success and let the client handle the redirect
-    // The actual image upload will happen when users visit the reveal page
-    // This allows us to show a loading state while processing
-
     return Response.json({
       success: true,
       message: "Both users are ready. Proceeding to reveal...",
@@ -61,27 +52,5 @@ export async function POST(
       { error: "Failed to start reveal process" },
       { status: 500 }
     );
-  }
-}
-
-// Helper function to upload images to Vercel Blob (will be used later)
-async function uploadImageToBlob(
-  base64Image: string,
-  filename: string
-): Promise<string> {
-  try {
-    // Convert base64 to buffer
-    const base64Data = base64Image.replace(/^data:image\/[a-z]+;base64,/, "");
-    const buffer = Buffer.from(base64Data, "base64");
-
-    // Upload to Vercel Blob
-    const { url } = await put(filename, buffer, {
-      access: "public",
-    });
-
-    return url;
-  } catch (error) {
-    console.error("Error uploading to blob:", error);
-    throw error;
   }
 }

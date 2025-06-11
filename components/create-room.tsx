@@ -228,6 +228,7 @@ export default function CreateRoom() {
             value={name}
             onChange={handleNameChange}
             autoComplete="off"
+            spellCheck={false}
             maxLength={24}
           />
           {nameError && (

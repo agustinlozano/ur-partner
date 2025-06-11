@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { usePersonalityImagesStore } from "@/stores/personality-images-store";
 
 interface RevealContentProps {
   roomId: string;
@@ -33,6 +34,8 @@ const UPLOADING_STEPS = [
 ];
 
 export default function RevealContent({ roomId }: RevealContentProps) {
+  const { getImagesForRoom } = usePersonalityImagesStore();
+
   const [revealState, setRevealState] = useState<RevealState>({
     stage: "loading",
     progress: 0,
@@ -43,7 +46,7 @@ export default function RevealContent({ roomId }: RevealContentProps) {
   const [userRole, setUserRole] = useState<string>("");
   const [uploadedImages, setUploadedImages] = useState<any>({});
 
-  // Get user data and images from sessionStorage
+  // Get user data and images from Zustand store
   useEffect(() => {
     const userData = localStorage.getItem("activeRoom");
     if (userData) {
@@ -51,16 +54,17 @@ export default function RevealContent({ roomId }: RevealContentProps) {
       const role = user.role || "girlfriend";
       setUserRole(role);
 
-      // Get uploaded images from sessionStorage (saved during handleReady)
-      const imagesKey = `reveal_images_${roomId}_${role}`;
-      const savedImages = sessionStorage.getItem(imagesKey);
-      if (savedImages) {
-        setUploadedImages(JSON.parse(savedImages));
+      // Get uploaded images from Zustand store
+      const images = getImagesForRoom(roomId, role);
+      console.log("Images from Zustand store:", images);
+
+      if (Object.keys(images).length > 0) {
+        setUploadedImages(images);
       } else {
-        console.warn("No images found in sessionStorage for reveal");
+        console.warn("No images found in Zustand store for reveal");
       }
     }
-  }, [roomId]);
+  }, [roomId, getImagesForRoom]);
 
   // Real upload and processing stages
   useEffect(() => {
@@ -150,8 +154,7 @@ export default function RevealContent({ roomId }: RevealContentProps) {
 
       if (result.success) {
         console.log("Upload successful:", result.message);
-        // Clear sessionStorage after successful upload
-        sessionStorage.removeItem(`reveal_images_${roomId}_${userRole}`);
+        // Images are already persisted in Zustand store - no need to clear
       } else {
         console.error("Upload failed:", result.error);
         setRevealState((prev) => ({ ...prev, stage: "error" }));

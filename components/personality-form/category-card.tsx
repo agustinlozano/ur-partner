@@ -1,5 +1,4 @@
 import React from "react";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { categories } from "@/lib/personality-form-constants";
 import "./category-card.css";
@@ -44,11 +43,10 @@ export const CategoryCard = ({ category, images }: CategoryCardProps) => {
       </div>
 
       <div className="relative aspect-[4/3] rounded-md overflow-hidden bg-muted">
-        <Image
+        <img
           src={displayImage || "/placeholder.svg"}
           alt={`${category.name} image`}
-          fill
-          className="object-cover select-none drag-none"
+          className="w-full h-full object-cover select-none drag-none"
         />
       </div>
     </figure>

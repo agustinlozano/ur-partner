@@ -1,19 +1,36 @@
 import { useState, useEffect } from "react";
 import { predefinedImages } from "@/lib/personality-form-constants";
 import type { UploadedImages } from "@/lib/personality-form-constants";
+import { usePersonalityImagesStore } from "@/stores/personality-images-store";
 
 interface UsePersonalityFormProps {
   roomId: string;
 }
 
 export function usePersonalityForm({ roomId }: UsePersonalityFormProps) {
-  const [uploadedImages, setUploadedImages] = useState<UploadedImages>({});
   const [dragOver, setDragOver] = useState<string | null>(null);
   const [focusedCard, setFocusedCard] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [currentUser, setCurrentUser] = useState<string>("");
   const [userRole, setUserRole] = useState<string>("");
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Zustand store for images
+  const { getImagesForRoom, setImagesForRoom, clearImagesForRoom } =
+    usePersonalityImagesStore();
+
+  // Get images from store based on current room and user role
+  const uploadedImages = userRole ? getImagesForRoom(roomId, userRole) : {};
+
+  // Helper function to update images in store
+  const updateUploadedImages = (
+    updater: (prev: UploadedImages) => UploadedImages
+  ) => {
+    if (!userRole) return;
+    const currentImages = getImagesForRoom(roomId, userRole);
+    const newImages = updater(currentImages);
+    setImagesForRoom(roomId, userRole, newImages);
+  };
 
   // Load current user info from localStorage
   useEffect(() => {
@@ -56,7 +73,7 @@ export function usePersonalityForm({ roomId }: UsePersonalityFormProps) {
       reader.onload = (e) => {
         const newImageUrl = e.target?.result as string;
 
-        setUploadedImages((prev) => {
+        updateUploadedImages((prev) => {
           let newState;
           let shouldUpdateProgress = false;
 
@@ -154,7 +171,7 @@ export function usePersonalityForm({ roomId }: UsePersonalityFormProps) {
   };
 
   const removeImage = (categoryId: string, imageIndex?: number) => {
-    setUploadedImages((prev) => {
+    updateUploadedImages((prev) => {
       const newImages = { ...prev };
       let shouldUpdateProgress = false;
 
@@ -192,13 +209,8 @@ export function usePersonalityForm({ roomId }: UsePersonalityFormProps) {
     localStorage.setItem(`room_${roomId}_ready_${currentUser}`, "true");
     setIsReady(true);
 
-    // Save images to sessionStorage for reveal process
-    if (Object.keys(uploadedImages).length > 0) {
-      sessionStorage.setItem(
-        `reveal_images_${roomId}_${userRole}`,
-        JSON.stringify(uploadedImages)
-      );
-    }
+    // Images are already saved in Zustand store with persistence
+    // No need for manual sessionStorage saving
 
     // Update ready state in backend
     try {
@@ -219,7 +231,8 @@ export function usePersonalityForm({ roomId }: UsePersonalityFormProps) {
   };
 
   const fillWithPredefinedImages = () => {
-    setUploadedImages(predefinedImages);
+    if (!userRole) return;
+    setImagesForRoom(roomId, userRole, predefinedImages);
 
     // Update progress for all categories
     Object.keys(predefinedImages).forEach((categoryId) => {
@@ -228,7 +241,8 @@ export function usePersonalityForm({ roomId }: UsePersonalityFormProps) {
   };
 
   const clearAllImages = () => {
-    setUploadedImages({});
+    if (!userRole) return;
+    clearImagesForRoom(roomId, userRole);
   };
 
   const uploadedCount = Object.keys(uploadedImages).length;

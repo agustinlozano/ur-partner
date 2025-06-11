@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   categories,
   type PartnerTrackerProps,
 } from "@/lib/personality-form-constants";
 
 export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
+  const router = useRouter();
   const [partnerProgress, setPartnerProgress] = useState<{
     completed: string[];
     total: number;
@@ -93,8 +95,8 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
       const data = await response.json();
 
       if (data.success) {
-        // Redirect to reveal page or show results
-        window.location.href = `/room/${roomId}/reveal`;
+        // Redirect to reveal page using Next.js router
+        router.push(`/room/${roomId}/reveal`);
       } else {
         console.error("Reveal failed:", data.error);
         alert("Error starting reveal. Please try again.");

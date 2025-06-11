@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/react";
 import { Geist, Geist_Mono } from "next/font/google";
 import FloatingRoomMenu from "@/components/floating-room-menu";
 import ThemeToggleButton from "@/components/theme-toggle-button";
 import AudioToggleButton from "@/components/audio-toggle-button";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AudioProvider } from "@/components/audio-provider";
-import "./globals.css";
 import { cn } from "@/lib/utils";
+import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,6 +51,7 @@ export default function RootLayout({
             <AudioToggleButton />
           </AudioProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );

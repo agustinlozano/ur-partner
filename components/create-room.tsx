@@ -13,9 +13,11 @@ import { useActiveRoom } from "@/hooks/use-active-room";
 function SubmitButton({
   selectedRole,
   selectedEmoji,
+  disabled,
 }: {
   selectedRole: "girlfriend" | "boyfriend" | null;
   selectedEmoji: string;
+  disabled: boolean;
 }) {
   const { pending } = useFormStatus();
 
@@ -23,7 +25,7 @@ function SubmitButton({
     <Button
       type="submit"
       variant="shadow"
-      disabled={pending || !selectedRole || !selectedEmoji}
+      disabled={pending || disabled}
       className="w-full"
     >
       {pending ? (
@@ -51,12 +53,32 @@ export default function CreateRoom() {
     "girlfriend" | "boyfriend" | null
   >(null);
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
+  const [name, setName] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
+
+  // Validación de nombre
+  function validateName(value: string): string | null {
+    const trimmed = value.trim();
+    if (!trimmed) return "Name is required";
+    if (trimmed.length < 2 || trimmed.length > 24)
+      return "Name must be 2-24 characters";
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü'\- ]+$/.test(trimmed))
+      return "Only letters, spaces, hyphens, apostrophes and accents allowed";
+    if (/^(.)\1{1,}$/.test(trimmed.replace(/ /g, "")))
+      return "Name cannot be a single repeated character";
+    return null;
+  }
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setName(value);
+    setNameError(validateName(value));
+  };
 
   // Action moderna con useActionState
   const [state, formAction] = useActionState(
     async (prevState: any, formData: FormData) => {
       try {
-        const name = formData.get("name") as string;
         const capitalizedName = capitalize(name);
         formData.set("name", capitalizedName);
 
@@ -203,7 +225,16 @@ export default function CreateRoom() {
             disabled={isPending}
             className="w-full px-3 py-2 border bg-primary/5 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:cursor-not-allowed"
             placeholder="Enter your name"
+            value={name}
+            onChange={handleNameChange}
+            autoComplete="off"
+            maxLength={24}
           />
+          {nameError && (
+            <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+              {nameError}
+            </p>
+          )}
         </div>
 
         <div>
@@ -251,6 +282,7 @@ export default function CreateRoom() {
         <SubmitButton
           selectedRole={selectedRole}
           selectedEmoji={selectedEmoji}
+          disabled={!!nameError || !name.trim()}
         />
       </form>
 

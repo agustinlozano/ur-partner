@@ -27,6 +27,22 @@ export async function POST(
       `Number of categories with images: ${Object.keys(images).length}`
     );
 
+    // Check if images are already uploaded to avoid duplicates
+    const existingUrls = await checkExistingImageUrls(roomId, userRole);
+    if (existingUrls && Object.keys(existingUrls).length > 0) {
+      console.log(`Images already uploaded for ${userRole} in room ${roomId}`);
+      return Response.json({
+        success: true,
+        message: "Images already uploaded",
+        roomId,
+        userRole,
+        uploadCount: Object.values(existingUrls).flat().length,
+        totalImages: Object.values(images).flat().length,
+        uploadedUrls: existingUrls,
+        alreadyExists: true,
+      });
+    }
+
     const uploadedUrls: { [categoryId: string]: string | string[] } = {};
     let uploadCount = 0;
     const totalImages = Object.values(images).flat().length;
@@ -108,6 +124,68 @@ async function uploadImageToBlob(
   } catch (error) {
     console.error("Error uploading to blob:", error);
     throw error;
+  }
+}
+
+// Helper function to check if images are already uploaded
+async function checkExistingImageUrls(
+  roomId: string,
+  userRole: string
+): Promise<{ [categoryId: string]: string | string[] } | null> {
+  try {
+    const room = await findRoomByRoomId(roomId);
+    if (!room) {
+      return null;
+    }
+
+    const categories = [
+      "animal",
+      "place",
+      "plant",
+      "character",
+      "season",
+      "hobby",
+      "food",
+      "colour",
+      "drink",
+    ];
+
+    const existingUrls: { [key: string]: string | string[] } = {};
+    let hasAnyUrls = false;
+
+    for (const category of categories) {
+      const columnKey = `${category}_${userRole}`;
+      const imageData = room[columnKey as keyof typeof room];
+
+      if (imageData && imageData.trim()) {
+        try {
+          // Try to parse as JSON (for character category with multiple images)
+          const parsed = JSON.parse(imageData);
+          if (
+            Array.isArray(parsed) &&
+            parsed.length > 0 &&
+            parsed[0].startsWith("http")
+          ) {
+            existingUrls[category] = parsed;
+            hasAnyUrls = true;
+          } else if (typeof parsed === "string" && parsed.startsWith("http")) {
+            existingUrls[category] = parsed;
+            hasAnyUrls = true;
+          }
+        } catch {
+          // If not JSON, check if it's a direct URL
+          if (imageData.startsWith("http")) {
+            existingUrls[category] = imageData;
+            hasAnyUrls = true;
+          }
+        }
+      }
+    }
+
+    return hasAnyUrls ? existingUrls : null;
+  } catch (error) {
+    console.error("Error checking existing image URLs:", error);
+    return null;
   }
 }
 

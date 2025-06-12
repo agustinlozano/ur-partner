@@ -8,7 +8,7 @@ import ActiveRoomSaver from "@/components/active-room-saver";
 import CopyRoomId from "@/components/copy-room-id";
 import AudioTrigger from "@/components/audio-trigger";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface PageProps {
   params: Promise<{ roomId: string }>;
@@ -44,6 +44,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
     emoji?: string;
   }>({});
   const [isPolling, setIsPolling] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -73,20 +74,18 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
 
   // Polling effect to check for partner joining
   useEffect(() => {
-    if (!roomId || !roomData) return;
+    if (!roomId) return;
 
-    const missingPartner =
-      !roomData.girlfriend_name || !roomData.boyfriend_name;
-
-    // Only poll if someone is missing
-    if (!missingPartner) {
-      setIsPolling(false);
-      return;
+    // Clear any existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
 
-    setIsPolling(true);
+    console.log("🔄 Starting polling for room:", roomId);
 
     const pollRoomStatus = async () => {
+      console.log("📡 Polling room status...");
       try {
         const updatedRoom = await getRoomData(roomId);
         if (updatedRoom) {
@@ -95,8 +94,17 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
           // Check if room is now complete
           const nowComplete =
             updatedRoom.girlfriend_name && updatedRoom.boyfriend_name;
+
           if (nowComplete) {
+            console.log("✅ Room complete, stopping polling");
             setIsPolling(false);
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current);
+              intervalRef.current = null;
+            }
+          } else {
+            // Continue polling - ensure isPolling is true
+            setIsPolling(true);
           }
         }
       } catch (error) {
@@ -104,17 +112,24 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
       }
     };
 
+    // Start polling immediately if room data suggests we should
+    setIsPolling(true);
+
     // Initial poll
     pollRoomStatus();
 
-    // Poll every 3 seconds (conservative with Google Sheets API limits)
-    const interval = setInterval(pollRoomStatus, 10000);
+    // Poll every 5 seconds
+    intervalRef.current = setInterval(pollRoomStatus, 5000);
 
     return () => {
-      clearInterval(interval);
+      console.log("🛑 Cleanup: Clearing polling interval");
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
       setIsPolling(false);
     };
-  }, [roomId, roomData]);
+  }, [roomId]); // Only depend on roomId, let the polling logic handle the rest
 
   if (loading) {
     return (

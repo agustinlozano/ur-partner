@@ -132,7 +132,7 @@ export default function Home() {
               <div>
                 <h3 className="text-xl font-bold font-mono">Agustin</h3>
                 <p className="text-primary/80 text-base">
-                  Guy from 🇦🇷 Argentina doin' software.
+                  Guy from Argentina 🇦🇷 doin' software.
                 </p>
               </div>
               <a

@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { usePersonalityImagesStore } from "@/stores/personality-images-store";
+import { CategoryMarquee } from "./personality-form/category-marquee";
+import { useRouter } from "next/navigation";
 
 interface RevealContentProps {
   roomId: string;
@@ -15,6 +17,16 @@ interface RevealState {
   progress: number;
   message: string;
   currentStep: string;
+}
+
+interface PartnerImagesState {
+  isReady: boolean;
+  loading: boolean;
+  error: string | null;
+  images: any;
+  partnerRole: string;
+  totalImages: number;
+  categoriesCompleted: number;
 }
 
 const LOADING_MESSAGES = [
@@ -35,6 +47,7 @@ const UPLOADING_STEPS = [
 
 export default function RevealContent({ roomId }: RevealContentProps) {
   const { getImagesForRoom } = usePersonalityImagesStore();
+  const router = useRouter();
 
   const [revealState, setRevealState] = useState<RevealState>({
     stage: "loading",
@@ -45,10 +58,21 @@ export default function RevealContent({ roomId }: RevealContentProps) {
 
   const [userRole, setUserRole] = useState<string>("");
   const [uploadedImages, setUploadedImages] = useState<any>({});
+  const [partnerImages, setPartnerImages] = useState<PartnerImagesState>({
+    isReady: false,
+    loading: false,
+    error: null,
+    images: {},
+    partnerRole: "",
+    totalImages: 0,
+    categoriesCompleted: 0,
+  });
+  const [showReveal, setShowReveal] = useState(false);
 
   // Get user data and images from Zustand store
   useEffect(() => {
     const userData = localStorage.getItem("activeRoom");
+
     if (userData) {
       const user = JSON.parse(userData);
       const role = user.role || "girlfriend";
@@ -56,13 +80,16 @@ export default function RevealContent({ roomId }: RevealContentProps) {
 
       // Get uploaded images from Zustand store
       const images = getImagesForRoom(roomId, role);
-      console.log("Images from Zustand store:", images);
 
       if (Object.keys(images).length > 0) {
         setUploadedImages(images);
       } else {
         console.warn("No images found in Zustand store for reveal");
       }
+    } else {
+      console.warn("No user data found in localStorage for reveal");
+      // redirect to home
+      router.push("/");
     }
   }, [roomId, getImagesForRoom]);
 
@@ -136,6 +163,55 @@ export default function RevealContent({ roomId }: RevealContentProps) {
     return () => clearInterval(progressInterval);
   }, [userRole, uploadedImages]);
 
+  // Check partner images when ready state is reached
+  useEffect(() => {
+    if (revealState.stage === "ready" && userRole && !showReveal) {
+      checkPartnerImages();
+    }
+  }, [revealState.stage, userRole, showReveal]);
+
+  const checkPartnerImages = async () => {
+    if (!userRole) return;
+
+    setPartnerImages((prev) => ({ ...prev, loading: true, error: null }));
+
+    try {
+      const response = await fetch(
+        `/api/room/${roomId}/partner-images?userRole=${userRole}`
+      );
+      const data = await response.json();
+
+      if (data.success) {
+        setPartnerImages({
+          isReady: data.isReady,
+          loading: false,
+          error: null,
+          images: data.images,
+          partnerRole: data.partnerRole,
+          totalImages: data.totalImages,
+          categoriesCompleted: data.categoriesCompleted,
+        });
+      } else {
+        setPartnerImages((prev) => ({
+          ...prev,
+          loading: false,
+          error: data.error || "Failed to check partner images",
+        }));
+      }
+    } catch (error) {
+      console.error("Error checking partner images:", error);
+      setPartnerImages((prev) => ({
+        ...prev,
+        loading: false,
+        error: "Failed to connect to server",
+      }));
+    }
+  };
+
+  const handleRevealImages = () => {
+    setShowReveal(true);
+  };
+
   // Function to start the image upload process
   const startImageUpload = async () => {
     try {
@@ -170,7 +246,7 @@ export default function RevealContent({ roomId }: RevealContentProps) {
       <div className="max-w-2xl mx-auto p-6 text-center">
         <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-8 border border-red-200 dark:border-red-800">
           <div className="text-4xl mb-4">😕</div>
-          <h2 className="text-xl font-semibold text-red-800 dark:text-red-200 mb-4">
+          <h2 className="text-xl font-semibold font-mono text-red-800 dark:text-red-200 mb-4">
             Something went wrong
           </h2>
           <p className="text-red-600 dark:text-red-400 mb-6">
@@ -190,7 +266,9 @@ export default function RevealContent({ roomId }: RevealContentProps) {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">✨</div>
-          <h1 className="text-3xl font-bold mb-4">Preparing Your Reveal</h1>
+          <h1 className="text-3xl font-bold font-mono mb-4">
+            Preparing Your Reveal
+          </h1>
           <p className="text-lg text-muted-foreground">{revealState.message}</p>
         </div>
 
@@ -233,7 +311,7 @@ export default function RevealContent({ roomId }: RevealContentProps) {
             <div className="flex items-start gap-3">
               <div className="text-blue-500 text-xl">💫</div>
               <div className="text-left">
-                <h3 className="font-medium text-blue-800 dark:text-blue-200">
+                <h3 className="font-medium font-mono text-blue-800 dark:text-blue-200">
                   Almost there!
                 </h3>
                 <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
@@ -264,43 +342,116 @@ export default function RevealContent({ roomId }: RevealContentProps) {
       {/* Success Message */}
       <div className="text-center mb-12">
         <div className="text-6xl mb-4">🎉</div>
-        <h1 className="text-4xl font-bold mb-4">The Big Reveal!</h1>
+        <h1 className="text-4xl font-bold font-mono mb-4">The Big Reveal!</h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           Here's how you and your partner see each other through personality
           images. The results might surprise you!
         </p>
       </div>
 
-      {/* Reveal Content Placeholder */}
-      <div className="bg-card/60 rounded-xl p-8 border shadow-lg text-center">
-        <div className="text-4xl mb-4">🔮</div>
-        <h2 className="text-2xl font-semibold mb-4">Coming Soon...</h2>
-        <p className="text-muted-foreground mb-6">
-          The photo swap functionality will be implemented in the next phase.
-          For now, both users have successfully completed their personality
-          galleries!
-        </p>
+      {/* Partner Images Status */}
+      {!showReveal && (
+        <div className="bg-card/60 rounded-xl p-8 border shadow-lg text-center mb-8">
+          <div className="text-4xl mb-4">🔮</div>
+          <h2 className="text-2xl font-semibold font-mono mb-4">
+            Checking Partner's Images...
+          </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-          <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-6 border border-purple-200 dark:border-purple-800">
-            <h3 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">
-              Your Gallery
-            </h3>
-            <p className="text-sm text-purple-600 dark:text-purple-400">
-              {Object.keys(uploadedImages).length} categories completed
+          {partnerImages.loading && (
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <RefreshCw className="w-5 h-5 animate-spin" />
+              <span>Loading partner's gallery...</span>
+            </div>
+          )}
+
+          {partnerImages.error && (
+            <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border border-red-200 dark:border-red-800 mb-6">
+              <p className="text-red-700 dark:text-red-300">
+                {partnerImages.error}
+              </p>
+              <Button
+                onClick={checkPartnerImages}
+                variant="outline"
+                className="mt-3"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Retry
+              </Button>
+            </div>
+          )}
+
+          {!partnerImages.loading &&
+            !partnerImages.error &&
+            partnerImages.isReady && (
+              <div className="space-y-6">
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-6 border border-green-200 dark:border-green-800">
+                  <div className="text-4xl mb-3">✨</div>
+                  <h3 className="text-xl font-semibold font-mono text-green-800 dark:text-green-200 mb-2">
+                    Partner's Images Ready!
+                  </h3>
+                  <p className="text-green-600 dark:text-green-400 mb-4">
+                    Your {partnerImages.partnerRole} has uploaded{" "}
+                    {partnerImages.totalImages} images across{" "}
+                    {partnerImages.categoriesCompleted} categories
+                  </p>
+                  <Button
+                    onClick={handleRevealImages}
+                    variant="shadow"
+                    size="lg"
+                  >
+                    🎭 Reveal Their Vision of You
+                  </Button>
+                </div>
+              </div>
+            )}
+
+          {!partnerImages.loading &&
+            !partnerImages.error &&
+            !partnerImages.isReady && (
+              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-6 border border-amber-200 dark:border-amber-800">
+                <div className="text-4xl mb-3">⏳</div>
+                <h3 className="text-xl font-semibold font-mono text-amber-800 dark:text-amber-200 mb-2">
+                  Partner Still Uploading...
+                </h3>
+                <p className="text-amber-600 dark:text-amber-400 mb-4">
+                  Your {partnerImages.partnerRole} has completed{" "}
+                  {partnerImages.categoriesCompleted}/9 categories
+                </p>
+                <Button onClick={checkPartnerImages} variant="outline">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Check Again
+                </Button>
+              </div>
+            )}
+        </div>
+      )}
+
+      {/* Show Reveal */}
+      {showReveal && partnerImages.isReady && (
+        <div className="space-y-8">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold font-mono mb-4">
+              How Your{" "}
+              {partnerImages.partnerRole === "girlfriend"
+                ? "Girlfriend"
+                : "Boyfriend"}{" "}
+              Sees You
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              These are the images they chose to represent your personality
             </p>
           </div>
 
-          <div className="bg-pink-50 dark:bg-pink-900/20 rounded-lg p-6 border border-pink-200 dark:border-pink-800">
-            <h3 className="font-semibold text-pink-800 dark:text-pink-200 mb-2">
-              Partner's Gallery
-            </h3>
-            <p className="text-sm text-pink-600 dark:text-pink-400">
-              Ready for swapping
-            </p>
+          {/* Partner's Images Marquee */}
+          <CategoryMarquee uploadedImages={partnerImages.images} />
+
+          <div className="text-center">
+            <Button onClick={() => setShowReveal(false)} variant="outline">
+              Check Status Again
+            </Button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

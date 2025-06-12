@@ -43,6 +43,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
     name?: string;
     emoji?: string;
   }>({});
+  const [isPolling, setIsPolling] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -69,6 +70,51 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
 
     loadData();
   }, [params, searchParams]);
+
+  // Polling effect to check for partner joining
+  useEffect(() => {
+    if (!roomId || !roomData) return;
+
+    const missingPartner =
+      !roomData.girlfriend_name || !roomData.boyfriend_name;
+
+    // Only poll if someone is missing
+    if (!missingPartner) {
+      setIsPolling(false);
+      return;
+    }
+
+    setIsPolling(true);
+
+    const pollRoomStatus = async () => {
+      try {
+        const updatedRoom = await getRoomData(roomId);
+        if (updatedRoom) {
+          setRoomData(updatedRoom);
+
+          // Check if room is now complete
+          const nowComplete =
+            updatedRoom.girlfriend_name && updatedRoom.boyfriend_name;
+          if (nowComplete) {
+            setIsPolling(false);
+          }
+        }
+      } catch (error) {
+        console.error("Error polling room status:", error);
+      }
+    };
+
+    // Initial poll
+    pollRoomStatus();
+
+    // Poll every 3 seconds (conservative with Google Sheets API limits)
+    const interval = setInterval(pollRoomStatus, 10000);
+
+    return () => {
+      clearInterval(interval);
+      setIsPolling(false);
+    };
+  }, [roomId, roomData]);
 
   if (loading) {
     return (
@@ -133,11 +179,19 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl mb-4 uppercase font-mono">Room {roomId}</h1>
-          <p className="text-lg text-primary/85 font-mono">
-            {missingPartner
-              ? `Waiting for ${missingPartner} to join...`
-              : "Both partners are in the room!"}
-          </p>
+          <div className="flex flex-col items-center justify-center gap-2">
+            <p className="text-lg text-primary/85 font-mono">
+              {missingPartner
+                ? `Waiting for ${missingPartner} to join`
+                : "Both partners are in the room!"}
+            </p>
+            {isPolling && (
+              <div className="flex items-center gap-1 text-sm text-primary/60">
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-purple-600"></div>
+                <span className="text-xs">checking</span>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 mb-8">
@@ -238,16 +292,19 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
         )}
 
         {!missingPartner && (
-          <div className="bg-card/60 rounded-xl shadow-lg p-6 border mb-8">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-xl shadow-lg p-6 border border-green-200 dark:border-green-800 mb-8">
             <div className="text-center">
-              <h3 className="text-xl font-semibold mb-4">🎉 Ready to Start!</h3>
-              <p className="text-primary/85 mb-6">
-                Both partners have joined the room. You can now start uploading
-                your personality images.
+              <div className="text-6xl mb-4">🎉</div>
+              <h3 className="text-xl font-semibold mb-4 text-green-800 dark:text-green-200">
+                Both Partners Joined!
+              </h3>
+              <p className="text-green-700 dark:text-green-300 mb-6">
+                Awesome! You can now start uploading your personality images and
+                discover how you see each other.
               </p>
-              <Button variant="shadow" asChild>
+              <Button variant="shadow" size="lg" asChild>
                 <Link href={`/room/${roomId}/personality`}>
-                  Start Personality Quiz
+                  🎮 Start Personality Quiz
                 </Link>
               </Button>
             </div>

@@ -6,6 +6,7 @@ import { enviroment } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { Sparkles } from "@/components/sparkles";
 import { BidirectionalBeam } from "@/components/bidirectional-animated-beam";
+import { XIcon } from "@/components/ui/icons";
 
 export default function Home() {
   return (
@@ -115,6 +116,28 @@ export default function Home() {
             <p className="text-sm text-primary/75">
               ⏰ Rooms expire after 2.5 hours for privacy
             </p>
+          </div>
+        </div>
+
+        {/* aesthetic section with my emoji */}
+        <div className="mt-16 max-w-2xl mx-auto text-center">
+          <div className="bg-card/75 rounded-xl shadow-lg p-6 border mb-10">
+            <div className="text-4xl mb-3">
+              <img src="/emoji.webp" className="object-cover w-36" />
+            </div>
+            <h3 className="text-lg font-semibold mb-4">Agustin</h3>
+            <p className="text-sm text-primary/90 mb-4">
+              Guy from 🇦🇷 Argentina doin' software.
+            </p>
+            <a
+              href="https://x.com/gustinlzn"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center text-primary/75 hover:text-primary/90 transition-colors duration-300"
+            >
+              <XIcon className="w-6 h-6 mr-2" />
+              @gustinlzn
+            </a>
           </div>
         </div>
 

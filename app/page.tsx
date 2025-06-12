@@ -120,24 +120,31 @@ export default function Home() {
         </div>
 
         {/* aesthetic section with my emoji */}
-        <div className="mt-16 max-w-2xl mx-auto text-center">
-          <div className="bg-card/75 rounded-xl shadow-lg p-6 border mb-10">
-            <div className="text-4xl mb-3">
-              <img src="/emoji.webp" className="object-cover w-36" />
+        <div className="mt-16 max-w-2xl mx-auto">
+          <div className="flex gap-x-8 items-center justify-between space-y-4 bg-card/75 rounded-xl shadow-lg p-8 border">
+            <img
+              src="/emoji.webp"
+              alt="Agustin's avatar"
+              className="w-28 mb-0 rounded-md object-cover border-2 border-primary/20 shadow-md"
+            />
+
+            <div className="grow flex flex-col gap-4">
+              <div>
+                <h3 className="text-xl font-bold font-mono">Agustin</h3>
+                <p className="text-primary/80 text-base">
+                  Guy from 🇦🇷 Argentina doin' software.
+                </p>
+              </div>
+              <a
+                href="https://x.com/gustinlzn"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex w-fit items-center gap-2 px-4 py-2 rounded-lg bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-300 font-medium text-sm"
+              >
+                <XIcon className="w-4 h-4" />
+                @gustinlzn
+              </a>
             </div>
-            <h3 className="text-lg font-semibold mb-4">Agustin</h3>
-            <p className="text-sm text-primary/90 mb-4">
-              Guy from 🇦🇷 Argentina doin' software.
-            </p>
-            <a
-              href="https://x.com/gustinlzn"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center text-primary/75 hover:text-primary/90 transition-colors duration-300"
-            >
-              <XIcon className="w-6 h-6 mr-2" />
-              @gustinlzn
-            </a>
           </div>
         </div>
 

@@ -231,11 +231,13 @@ export default function CreateRoom() {
             spellCheck={false}
             maxLength={24}
           />
-          {nameError && (
-            <p className="mt-1 text-xs text-red-600 dark:text-red-400">
-              {nameError}
-            </p>
-          )}
+          <div className="mt-1 h-2 flex items-start">
+            {nameError && (
+              <p className="text-xs text-red-600 dark:text-red-400">
+                {nameError}
+              </p>
+            )}
+          </div>
         </div>
 
         <div>

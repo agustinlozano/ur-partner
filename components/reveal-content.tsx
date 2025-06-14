@@ -6,6 +6,7 @@ import { ArrowLeft, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { usePersonalityImagesStore } from "@/stores/personality-images-store";
 import { CategoryMarquee } from "./personality-form/category-marquee";
+import CategoryHoverReveal from "./personality-form/category-hover-reveal";
 import { useRouter } from "next/navigation";
 import { enviroment } from "@/lib/env";
 
@@ -69,6 +70,7 @@ export default function RevealContent({ roomId }: RevealContentProps) {
     categoriesCompleted: 0,
   });
   const [showReveal, setShowReveal] = useState(false);
+  const [viewMode, setViewMode] = useState<"marquee" | "hover">("hover");
 
   // Get user data and images from Zustand store
   useEffect(() => {
@@ -497,7 +499,7 @@ export default function RevealContent({ roomId }: RevealContentProps) {
       )}
 
       {/* Show Reveal */}
-      {enviroment === "development" && showReveal && partnerImages.isReady && (
+      {showReveal && partnerImages.isReady && (
         <div className="space-y-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold font-mono mb-4 text-gradient">
@@ -507,19 +509,45 @@ export default function RevealContent({ roomId }: RevealContentProps) {
                 : "Boyfriend"}{" "}
               Sees You
             </h2>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-muted-foreground mb-6">
               These are the images they chose to represent your personality
             </p>
+
+            {/* View Mode Toggle */}
+            <div className="flex items-center justify-center gap-2 mb-8">
+              <Button
+                onClick={() => setViewMode("hover")}
+                variant={viewMode === "hover" ? "default" : "outline"}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                🎯 Hover Reveal
+              </Button>
+              <Button
+                onClick={() => setViewMode("marquee")}
+                variant={viewMode === "marquee" ? "default" : "outline"}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                🎠 Marquee View
+              </Button>
+            </div>
           </div>
 
-          {/* Partner's Images Marquee */}
-          <CategoryMarquee uploadedImages={partnerImages.images} />
+          {/* Partner's Images - Different Views */}
+          {viewMode === "marquee" ? (
+            <CategoryMarquee uploadedImages={partnerImages.images} />
+          ) : (
+            <CategoryHoverReveal uploadedImages={partnerImages.images} />
+          )}
 
-          <div className="text-center">
-            <Button onClick={() => setShowReveal(false)} variant="outline">
-              Check Status Again
-            </Button>
-          </div>
+          {enviroment === "development" && (
+            <div className="text-center">
+              <Button onClick={() => setShowReveal(false)} variant="outline">
+                Check Status Again
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -9,6 +9,8 @@ import CopyRoomId from "@/components/copy-room-id";
 import AudioTrigger from "@/components/audio-trigger";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
+import { checkRevealReady } from "@/lib/check-reveal-ready";
+import { sleep } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ roomId: string }>;
@@ -45,6 +47,13 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
   }>({});
   const [isPolling, setIsPolling] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [revealReady, setRevealReady] = useState<{
+    isReady: boolean;
+    partnerRole: string;
+    totalImages: number;
+    categoriesCompleted: number;
+  } | null>(null);
+  const [checkingReveal, setCheckingReveal] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -130,6 +139,55 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
       setIsPolling(false);
     };
   }, [roomId]); // Only depend on roomId, let the polling logic handle the rest
+
+  // Check if reveal is ready when both partners are present
+  useEffect(() => {
+    async function checkReveal() {
+      await sleep(2000);
+      const isGirlfriendMissing = !roomData?.girlfriend_name;
+      const isBoyfriendMissing = !roomData?.boyfriend_name;
+      const hasMissingPartner = isGirlfriendMissing || isBoyfriendMissing;
+
+      console.log(
+        "@ Checking reveal",
+        roomData,
+        currentUser?.role,
+        hasMissingPartner
+      );
+
+      if (!roomData || !currentUser?.role || hasMissingPartner) {
+        console.log("No room data or current user role or missing partner");
+        setRevealReady(null);
+        return;
+      }
+
+      setCheckingReveal(true);
+      try {
+        const result = await checkRevealReady(roomId, currentUser.role);
+        if (!result.error) {
+          setRevealReady({
+            isReady: result.isReady,
+            partnerRole: result.partnerRole,
+            totalImages: result.totalImages,
+            categoriesCompleted: result.categoriesCompleted,
+          });
+        } else {
+          setRevealReady(null);
+        }
+      } catch (error) {
+        console.error("Error checking reveal:", error);
+        setRevealReady(null);
+      } finally {
+        setCheckingReveal(false);
+      }
+    }
+
+    // Only check if both partners are present
+    console.log("@ before checkReveal", roomData, currentUser?.role);
+    if (roomData && currentUser?.role) {
+      checkReveal();
+    }
+  }, [roomData, currentUser?.role, roomId]);
 
   if (loading) {
     return (
@@ -317,11 +375,47 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
                 Awesome! You can now start uploading your personality images and
                 discover how you see each other.
               </p>
-              <Button variant="shadow" size="lg" asChild>
-                <Link href={`/room/${roomId}/personality`}>
-                  🎮 Start Personality Quiz
-                </Link>
-              </Button>
+
+              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                <Button variant="shadow" size="lg" asChild>
+                  <Link href={`/room/${roomId}/personality`}>
+                    🎮 Start Personality Quiz
+                  </Link>
+                </Button>
+
+                {/* Reveal Ready Button */}
+                {checkingReveal && (
+                  <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                    <span className="text-sm">Checking reveal status...</span>
+                  </div>
+                )}
+
+                {revealReady?.isReady && (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    asChild
+                    className="border-purple-500 text-purple-700 hover:bg-purple-50 dark:text-purple-300 dark:hover:bg-purple-950"
+                  >
+                    <Link href={`/room/${roomId}/reveal`}>
+                      ✨ View Personality Reveal
+                    </Link>
+                  </Button>
+                )}
+
+                {revealReady && !revealReady.isReady && (
+                  <div className="text-center">
+                    <p className="text-sm text-green-600 dark:text-green-400 mb-2">
+                      Reveal available when both complete the quiz
+                    </p>
+                    <p className="text-xs text-green-500 dark:text-green-500">
+                      Partner has {revealReady.categoriesCompleted}/9 categories
+                      ready
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

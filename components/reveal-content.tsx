@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePersonalityImagesStore } from "@/stores/personality-images-store";
 import { CategoryMarquee } from "./personality-form/category-marquee";
 import { useRouter } from "next/navigation";
+import { enviroment } from "@/lib/env";
 
 interface RevealContentProps {
   roomId: string;
@@ -428,29 +429,78 @@ export default function RevealContent({ roomId }: RevealContentProps) {
           {!partnerImages.loading &&
             !partnerImages.error &&
             !partnerImages.isReady && (
-              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-6 border border-amber-200 dark:border-amber-800">
-                <div className="text-4xl mb-3">⏳</div>
-                <h3 className="text-xl font-semibold font-mono text-amber-800 dark:text-amber-200 mb-2">
-                  Partner Still Uploading...
-                </h3>
-                <p className="text-amber-600 dark:text-amber-400 mb-4">
-                  Your {partnerImages.partnerRole} has completed{" "}
-                  {partnerImages.categoriesCompleted}/9 categories
-                </p>
-                <Button onClick={checkPartnerImages} variant="outline">
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Check Again
-                </Button>
+              <div className="space-y-4">
+                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-6 border border-amber-200 dark:border-amber-800">
+                  <div className="text-4xl mb-3">⏳</div>
+                  <h3 className="text-xl font-semibold font-mono text-amber-800 dark:text-amber-200 mb-2">
+                    {partnerImages.categoriesCompleted >= 8
+                      ? "Almost Ready!"
+                      : "Partner Still Uploading..."}
+                  </h3>
+                  <p className="text-amber-600 dark:text-amber-400 mb-4">
+                    Your {partnerImages.partnerRole} has completed{" "}
+                    {partnerImages.categoriesCompleted}/9 categories
+                    {partnerImages.totalImages > 0 && (
+                      <span className="block text-sm mt-1">
+                        ({partnerImages.totalImages} images uploaded)
+                      </span>
+                    )}
+                  </p>
+
+                  {partnerImages.categoriesCompleted >= 8 && (
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800 mb-4">
+                      <div className="flex items-start gap-3">
+                        <div className="text-blue-500 text-lg">💡</div>
+                        <div className="text-left">
+                          <h4 className="font-medium text-blue-800 dark:text-blue-200 text-sm">
+                            Almost there!
+                          </h4>
+                          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                            Your partner has uploaded most of their images. They
+                            might be finishing up the last category, or there
+                            might be a validation issue. Try checking again.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <Button
+                    onClick={checkPartnerImages}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    {partnerImages.categoriesCompleted >= 8
+                      ? "Check If Ready"
+                      : "Check Again"}
+                  </Button>
+                </div>
+
+                {/* Debug info for development */}
+                {process.env.NODE_ENV === "development" && (
+                  <div className="bg-gray-50 dark:bg-gray-900/20 rounded-lg p-4 border border-gray-200 dark:border-gray-800">
+                    <h4 className="font-medium text-gray-800 dark:text-gray-200 text-sm mb-2">
+                      Debug Info:
+                    </h4>
+                    <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                      <p>Categories: {partnerImages.categoriesCompleted}/9</p>
+                      <p>Total Images: {partnerImages.totalImages}</p>
+                      <p>Is Ready: {partnerImages.isReady ? "Yes" : "No"}</p>
+                      <p>Partner Role: {partnerImages.partnerRole}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
         </div>
       )}
 
       {/* Show Reveal */}
-      {showReveal && partnerImages.isReady && (
+      {enviroment === "development" && showReveal && partnerImages.isReady && (
         <div className="space-y-8">
           <div className="text-center">
-            <h2 className="text-3xl font-bold font-mono mb-4">
+            <h2 className="text-3xl font-bold font-mono mb-4 text-gradient">
               How Your{" "}
               {partnerImages.partnerRole === "girlfriend"
                 ? "Girlfriend"

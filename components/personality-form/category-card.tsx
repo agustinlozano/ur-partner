@@ -42,7 +42,7 @@ export const CategoryCard = ({ category, images }: CategoryCardProps) => {
         )}
       </div>
 
-      <div className="relative aspect-[4/3] rounded-md overflow-hidden bg-muted">
+      <div className="relative aspect-[4/3] rounded-md overflow-hidden bg-muted-foreground/10">
         <img
           src={displayImage || "/placeholder.svg"}
           alt={`${category.name} image`}

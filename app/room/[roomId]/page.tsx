@@ -148,13 +148,6 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
       const isBoyfriendMissing = !roomData?.boyfriend_name;
       const hasMissingPartner = isGirlfriendMissing || isBoyfriendMissing;
 
-      console.log(
-        "@ Checking reveal",
-        roomData,
-        currentUser?.role,
-        hasMissingPartner
-      );
-
       if (!roomData || !currentUser?.role || hasMissingPartner) {
         console.log("No room data or current user role or missing partner");
         setRevealReady(null);
@@ -183,7 +176,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
     }
 
     // Only check if both partners are present
-    console.log("@ before checkReveal", roomData, currentUser?.role);
+    // TODO: this doesn't work bc role might not be available in query params
     if (roomData && currentUser?.role) {
       checkReveal();
     }

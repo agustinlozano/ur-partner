@@ -107,8 +107,6 @@ function CategoryHoverReveal({ uploadedImages }: CategoryHoverRevealProps) {
     );
   }
 
-  console.log(currentImage);
-
   return (
     <section
       ref={containerRef}

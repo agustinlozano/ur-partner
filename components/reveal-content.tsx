@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePersonalityImagesStore } from "@/stores/personality-images-store";
 import { CategoryMarquee } from "./personality-form/category-marquee";
 import CategoryHoverReveal from "./personality-form/category-hover-reveal";
+import CategoryExpandableGallery from "./personality-form/category-expandable-gallery";
 import { useRouter } from "next/navigation";
 import { enviroment } from "@/lib/env";
 
@@ -70,7 +71,9 @@ export default function RevealContent({ roomId }: RevealContentProps) {
     categoriesCompleted: 0,
   });
   const [showReveal, setShowReveal] = useState(false);
-  const [viewMode, setViewMode] = useState<"marquee" | "hover">("hover");
+  const [viewMode, setViewMode] = useState<"marquee" | "hover" | "gallery">(
+    "gallery"
+  );
 
   // Get user data and images from Zustand store
   useEffect(() => {
@@ -514,14 +517,14 @@ export default function RevealContent({ roomId }: RevealContentProps) {
             </p>
 
             {/* View Mode Toggle */}
-            <div className="flex items-center justify-center gap-2 mb-8">
+            <div className="flex items-center justify-center gap-2 mb-8 flex-wrap">
               <Button
-                onClick={() => setViewMode("hover")}
-                variant={viewMode === "hover" ? "default" : "outline"}
+                onClick={() => setViewMode("gallery")}
+                variant={viewMode === "gallery" ? "default" : "outline"}
                 size="sm"
                 className="flex items-center gap-2"
               >
-                🎯 Hover Reveal
+                🖼️ Gallery
               </Button>
               <Button
                 onClick={() => setViewMode("marquee")}
@@ -529,16 +532,28 @@ export default function RevealContent({ roomId }: RevealContentProps) {
                 size="sm"
                 className="flex items-center gap-2"
               >
-                🎠 Marquee View
+                🎠 Marquee
+              </Button>
+              <Button
+                onClick={() => setViewMode("hover")}
+                variant={viewMode === "hover" ? "default" : "outline"}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                🎯 Hover
               </Button>
             </div>
           </div>
 
           {/* Partner's Images - Different Views */}
-          {viewMode === "marquee" ? (
+          {viewMode === "marquee" && (
             <CategoryMarquee uploadedImages={partnerImages.images} />
-          ) : (
+          )}
+          {viewMode === "hover" && (
             <CategoryHoverReveal uploadedImages={partnerImages.images} />
+          )}
+          {viewMode === "gallery" && (
+            <CategoryExpandableGallery uploadedImages={partnerImages.images} />
           )}
 
           {enviroment === "development" && (

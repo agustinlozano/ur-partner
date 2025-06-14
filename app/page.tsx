@@ -111,12 +111,6 @@ export default function Home() {
               </div>
             </div>
           </div>
-
-          <div className="text-center">
-            <p className="text-sm text-primary/75">
-              ⏰ Rooms expire after 2.5 hours for privacy
-            </p>
-          </div>
         </div>
 
         {/* aesthetic section with my emoji */}
@@ -149,24 +143,32 @@ export default function Home() {
         </div>
 
         {/* Development/Testing section - hidden in production */}
-        <div className="mt-16 max-w-2xl mx-auto">
-          <details className="bg-secondary/50 border rounded-lg p-4">
-            <summary className="cursor-pointer text-primary/75 font-medium">
-              🔧 Development Tools
-            </summary>
-            <div className="mt-4 space-y-4">
-              {enviroment === "development" ? (
-                <>
-                  <Diagnostics />
-                  <SheetTest />
-                </>
-              ) : (
-                <p className="text-red-500 dark:text-red-300">
-                  You must be an admin to see this section.
-                </p>
-              )}
-            </div>
-          </details>
+        {enviroment === "development" && (
+          <div className="mt-16 max-w-2xl mx-auto">
+            <details className="bg-secondary/50 border rounded-lg p-4">
+              <summary className="cursor-pointer text-primary/75 font-medium">
+                🔧 Development Tools
+              </summary>
+              <div className="mt-4 space-y-4">
+                {enviroment === "development" ? (
+                  <>
+                    <Diagnostics />
+                    <SheetTest />
+                  </>
+                ) : (
+                  <p className="text-red-500 dark:text-red-300">
+                    You must be an admin to see this section.
+                  </p>
+                )}
+              </div>
+            </details>
+          </div>
+        )}
+
+        <div className="text-center max-w-2xl my-4">
+          <p className="text-sm mx-auto py-2 text-primary/75 rounded-lg border border-red-400 bg-red-200 dark:bg-red-900/20 dark:border-red-800">
+            ⏰ Rooms expire after 2.5 hours for privacy
+          </p>
         </div>
       </div>
     </GradientBackground>

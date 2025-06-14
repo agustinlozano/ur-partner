@@ -10,6 +10,7 @@ import CategoryHoverReveal from "./personality-form/category-hover-reveal";
 import CategoryExpandableGallery from "./personality-form/category-expandable-gallery";
 import { useRouter } from "next/navigation";
 import { enviroment } from "@/lib/env";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 
 interface RevealContentProps {
   roomId: string;
@@ -51,6 +52,7 @@ const UPLOADING_STEPS = [
 export default function RevealContent({ roomId }: RevealContentProps) {
   const { getImagesForRoom } = usePersonalityImagesStore();
   const router = useRouter();
+  const isMobile = useIsMobile();
 
   const [revealState, setRevealState] = useState<RevealState>({
     stage: "loading",
@@ -74,6 +76,13 @@ export default function RevealContent({ roomId }: RevealContentProps) {
   const [viewMode, setViewMode] = useState<"marquee" | "hover" | "gallery">(
     "gallery"
   );
+
+  // Auto-switch to gallery if user is on mobile and tries to use hover
+  useEffect(() => {
+    if (isMobile && viewMode === "hover") {
+      setViewMode("gallery");
+    }
+  }, [isMobile, viewMode]);
 
   // Get user data and images from Zustand store
   useEffect(() => {
@@ -534,14 +543,17 @@ export default function RevealContent({ roomId }: RevealContentProps) {
               >
                 🎠 Marquee
               </Button>
-              <Button
-                onClick={() => setViewMode("hover")}
-                variant={viewMode === "hover" ? "default" : "outline"}
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                🎯 Hover
-              </Button>
+              {/* Only show hover option on non-mobile devices */}
+              {!isMobile && (
+                <Button
+                  onClick={() => setViewMode("hover")}
+                  variant={viewMode === "hover" ? "default" : "outline"}
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  🎯 Hover
+                </Button>
+              )}
             </div>
           </div>
 

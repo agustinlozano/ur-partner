@@ -98,69 +98,41 @@ export default function RevealContent({ roomId }: RevealContentProps) {
     if (!userRole || Object.keys(uploadedImages).length === 0) return;
 
     let currentMessageIndex = 0;
-    let currentStepIndex = 0;
     let hasStartedUploading = false;
 
-    const progressInterval = setInterval(() => {
+    // Initial loading phase
+    const loadingInterval = setInterval(() => {
       setRevealState((prev) => {
-        const newProgress = Math.min(prev.progress + 3, 100); // Slower for real processing
+        const newProgress = Math.min(prev.progress + 5, 25);
 
-        // Update messages based on progress
         let newMessage = prev.message;
-        let newStep = prev.currentStep;
-        let newStage = prev.stage;
-
-        if (newProgress < 25 && prev.stage === "loading") {
-          // Loading stage - show loading messages
-          if (
-            newProgress % 10 === 0 &&
-            currentMessageIndex < LOADING_MESSAGES.length - 1
-          ) {
-            currentMessageIndex++;
-            newMessage = LOADING_MESSAGES[currentMessageIndex];
-          }
-        } else if (newProgress >= 25 && newProgress < 85) {
-          // Uploading stage - start real upload process
-          if (prev.stage === "loading") {
-            newStage = "uploading";
-            currentStepIndex = 0;
-
-            // Start the actual upload process
-            if (!hasStartedUploading) {
-              hasStartedUploading = true;
-              startImageUpload();
-            }
-          }
-
-          if (
-            newProgress % 8 === 0 &&
-            currentStepIndex < UPLOADING_STEPS.length - 1
-          ) {
-            currentStepIndex++;
-          }
-          newStep = UPLOADING_STEPS[currentStepIndex];
-          newMessage = "Processing your personality swap...";
-        } else if (newProgress >= 85) {
-          // Almost ready
-          newStage = "ready";
-          newMessage = "Your personality reveal is ready!";
-          newStep = "Complete! 🎉";
+        if (
+          newProgress % 10 === 0 &&
+          currentMessageIndex < LOADING_MESSAGES.length - 1
+        ) {
+          currentMessageIndex++;
+          newMessage = LOADING_MESSAGES[currentMessageIndex];
         }
 
-        if (newProgress >= 100) {
-          clearInterval(progressInterval);
+        if (newProgress >= 25) {
+          clearInterval(loadingInterval);
+
+          // Start the actual upload process
+          if (!hasStartedUploading) {
+            hasStartedUploading = true;
+            startImageUpload();
+          }
         }
 
         return {
-          stage: newStage,
+          ...prev,
           progress: newProgress,
           message: newMessage,
-          currentStep: newStep,
         };
       });
-    }, 200); // Slower updates for real processing
+    }, 300);
 
-    return () => clearInterval(progressInterval);
+    return () => clearInterval(loadingInterval);
   }, [userRole, uploadedImages]);
 
   // Check partner images when ready state is reached
@@ -215,6 +187,36 @@ export default function RevealContent({ roomId }: RevealContentProps) {
   // Function to start the image upload process
   const startImageUpload = async () => {
     try {
+      // Update to uploading stage
+      setRevealState((prev) => ({
+        ...prev,
+        stage: "uploading",
+        progress: 25,
+        message: "Processing your personality swap...",
+        currentStep: UPLOADING_STEPS[0],
+      }));
+
+      // Simulate upload progress with steps
+      let currentStepIndex = 0;
+      const uploadProgressInterval = setInterval(() => {
+        setRevealState((prev) => {
+          const newProgress = Math.min(prev.progress + 8, 85);
+
+          if (
+            newProgress % 12 === 0 &&
+            currentStepIndex < UPLOADING_STEPS.length - 1
+          ) {
+            currentStepIndex++;
+          }
+
+          return {
+            ...prev,
+            progress: newProgress,
+            currentStep: UPLOADING_STEPS[currentStepIndex],
+          };
+        });
+      }, 400);
+
       const response = await fetch(`/api/room/${roomId}/upload-images`, {
         method: "POST",
         headers: {
@@ -228,16 +230,34 @@ export default function RevealContent({ roomId }: RevealContentProps) {
 
       const result = await response.json();
 
+      // Clear the progress interval
+      clearInterval(uploadProgressInterval);
+
       if (result.success) {
         console.log("Upload successful:", result.message);
-        // Images are already persisted in Zustand store - no need to clear
+
+        // Complete the upload and move to ready state
+        setRevealState({
+          stage: "ready",
+          progress: 100,
+          message: "Your personality reveal is ready!",
+          currentStep: "Complete! 🎉",
+        });
       } else {
         console.error("Upload failed:", result.error);
-        setRevealState((prev) => ({ ...prev, stage: "error" }));
+        setRevealState((prev) => ({
+          ...prev,
+          stage: "error",
+          message: result.error || "Upload failed",
+        }));
       }
     } catch (error) {
       console.error("Upload error:", error);
-      setRevealState((prev) => ({ ...prev, stage: "error" }));
+      setRevealState((prev) => ({
+        ...prev,
+        stage: "error",
+        message: "Failed to connect to server",
+      }));
     }
   };
 

@@ -29,6 +29,9 @@ importers:
       '@vercel/blob':
         specifier: ^1.1.1
         version: 1.1.1
+      '@vercel/firewall':
+        specifier: ^1.0.0
+        version: 1.0.0(next@15.3.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0))
       aws-sdk:
         specifier: ^2.1692.0
         version: 2.1692.0
@@ -1062,6 +1065,15 @@ packages:
   '@vercel/blob@1.1.1':
     resolution: {integrity: sha512-heiJGj2qt5qTv6yiShH9f6KRAoZGj+lz61GQ+lBRL4lhvUmKI9A51KYlQTnsUd9ymdFlKHBlvmPeG+yGz2Qsbg==}
     engines: {node: '>=16.14'}
+
+  '@vercel/firewall@1.0.0':
+    resolution: {integrity: sha512-7umwUgTV9BvM96YDhYOGEHmDoYoqdg7hdRUe8SahtppyD9zIF6uMA8sJvM53XYIaPSmpyj1nixDioyyJThMyog==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      next: '*'
+    peerDependenciesMeta:
+      next:
+        optional: true
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -3490,6 +3502,10 @@ snapshots:
       is-node-process: 1.2.0
       throttleit: 2.1.0
       undici: 5.29.0
+
+  '@vercel/firewall@1.0.0(next@15.3.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0))':
+    optionalDependencies:
+      next: 15.3.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
 
   acorn-jsx@5.3.2(acorn@8.14.1):
     dependencies:

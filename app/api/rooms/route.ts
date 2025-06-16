@@ -15,7 +15,7 @@ export interface CreateRoomResult {
 }
 
 export async function POST(request: NextRequest) {
-  const { rateLimited } = await checkRateLimit("create-room", { request });
+  const { rateLimited } = await checkRateLimit("update-object", { request });
   if (rateLimited) {
     return NextResponse.json(
       {

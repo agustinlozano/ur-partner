@@ -189,7 +189,7 @@ export async function createRoomAndRedirect(formData: FormData) {
 
   try {
     // Call the new API route
-    const response = await fetch(`http://localhost:3000/api/rooms`, {
+    const response = await fetch(`${process.env.BASE_URL}/api/rooms`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

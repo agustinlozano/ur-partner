@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { findRoomByRoomId } from "@/lib/sheets";
+import { findRoomByRoomId } from "@/lib/dynamodb";
 
 // Helper function to check if a string is a date
 function isDateString(str: string): boolean {
@@ -82,10 +82,10 @@ export async function GET(
     let totalImagesFound = 0;
 
     for (const category of categories) {
-      const columnKey = `${category}_${partnerRole}`;
-      const imageData = room[columnKey as keyof typeof room];
+      const columnKey = `${category}_${partnerRole}` as keyof typeof room;
+      const imageData = room[columnKey];
 
-      if (imageData && imageData.trim()) {
+      if (imageData && typeof imageData === "string" && imageData.trim()) {
         // Skip if it's a date string (ISO format or similar)
         if (isDateString(imageData.trim())) {
           continue;

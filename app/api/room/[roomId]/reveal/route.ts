@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { findRoomByRoomId } from "@/lib/sheets";
+// import { findRoomByRoomId } from "@/lib/sheets";
+import { findRoomByRoomId } from "@/lib/dynamodb";
 
 export async function POST(
   request: NextRequest,
@@ -24,12 +25,8 @@ export async function POST(
     }
 
     // Check if both users are ready
-    const girlfriendReady =
-      roomData.girlfriend_ready.toLowerCase() === "true" ||
-      roomData.girlfriend_ready === true;
-    const boyfriendReady =
-      roomData.boyfriend_ready.toLowerCase() === "true" ||
-      roomData.boyfriend_ready === true;
+    const girlfriendReady = roomData.girlfriend_ready === true;
+    const boyfriendReady = roomData.boyfriend_ready === true;
 
     if (!girlfriendReady || !boyfriendReady) {
       return Response.json(

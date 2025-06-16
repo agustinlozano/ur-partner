@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { readSheetData, updateSheetRow } from "@/lib/sheets";
+import { findRoomByRoomId, updateRoom, type Room } from "@/lib/dynamodb";
 
 export async function POST(
   request: NextRequest,
@@ -18,40 +18,39 @@ export async function POST(
       );
     }
 
-    // Get spreadsheet ID from environment
-    const spreadsheetId = process.env.SPREADSHEET_ID;
-    if (!spreadsheetId) {
-      throw new Error("SPREADSHEET_ID not configured");
-    }
-
-    // Read current sheet data to find the room row
-    const data = await readSheetData(spreadsheetId, "A:AA"); // Extended range
-
-    if (!data || data.length <= 1) {
+    // Verify the room exists
+    const room = await findRoomByRoomId(roomId);
+    if (!room) {
       return Response.json({ error: "Room not found" }, { status: 404 });
     }
 
-    // Find the room row index
-    let roomRowIndex = -1;
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === roomId) {
-        roomRowIndex = i + 1; // +1 because sheets are 1-indexed
-        break;
-      }
+    // Validate user role
+    const validRoles = ["girlfriend", "boyfriend"];
+    if (!validRoles.includes(userRole)) {
+      return Response.json(
+        { error: `Invalid user role: ${userRole}` },
+        { status: 400 }
+      );
     }
 
-    if (roomRowIndex === -1) {
-      return Response.json({ error: "Room not found" }, { status: 404 });
+    // Determine which field to update based on user role
+    const readyField =
+      userRole === "girlfriend" ? "girlfriend_ready" : "boyfriend_ready";
+
+    // Prepare the update
+    const updates: Partial<Room> = {
+      [readyField]: isReady,
+    };
+
+    // Update the room in DynamoDB
+    const updatedRoom = await updateRoom(roomId, updates);
+
+    if (!updatedRoom) {
+      return Response.json(
+        { error: "Failed to update ready state" },
+        { status: 500 }
+      );
     }
-
-    // Determine which column to update based on user role
-    // girlfriend_ready = Column X (index 23), boyfriend_ready = Column Y (index 24)
-    const readyColumnIndex = userRole === "girlfriend" ? 23 : 24;
-    const columnLetter = String.fromCharCode(65 + readyColumnIndex); // A=65, B=66, etc.
-    const range = `${columnLetter}${roomRowIndex}`;
-
-    // Update the ready state
-    await updateSheetRow(spreadsheetId, range, [[isReady.toString()]]);
 
     return Response.json({
       success: true,
@@ -59,7 +58,7 @@ export async function POST(
       roomId,
       userRole,
       isReady,
-      range,
+      fieldName: readyField,
     });
   } catch (error) {
     console.error("Error updating ready state:", error);

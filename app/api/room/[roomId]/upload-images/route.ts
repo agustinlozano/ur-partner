@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { S3 } from "aws-sdk";
-import { findRoomByRoomId, updateSheetRow, readSheetData } from "@/lib/sheets";
+import { findRoomByRoomId, updateRoomImages } from "@/lib/dynamodb";
 
 interface ImageData {
   [categoryId: string]: string | string[]; // base64 images from sessionStorage
@@ -85,8 +85,8 @@ export async function POST(
 
     console.log("@ `uploadImageToS3` uploadedUrls:", uploadedUrls);
 
-    // Store the uploaded URLs in the spreadsheet for later retrieval
-    const success = await storeImageUrls(roomId, userRole, uploadedUrls);
+    // Store the uploaded URLs in DynamoDB for later retrieval
+    const success = await updateRoomImages(roomId, userRole, uploadedUrls);
 
     console.log(
       `Upload complete for ${userRole}: ${uploadCount}/${totalImages} images uploaded`
@@ -180,10 +180,10 @@ async function checkExistingImageUrls(
     let hasAnyUrls = false;
 
     for (const category of categories) {
-      const columnKey = `${category}_${userRole}`;
-      const imageData = room[columnKey as keyof typeof room];
+      const columnKey = `${category}_${userRole}` as keyof typeof room;
+      const imageData = room[columnKey];
 
-      if (imageData && imageData.trim()) {
+      if (imageData && typeof imageData === "string" && imageData.trim()) {
         try {
           // Try to parse as JSON (for character category with multiple images)
           const parsed = JSON.parse(imageData);
@@ -212,85 +212,5 @@ async function checkExistingImageUrls(
   } catch (error) {
     console.error("Error checking existing image URLs:", error);
     return null;
-  }
-}
-
-// Helper function to store image URLs in the spreadsheet
-async function storeImageUrls(
-  roomId: string,
-  userRole: string,
-  uploadedUrls: { [categoryId: string]: string | string[] }
-): Promise<boolean> {
-  try {
-    const spreadsheetId = process.env.SPREADSHEET_ID;
-    if (!spreadsheetId) {
-      throw new Error("SPREADSHEET_ID not configured");
-    }
-
-    // Find the room row
-    const data = await readSheetData(spreadsheetId, "A:AA");
-    if (!data || data.length <= 1) {
-      return false;
-    }
-
-    let roomRowIndex = -1;
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === roomId) {
-        roomRowIndex = i + 1;
-        break;
-      }
-    }
-
-    if (roomRowIndex === -1) {
-      return false;
-    }
-
-    // For now, we'll store the URLs as JSON strings in the existing category columns
-    // This is a temporary solution - in production you might want separate URL columns
-    const updates: Array<{ range: string; values: string[][] }> = [];
-
-    Object.entries(uploadedUrls).forEach(([categoryId, urls]) => {
-      const columnKey = `${categoryId}_${userRole}`;
-      const columnMapping: { [key: string]: number } = {
-        animal_girlfriend: 5,
-        animal_boyfriend: 6,
-        place_girlfriend: 7,
-        place_boyfriend: 8,
-        plant_girlfriend: 9,
-        plant_boyfriend: 10,
-        character_girlfriend: 11,
-        character_boyfriend: 12,
-        season_girlfriend: 13,
-        season_boyfriend: 14,
-        hobby_girlfriend: 15,
-        hobby_boyfriend: 16,
-        food_girlfriend: 17,
-        food_boyfriend: 18,
-        colour_girlfriend: 19,
-        colour_boyfriend: 20,
-        drink_girlfriend: 21,
-        drink_boyfriend: 22,
-      };
-
-      const columnIndex = columnMapping[columnKey];
-      if (columnIndex !== undefined) {
-        const columnLetter = String.fromCharCode(65 + columnIndex);
-        const range = `${columnLetter}${roomRowIndex}`;
-
-        // Store URLs as JSON string
-        const urlData = Array.isArray(urls) ? JSON.stringify(urls) : urls;
-        updates.push({ range, values: [[urlData]] });
-      }
-    });
-
-    // Update all columns
-    for (const update of updates) {
-      await updateSheetRow(spreadsheetId, update.range, update.values);
-    }
-
-    return true;
-  } catch (error) {
-    console.error("Error storing image URLs:", error);
-    return false;
   }
 }

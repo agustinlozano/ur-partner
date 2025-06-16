@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { findRoomByRoomId, updateSheetRow, readSheetData } from "@/lib/sheets";
+import { findRoomByRoomId, updateRoom, type Room } from "@/lib/dynamodb";
 
 export async function POST(
   request: NextRequest,
@@ -18,79 +18,60 @@ export async function POST(
       );
     }
 
-    // Get spreadsheet ID from environment
-    const spreadsheetId = process.env.SPREADSHEET_ID;
-    if (!spreadsheetId) {
-      throw new Error("SPREADSHEET_ID not configured");
-    }
-
-    // Read current sheet data to find the room row
-    const data = await readSheetData(spreadsheetId, "A:AA"); // Extended range
-
-    if (!data || data.length <= 1) {
+    // Verify the room exists
+    const room = await findRoomByRoomId(roomId);
+    if (!room) {
       return Response.json({ error: "Room not found" }, { status: 404 });
     }
 
-    // Find the room row index
-    let roomRowIndex = -1;
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === roomId) {
-        roomRowIndex = i + 1; // +1 because sheets are 1-indexed
-        break;
-      }
-    }
+    // Validate category and userRole combination
+    const validCategories = [
+      "animal",
+      "place",
+      "plant",
+      "character",
+      "season",
+      "hobby",
+      "food",
+      "colour",
+      "drink",
+    ];
+    const validRoles = ["girlfriend", "boyfriend"];
 
-    if (roomRowIndex === -1) {
-      return Response.json({ error: "Room not found" }, { status: 404 });
-    }
-
-    // Map category + role to column index (based on new structure)
-    const categoryColumnMap: { [key: string]: number } = {
-      // girlfriend columns (starting at index 5)
-      animal_girlfriend: 5,
-      place_girlfriend: 7,
-      plant_girlfriend: 9,
-      character_girlfriend: 11,
-      season_girlfriend: 13,
-      hobby_girlfriend: 15,
-      food_girlfriend: 17,
-      colour_girlfriend: 19,
-      drink_girlfriend: 21,
-      // boyfriend columns
-      animal_boyfriend: 6,
-      place_boyfriend: 8,
-      plant_boyfriend: 10,
-      character_boyfriend: 12,
-      season_boyfriend: 14,
-      hobby_boyfriend: 16,
-      food_boyfriend: 18,
-      colour_boyfriend: 20,
-      drink_boyfriend: 22,
-    };
-
-    // Create the key for the specific category + role combination
-    const columnKey = `${category}_${userRole}`;
-    const columnIndex = categoryColumnMap[columnKey];
-
-    if (columnIndex === undefined) {
+    if (!validCategories.includes(category)) {
       return Response.json(
-        {
-          error: `Invalid category-role combination: ${columnKey}`,
-        },
+        { error: `Invalid category: ${category}` },
         { status: 400 }
       );
     }
 
+    if (!validRoles.includes(userRole)) {
+      return Response.json(
+        { error: `Invalid user role: ${userRole}` },
+        { status: 400 }
+      );
+    }
+
+    // Create the field name for the specific category + role combination
+    const fieldName = `${category}_${userRole}` as keyof Room;
+
     // Create the progress indicator value
-    // Since we now have separate columns per role, we just need the timestamp
     const progressValue = hasData ? new Date().toISOString() : "";
 
-    // Convert column index to letter notation
-    const columnLetter = String.fromCharCode(65 + columnIndex); // A=65, B=66, etc.
-    const range = `${columnLetter}${roomRowIndex}`;
+    // Prepare the update
+    const updates: Partial<Room> = {
+      [fieldName]: progressValue,
+    };
 
-    // Update the specific cell
-    await updateSheetRow(spreadsheetId, range, [[progressValue]]);
+    // Update the room in DynamoDB
+    const updatedRoom = await updateRoom(roomId, updates);
+
+    if (!updatedRoom) {
+      return Response.json(
+        { error: "Failed to update room progress" },
+        { status: 500 }
+      );
+    }
 
     return Response.json({
       success: true,
@@ -98,7 +79,8 @@ export async function POST(
       roomId,
       category,
       hasData,
-      range,
+      fieldName,
+      progressValue,
     });
   } catch (error) {
     console.error("Error updating progress:", error);

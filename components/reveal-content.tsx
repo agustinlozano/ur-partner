@@ -77,6 +77,8 @@ export default function RevealContent({ roomId }: RevealContentProps) {
     "gallery"
   );
 
+  console.log("@ `reveal-content.tsx` partnerImages:", partnerImages);
+
   // Auto-switch to gallery if user is on mobile and tries to use hover
   useEffect(() => {
     if (isMobile && viewMode === "hover") {
@@ -244,6 +246,8 @@ export default function RevealContent({ roomId }: RevealContentProps) {
       });
 
       const result = await response.json();
+
+      console.log("@ Upload result:", result);
 
       // Clear the progress interval
       clearInterval(uploadProgressInterval);

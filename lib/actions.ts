@@ -1,11 +1,6 @@
 "use server";
 
-import {
-  appendToSheet,
-  generateRoomId,
-  findRoomByRoomId,
-  updateSheetRow,
-} from "./sheets";
+import { findRoomByRoomId, updateSheetRow } from "./sheets";
 
 export interface CreateRoomInput {
   role: "girlfriend" | "boyfriend";
@@ -30,103 +25,6 @@ export interface JoinRoomResult {
   room_id?: string;
   role?: "girlfriend" | "boyfriend";
   error?: string;
-}
-
-export async function createRoom(
-  input: CreateRoomInput
-): Promise<CreateRoomResult> {
-  try {
-    const spreadsheetId = process.env.SPREADSHEET_ID;
-
-    if (!spreadsheetId) {
-      return {
-        success: false,
-        error: "Server configuration error: SPREADSHEET_ID not set",
-      };
-    }
-
-    if (!input.name.trim()) {
-      return {
-        success: false,
-        error: "Name is required",
-      };
-    }
-
-    if (!input.emoji.trim()) {
-      return {
-        success: false,
-        error: "Emoji is required",
-      };
-    }
-
-    // Generate unique room ID
-    let roomId = generateRoomId();
-    let attempts = 0;
-    const maxAttempts = 10;
-
-    // Ensure room ID is unique (check against existing rooms)
-    while (attempts < maxAttempts) {
-      const existingRoom = await findRoomByRoomId(roomId);
-      if (!existingRoom) {
-        break; // Room ID is unique
-      }
-      roomId = generateRoomId();
-      attempts++;
-    }
-
-    if (attempts >= maxAttempts) {
-      return {
-        success: false,
-        error: "Unable to generate unique room ID. Please try again.",
-      };
-    }
-
-    // Prepare the row data (updated with separate role columns)
-    const now = new Date().toISOString();
-    const rowData = [
-      roomId, // room_id
-      input.role === "girlfriend" ? input.name : "", // girlfriend_name
-      input.role === "boyfriend" ? input.name : "", // boyfriend_name
-      input.role === "girlfriend" ? input.emoji : "", // girlfriend_emoji
-      input.role === "boyfriend" ? input.emoji : "", // boyfriend_emoji
-      "", // animal_girlfriend
-      "", // animal_boyfriend
-      "", // place_girlfriend
-      "", // place_boyfriend
-      "", // plant_girlfriend
-      "", // plant_boyfriend
-      "", // character_girlfriend
-      "", // character_boyfriend
-      "", // season_girlfriend
-      "", // season_boyfriend
-      "", // hobby_girlfriend
-      "", // hobby_boyfriend
-      "", // food_girlfriend
-      "", // food_boyfriend
-      "", // colour_girlfriend
-      "", // colour_boyfriend
-      "", // drink_girlfriend
-      "", // drink_boyfriend
-      "", // girlfriend_ready
-      "", // boyfriend_ready
-      now, // created_at
-      now, // updated_at
-    ];
-
-    // Add to Google Sheet
-    await appendToSheet(spreadsheetId, "A:AA", [rowData]);
-
-    return {
-      success: true,
-      room_id: roomId,
-    };
-  } catch (error) {
-    console.error("Error creating room:", error);
-    return {
-      success: false,
-      error: "Failed to create room. Please try again.",
-    };
-  }
 }
 
 export async function joinRoom(input: JoinRoomInput): Promise<JoinRoomResult> {
@@ -289,21 +187,36 @@ export async function createRoomAndRedirect(formData: FormData) {
   const name = formData.get("name") as string;
   const emoji = formData.get("emoji") as string;
 
-  const result = await createRoom({ role, name, emoji });
+  try {
+    // Call the new API route
+    const response = await fetch(`http://localhost:3000/api/rooms`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ role, name, emoji }),
+    });
 
-  if (result.success && result.room_id) {
-    return {
-      success: true,
-      redirectUrl: `/room/${
-        result.room_id
-      }?new=true&role=${role}&name=${encodeURIComponent(
-        name
-      )}&emoji=${encodeURIComponent(emoji)}`,
-    };
-  } else {
+    const result = await response.json();
+
+    if (result.success && result.room_id) {
+      const encodedName = encodeURIComponent(name);
+      const encodedEmoji = encodeURIComponent(emoji);
+      return {
+        success: true,
+        redirectUrl: `/room/${result.room_id}?new=true&role=${role}&name=${encodedName}&emoji=${encodedEmoji}`,
+      };
+    } else {
+      return {
+        success: false,
+        error: result.error || "Failed to create room",
+      };
+    }
+  } catch (error) {
+    console.error("Error calling create room API:", error);
     return {
       success: false,
-      error: result.error || "Failed to create room",
+      error: "Failed to create room. Please try again.",
     };
   }
 }

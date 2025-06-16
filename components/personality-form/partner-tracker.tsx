@@ -18,22 +18,24 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
     isReady: false,
   });
   const [currentUserReady, setCurrentUserReady] = useState(false);
+  const [currentUserProgress, setCurrentUserProgress] = useState<{
+    completed: string[];
+    total: number;
+  }>({
+    completed: [],
+    total: 9,
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [userRole, setUserRole] = useState<string>("");
   const [isRevealing, setIsRevealing] = useState(false);
 
-  // Get user role and check if current user is ready
+  // Get user role
   useEffect(() => {
     const userData = localStorage.getItem("activeRoom");
     if (userData) {
       const user = JSON.parse(userData);
       setUserRole(user.role || "girlfriend");
-
-      // Check if current user is ready from localStorage
-      const userReadyKey = `room_${roomId}_ready_${user.name}`;
-      const isUserReady = localStorage.getItem(userReadyKey) === "true";
-      setCurrentUserReady(isUserReady);
     }
   }, [roomId]);
 
@@ -41,30 +43,48 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
   useEffect(() => {
     if (!isOpen || !userRole) return;
 
-    const pollPartnerStatus = async () => {
+    const pollStatus = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(
+        // Get partner status
+        const partnerResponse = await fetch(
           `/api/room/${roomId}/partner-status?role=${userRole}`
         );
-        const data = await response.json();
+        const partnerData = await partnerResponse.json();
 
-        if (data.success) {
-          setPartnerProgress(data.progress);
-          setLastUpdate(new Date());
+        if (partnerData.success) {
+          setPartnerProgress(partnerData.progress);
         }
+
+        // Get current user status (by requesting the opposite role)
+        const currentUserResponse = await fetch(
+          `/api/room/${roomId}/partner-status?role=${
+            userRole === "girlfriend" ? "boyfriend" : "girlfriend"
+          }`
+        );
+        const currentUserData = await currentUserResponse.json();
+
+        if (currentUserData.success) {
+          setCurrentUserProgress({
+            completed: currentUserData.progress.completed,
+            total: currentUserData.progress.total,
+          });
+          setCurrentUserReady(currentUserData.progress.isReady);
+        }
+
+        setLastUpdate(new Date());
       } catch (error) {
-        console.error("Failed to fetch partner status:", error);
+        console.error("Failed to fetch status:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
     // Initial fetch
-    pollPartnerStatus();
+    pollStatus();
 
-    // Poll every 5 seconds (respecting Google Sheets limits: 300/min = 1 every 200ms, but we're being conservative)
-    const interval = setInterval(pollPartnerStatus, 5000);
+    // Poll every 5 seconds
+    const interval = setInterval(pollStatus, 5000);
 
     return () => clearInterval(interval);
   }, [isOpen, roomId, userRole]);
@@ -73,12 +93,23 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
     (partnerProgress.completed.length / partnerProgress.total) * 100
   );
 
-  // Check if both users are ready
+  const currentUserProgressPercentage = Math.round(
+    (currentUserProgress.completed.length / currentUserProgress.total) * 100
+  );
+
+  // Check if both users have completed all categories (100%)
+  const bothCompleted =
+    currentUserProgressPercentage === 100 && progressPercentage === 100;
+
+  // Check if both users are ready (for backward compatibility)
   const bothReady = currentUserReady && partnerProgress.isReady;
+
+  // Show reveal button if both completed OR both ready
+  const canReveal = bothCompleted || bothReady;
 
   // Handle reveal button click
   const handleReveal = async () => {
-    if (!bothReady) return;
+    if (!canReveal) return;
 
     setIsRevealing(true);
     try {
@@ -130,15 +161,17 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
         </div>
       </div>
 
-      {/* Both Ready - Show Reveal Button */}
-      {bothReady && (
+      {/* Both Completed - Show Reveal Button */}
+      {canReveal && (
         <div className="text-center p-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
           <div className="text-4xl mb-3">✨</div>
           <strong className="font-bold font-mono text-purple-800 dark:text-purple-200 text-lg mb-2">
-            Both Ready!
+            {bothCompleted ? "Both Completed!" : "Both Ready!"}
           </strong>
           <div className="text-sm text-purple-600 dark:text-purple-400 mb-4">
-            Time to discover how you see each other...
+            {bothCompleted
+              ? "You've both uploaded all 9 images! Time to discover how you see each other..."
+              : "Time to discover how you see each other..."}
           </div>
 
           <button
@@ -217,17 +250,22 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
       </div>
 
       {/* Ready Status */}
-      {partnerProgress.isReady && !bothReady && (
-        <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-          <div className="text-2xl mb-2">🎉</div>
-          <div className="font-medium text-green-800 dark:text-green-200">
-            Your partner is ready!
+      {(progressPercentage === 100 || partnerProgress.isReady) &&
+        !canReveal && (
+          <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+            <div className="text-2xl mb-2">🎉</div>
+            <div className="font-medium text-green-800 dark:text-green-200">
+              {progressPercentage === 100
+                ? "Your partner has completed all categories!"
+                : "Your partner is ready!"}
+            </div>
+            <div className="text-sm text-green-600 dark:text-green-400 mt-1">
+              {currentUserProgressPercentage === 100
+                ? "Both of you have completed all categories! The reveal button should appear soon."
+                : "Complete your gallery to continue!"}
+            </div>
           </div>
-          <div className="text-sm text-green-600 dark:text-green-400 mt-1">
-            Complete your gallery and click Ready to continue!
-          </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }

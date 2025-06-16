@@ -369,7 +369,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
                 discover how you see each other.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+              <div className="flex flex-col gap-3 justify-center items-center">
                 <Button variant="shadow" size="lg" asChild>
                   <Link href={`/room/${roomId}/personality`}>
                     🎮 Start Personality Quiz

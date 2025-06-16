@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { put } from "@vercel/blob";
+import { S3 } from "aws-sdk";
 import { findRoomByRoomId, updateSheetRow, readSheetData } from "@/lib/sheets";
 
 interface ImageData {
@@ -47,7 +47,7 @@ export async function POST(
     let uploadCount = 0;
     const totalImages = Object.values(images).flat().length;
 
-    // Upload each category's images to Vercel Blob
+    // Subir cada imagen a AWS S3
     for (const [categoryId, imageData] of Object.entries(images)) {
       try {
         if (Array.isArray(imageData)) {
@@ -57,7 +57,8 @@ export async function POST(
           for (let i = 0; i < imageData.length; i++) {
             const base64Image = imageData[i] as string;
             const filename = `${roomId}/${userRole}/${categoryId}/${i + 1}.jpg`;
-            const url = await uploadImageToBlob(base64Image, filename);
+            const url = await uploadImageToS3(base64Image, filename);
+            console.log("@ `uploadImageToS3` URL:", url);
             uploadedImageUrls.push(url);
             uploadCount++;
 
@@ -70,7 +71,7 @@ export async function POST(
         } else {
           // Single image category
           const filename = `${roomId}/${userRole}/${categoryId}/main.jpg`;
-          const url = await uploadImageToBlob(imageData as string, filename);
+          const url = await uploadImageToS3(imageData as string, filename);
           uploadedUrls[categoryId] = url;
           uploadCount++;
 
@@ -81,6 +82,8 @@ export async function POST(
         // Continue with other categories even if one fails
       }
     }
+
+    console.log("@ `uploadImageToS3` uploadedUrls:", uploadedUrls);
 
     // Store the uploaded URLs in the spreadsheet for later retrieval
     const success = await storeImageUrls(roomId, userRole, uploadedUrls);
@@ -104,28 +107,51 @@ export async function POST(
   }
 }
 
-// Helper function to upload images to Vercel Blob
-async function uploadImageToBlob(
+// Helper function to upload images to AWS S3
+async function uploadImageToS3(
   base64Image: string,
   filename: string
 ): Promise<string> {
   try {
-    // Convert base64 to buffer
+    // Configuración de AWS desde variables de entorno
+    const s3 = new S3({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      region: process.env.AWS_REGION,
+    });
+    const bucket = process.env.AWS_S3_BUCKET;
+    if (!bucket)
+      throw new Error("AWS_S3_BUCKET no definido en variables de entorno");
+
+    // Convertir base64 a buffer
     const base64Data = base64Image.replace(/^data:image\/[a-z]+;base64,/, "");
     const buffer = Buffer.from(base64Data, "base64");
 
-    // Upload to Vercel Blob
-    const { url } = await put(filename, buffer, {
-      access: "public",
-      contentType: "image/jpeg",
-    });
+    // Subir a S3
+    const uploadResult = await s3
+      .upload({
+        Bucket: bucket,
+        Key: filename,
+        Body: buffer,
+        ContentType: "image/jpeg",
+        ACL: "public-read",
+      })
+      .promise();
 
-    return url;
+    return uploadResult.Location;
   } catch (error) {
-    console.error("Error uploading to blob:", error);
+    console.error("Error uploading to S3:", error);
     throw error;
   }
 }
+
+/**
+ * Variables de entorno necesarias para AWS S3:
+ * - AWS_ACCESS_KEY_ID
+ * - AWS_SECRET_ACCESS_KEY
+ * - AWS_REGION
+ * - AWS_S3_BUCKET
+ */
 
 // Helper function to check if images are already uploaded
 async function checkExistingImageUrls(

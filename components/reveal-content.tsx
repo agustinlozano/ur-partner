@@ -28,9 +28,11 @@ interface PartnerImagesState {
   loading: boolean;
   error: string | null;
   images: any;
+  cachedImages: any;
   partnerRole: string;
   totalImages: number;
   categoriesCompleted: number;
+  imagesDownloaded: boolean;
 }
 
 const LOADING_MESSAGES = [
@@ -68,9 +70,11 @@ export default function RevealContent({ roomId }: RevealContentProps) {
     loading: false,
     error: null,
     images: {},
+    cachedImages: {},
     partnerRole: "",
     totalImages: 0,
     categoriesCompleted: 0,
+    imagesDownloaded: false,
   });
   const [showReveal, setShowReveal] = useState(false);
   const [viewMode, setViewMode] = useState<"marquee" | "hover" | "gallery">(
@@ -157,6 +161,25 @@ export default function RevealContent({ roomId }: RevealContentProps) {
     }
   }, [revealState.stage, userRole, showReveal]);
 
+  // Cleanup blob URLs when component unmounts to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (partnerImages.cachedImages) {
+        Object.values(partnerImages.cachedImages).forEach((value) => {
+          if (Array.isArray(value)) {
+            value.forEach((url) => {
+              if (typeof url === "string" && url.startsWith("blob:")) {
+                URL.revokeObjectURL(url);
+              }
+            });
+          } else if (typeof value === "string" && value.startsWith("blob:")) {
+            URL.revokeObjectURL(value);
+          }
+        });
+      }
+    };
+  }, [partnerImages.cachedImages]);
+
   const checkPartnerImages = async () => {
     if (!userRole) return;
 
@@ -174,9 +197,11 @@ export default function RevealContent({ roomId }: RevealContentProps) {
           loading: false,
           error: null,
           images: data.images,
+          cachedImages: {},
           partnerRole: data.partnerRole,
           totalImages: data.totalImages,
           categoriesCompleted: data.categoriesCompleted,
+          imagesDownloaded: false,
         });
       } else {
         setPartnerImages((prev) => ({
@@ -195,8 +220,88 @@ export default function RevealContent({ roomId }: RevealContentProps) {
     }
   };
 
-  const handleRevealImages = () => {
-    setShowReveal(true);
+  // Function to download and cache images as blobs
+  const downloadAndCacheImages = async (imageUrls: any) => {
+    const cachedImages: any = {};
+
+    try {
+      // Process each category
+      for (const [category, urls] of Object.entries(imageUrls)) {
+        if (Array.isArray(urls)) {
+          // Handle array of URLs (like character category)
+          cachedImages[category] = [];
+          for (const url of urls) {
+            try {
+              const response = await fetch(url as string);
+              if (response.ok) {
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                cachedImages[category].push(blobUrl);
+              } else {
+                console.warn(`Failed to download image: ${url}`);
+                cachedImages[category].push(url); // Fallback to original URL
+              }
+            } catch (error) {
+              console.warn(`Error downloading image ${url}:`, error);
+              cachedImages[category].push(url as string); // Fallback to original URL
+            }
+          }
+        } else {
+          // Handle single URL
+          try {
+            const response = await fetch(urls as string);
+            if (response.ok) {
+              const blob = await response.blob();
+              const blobUrl = URL.createObjectURL(blob);
+              cachedImages[category] = blobUrl;
+            } else {
+              console.warn(`Failed to download image: ${urls}`);
+              cachedImages[category] = urls; // Fallback to original URL
+            }
+          } catch (error) {
+            console.warn(`Error downloading image ${urls}:`, error);
+            cachedImages[category] = urls as string; // Fallback to original URL
+          }
+        }
+      }
+
+      return cachedImages;
+    } catch (error) {
+      console.error("Error caching images:", error);
+      return imageUrls; // Return original URLs as fallback
+    }
+  };
+
+  const handleRevealImages = async () => {
+    if (!partnerImages.imagesDownloaded && partnerImages.images) {
+      // Show loading state while downloading images
+      setPartnerImages((prev) => ({ ...prev, loading: true }));
+
+      try {
+        const cachedImages = await downloadAndCacheImages(partnerImages.images);
+
+        setPartnerImages((prev) => ({
+          ...prev,
+          cachedImages,
+          imagesDownloaded: true,
+          loading: false,
+        }));
+
+        setShowReveal(true);
+      } catch (error) {
+        console.error("Error downloading images:", error);
+        // Fallback to showing original URLs
+        setPartnerImages((prev) => ({
+          ...prev,
+          cachedImages: prev.images,
+          imagesDownloaded: true,
+          loading: false,
+        }));
+        setShowReveal(true);
+      }
+    } else {
+      setShowReveal(true);
+    }
   };
 
   // Function to start the image upload process
@@ -249,8 +354,6 @@ export default function RevealContent({ roomId }: RevealContentProps) {
       clearInterval(uploadProgressInterval);
 
       if (result.success) {
-        console.log("Upload successful:", result.message);
-
         // Complete the upload and move to ready state
         setRevealState({
           stage: "ready",
@@ -259,11 +362,10 @@ export default function RevealContent({ roomId }: RevealContentProps) {
           currentStep: "Complete! 🎉",
         });
       } else {
-        console.error("Upload failed:", result.error);
         setRevealState((prev) => ({
           ...prev,
           stage: "error",
-          message: result.error || "Upload failed",
+          message: "Upload failed",
         }));
       }
     } catch (error) {
@@ -433,8 +535,16 @@ export default function RevealContent({ roomId }: RevealContentProps) {
                     onClick={handleRevealImages}
                     variant="shadow"
                     size="lg"
+                    disabled={partnerImages.loading}
                   >
-                    🎭 Reveal Their Vision of You
+                    {partnerImages.loading ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        Downloading Images...
+                      </>
+                    ) : (
+                      "🎭 Reveal Their Vision of You"
+                    )}
                   </Button>
                 </div>
               </div>
@@ -559,13 +669,31 @@ export default function RevealContent({ roomId }: RevealContentProps) {
 
           {/* Partner's Images - Different Views */}
           {viewMode === "marquee" && (
-            <CategoryMarquee uploadedImages={partnerImages.images} />
+            <CategoryMarquee
+              uploadedImages={
+                partnerImages.imagesDownloaded
+                  ? partnerImages.cachedImages
+                  : partnerImages.images
+              }
+            />
           )}
           {viewMode === "hover" && (
-            <CategoryHoverReveal uploadedImages={partnerImages.images} />
+            <CategoryHoverReveal
+              uploadedImages={
+                partnerImages.imagesDownloaded
+                  ? partnerImages.cachedImages
+                  : partnerImages.images
+              }
+            />
           )}
           {viewMode === "gallery" && (
-            <CategoryExpandableGallery uploadedImages={partnerImages.images} />
+            <CategoryExpandableGallery
+              uploadedImages={
+                partnerImages.imagesDownloaded
+                  ? partnerImages.cachedImages
+                  : partnerImages.images
+              }
+            />
           )}
 
           {enviroment === "development" && (

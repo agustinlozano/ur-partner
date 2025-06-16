@@ -207,9 +207,10 @@ export async function createRoomAndRedirect(formData: FormData) {
         redirectUrl: `/room/${result.room_id}?new=true&role=${role}&name=${encodedName}&emoji=${encodedEmoji}`,
       };
     } else {
+      console.error("Error creating room:", result);
       return {
         success: false,
-        error: result.error || "Failed to create room",
+        error: "Failed to create room",
       };
     }
   } catch (error) {

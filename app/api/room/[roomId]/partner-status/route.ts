@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { findRoomByRoomId } from "@/lib/sheets";
+import { findRoomByRoomId } from "@/lib/dynamodb";
 
 export async function GET(
   request: NextRequest,
@@ -85,10 +85,8 @@ export async function GET(
     // Check if partner is ready
     const partnerReady =
       partnerRole === "girlfriend"
-        ? roomData.girlfriend_ready.toLowerCase() === "true" ||
-          roomData.girlfriend_ready === true
-        : roomData.boyfriend_ready.toLowerCase() === "true" ||
-          roomData.boyfriend_ready === true;
+        ? roomData.girlfriend_ready === true
+        : roomData.boyfriend_ready === true;
 
     const progress = {
       completed: partnerCompletedCategories,

@@ -27,12 +27,37 @@ export function useActiveRoom() {
     setForceRefresh((prev) => prev + 1);
   }, []);
 
-  const clearActive = useCallback(() => {
+  const clearActive = useCallback(async () => {
+    // If there's an active room, try to leave it in the database first
+    if (activeRoom) {
+      try {
+        const response = await fetch(`/api/room/${activeRoom.room_id}/leave`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userRole: activeRoom.role,
+          }),
+        });
+
+        if (!response.ok) {
+          console.warn(
+            "Failed to leave room in database, but clearing locally"
+          );
+        }
+      } catch (error) {
+        console.warn("Error leaving room in database:", error);
+        // Continue with local cleanup even if API call fails
+      }
+    }
+
+    // Always clear local state regardless of API success
     setActiveRoom(null);
     localStorage.removeItem("activeRoom");
     // Trigger a refresh to ensure all components see the cleared state
     setForceRefresh((prev) => prev + 1);
-  }, []);
+  }, [activeRoom]);
 
   // Function to verify if room still exists on server
   const verifyRoomExists = useCallback(

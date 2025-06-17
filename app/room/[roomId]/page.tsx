@@ -251,12 +251,14 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
                 ? `Waiting for ${missingPartner} to join`
                 : "Both partners are in the room!"}
             </p>
-            {isPolling && (
-              <div className="flex items-center gap-1 text-sm text-primary/60">
-                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-purple-600"></div>
-                <span className="text-xs">checking</span>
-              </div>
-            )}
+            <div className="min-h-[24px]">
+              {isPolling && (
+                <div className="flex items-center gap-1 text-sm text-primary/60">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-purple-600"></div>
+                  <span className="text-xs">checking</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -376,38 +378,48 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
                   </Link>
                 </Button>
 
-                {/* Reveal Ready Button */}
-                {checkingReveal && (
-                  <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
-                    <span className="text-sm">Checking reveal status...</span>
+                {/* Reveal Section - Always reserve space to prevent layout shift */}
+                <div className="min-h-[60px] flex flex-col justify-center items-center">
+                  {/* Spinner space always reserved */}
+                  <div className="min-h-[24px] flex items-center justify-center">
+                    {checkingReveal ? (
+                      <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                        <span className="text-sm">
+                          Checking reveal status...
+                        </span>
+                      </div>
+                    ) : (
+                      // Empty div to reserve space
+                      <div style={{ height: 0 }} />
+                    )}
                   </div>
-                )}
 
-                {revealReady?.isReady && (
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    asChild
-                    className="border-purple-500 text-purple-700 hover:bg-purple-50 dark:text-purple-300 dark:hover:bg-purple-950"
-                  >
-                    <Link href={`/room/${roomId}/reveal`}>
-                      ✨ View Personality Reveal
-                    </Link>
-                  </Button>
-                )}
+                  {revealReady?.isReady && (
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      asChild
+                      className="border-purple-500 text-purple-700 hover:bg-purple-50 dark:text-purple-300 dark:hover:bg-purple-950"
+                    >
+                      <Link href={`/room/${roomId}/reveal`}>
+                        ✨ View Personality Reveal
+                      </Link>
+                    </Button>
+                  )}
 
-                {revealReady && !revealReady.isReady && (
-                  <div className="text-center">
-                    <p className="text-sm text-green-600 dark:text-green-400 mb-2">
-                      Reveal available when both complete the quiz
-                    </p>
-                    <p className="text-xs text-green-500 dark:text-green-500">
-                      Partner has {revealReady.categoriesCompleted}/9 categories
-                      ready
-                    </p>
-                  </div>
-                )}
+                  {revealReady && !revealReady.isReady && (
+                    <div className="text-center">
+                      <p className="text-sm text-green-600 dark:text-green-400 mb-2">
+                        Reveal available when both complete the quiz
+                      </p>
+                      <p className="text-xs text-green-500 dark:text-green-500">
+                        Partner has {revealReady.categoriesCompleted}/9
+                        categories ready
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

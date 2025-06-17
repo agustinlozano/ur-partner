@@ -226,6 +226,76 @@ export async function markUserReady(
   }
 }
 
+export interface LeaveRoomInput {
+  roomId: string;
+  userRole: "girlfriend" | "boyfriend";
+}
+
+export interface LeaveRoomResult {
+  success: boolean;
+  error?: string;
+}
+
+// Función para que un usuario abandone la sala
+export async function leaveRoomDynamoDB(
+  input: LeaveRoomInput
+): Promise<LeaveRoomResult> {
+  try {
+    if (!input.roomId.trim()) {
+      return {
+        success: false,
+        error: "Room ID is required",
+      };
+    }
+
+    if (
+      !input.userRole ||
+      !["girlfriend", "boyfriend"].includes(input.userRole)
+    ) {
+      return {
+        success: false,
+        error: "Valid user role is required (girlfriend or boyfriend)",
+      };
+    }
+
+    // Verificar que el room existe
+    const existingRoom = await findRoomByRoomId(input.roomId);
+    if (!existingRoom) {
+      return {
+        success: false,
+        error: "Room not found or has expired",
+      };
+    }
+
+    // Verificar que el usuario está en el room
+    const userName =
+      input.userRole === "girlfriend"
+        ? existingRoom.girlfriend_name
+        : existingRoom.boyfriend_name;
+
+    if (!userName) {
+      return {
+        success: false,
+        error: "User is not in this room",
+      };
+    }
+
+    // Usar la función leaveRoom de dynamodb.ts
+    const { leaveRoom } = await import("./dynamodb");
+    await leaveRoom(input.roomId, input.userRole);
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error("Error leaving room:", error);
+    return {
+      success: false,
+      error: "Failed to leave room. Please try again.",
+    };
+  }
+}
+
 // Funciones de compatibilidad con la API existente
 export async function createRoomAndRedirect(formData: FormData) {
   const role = formData.get("role") as "girlfriend" | "boyfriend";

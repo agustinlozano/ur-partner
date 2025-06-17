@@ -166,8 +166,8 @@ export default function Home() {
         )}
 
         <div className="text-center max-w-2xl my-4">
-          <p className="text-sm mx-auto py-2 text-primary/75 rounded-lg border border-red-400 bg-red-200 dark:bg-red-900/20 dark:border-red-800">
-            ⏰ Rooms expire after 2.5 hours for privacy
+          <p className="font-mono text-xs mx-auto py-2 text-primary/75 rounded-lg border border-red-400 bg-red-200 dark:bg-red-900/20 dark:border-red-800">
+            ⏰ rooms expire after 2.5 hours for privacy
           </p>
         </div>
       </div>

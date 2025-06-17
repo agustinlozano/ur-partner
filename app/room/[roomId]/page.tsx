@@ -380,21 +380,6 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
 
                 {/* Reveal Section - Always reserve space to prevent layout shift */}
                 <div className="min-h-[60px] flex flex-col justify-center items-center">
-                  {/* Spinner space always reserved */}
-                  <div className="min-h-[24px] flex items-center justify-center">
-                    {checkingReveal ? (
-                      <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
-                        <span className="text-sm">
-                          Checking reveal status...
-                        </span>
-                      </div>
-                    ) : (
-                      // Empty div to reserve space
-                      <div style={{ height: 0 }} />
-                    )}
-                  </div>
-
                   {revealReady?.isReady && (
                     <Button
                       variant="outline"

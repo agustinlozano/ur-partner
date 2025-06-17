@@ -116,7 +116,7 @@ function CategoryExpandableGallery({
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full select-none">
       {/* Desktop Layout - Horizontal */}
       <div className="hidden md:block overflow-x-hidden">
         <div className="w-fit mx-auto gap-1 flex pb-8 pt-4 px-4">

@@ -225,3 +225,53 @@ export const updateRoomImages = async (
     return false;
   }
 };
+
+// Function to remove a user from a room (clear their data)
+export const leaveRoom = async (
+  roomId: string,
+  userRole: "girlfriend" | "boyfriend"
+): Promise<Room | null> => {
+  try {
+    const updates: Partial<Room> = {};
+
+    if (userRole === "girlfriend") {
+      // Clear girlfriend data
+      updates.girlfriend_name = "";
+      updates.girlfriend_emoji = "";
+      updates.girlfriend_ready = false;
+
+      // Clear all girlfriend image categories
+      updates.animal_girlfriend = "";
+      updates.place_girlfriend = "";
+      updates.plant_girlfriend = "";
+      updates.character_girlfriend = "";
+      updates.season_girlfriend = "";
+      updates.hobby_girlfriend = "";
+      updates.food_girlfriend = "";
+      updates.colour_girlfriend = "";
+      updates.drink_girlfriend = "";
+    } else {
+      // Clear boyfriend data
+      updates.boyfriend_name = "";
+      updates.boyfriend_emoji = "";
+      updates.boyfriend_ready = false;
+
+      // Clear all boyfriend image categories
+      updates.animal_boyfriend = "";
+      updates.place_boyfriend = "";
+      updates.plant_boyfriend = "";
+      updates.character_boyfriend = "";
+      updates.season_boyfriend = "";
+      updates.hobby_boyfriend = "";
+      updates.food_boyfriend = "";
+      updates.colour_boyfriend = "";
+      updates.drink_boyfriend = "";
+    }
+
+    const updatedRoom = await updateRoom(roomId, updates);
+    return updatedRoom;
+  } catch (error) {
+    console.error("Error leaving room:", error);
+    throw new Error("Failed to leave room");
+  }
+};

@@ -636,7 +636,7 @@ export default function RevealContent({ roomId }: RevealContentProps) {
             </p>
 
             {/* View Mode Toggle */}
-            <div className="flex items-center justify-center gap-2 mb-8 flex-wrap">
+            <div className="flex items-center justify-center gap-2 mb-8 flex-wrap select-none">
               <Button
                 onClick={() => setViewMode("gallery")}
                 variant={viewMode === "gallery" ? "default" : "outline"}

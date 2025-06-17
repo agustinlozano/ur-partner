@@ -112,7 +112,7 @@ function CategoryHoverReveal({ uploadedImages }: CategoryHoverRevealProps) {
       ref={containerRef}
       onMouseMove={handleMove}
       className={cn(
-        "relative w-full max-w-4xl mx-auto p-2 md:p-8 rounded-2xl border border-purple-500/20 shadow-2xl",
+        "relative w-full max-w-4xl mx-auto p-2 md:p-8 rounded-2xl border border-purple-500/20 shadow-2xl select-none",
         "bg-gradient-to-br from-slate-200 via-purple-200 to-slate-200",
         "dark:bg-gradient-to-br dark:from-slate-900 dark:via-purple-900 dark:to-slate-900"
       )}

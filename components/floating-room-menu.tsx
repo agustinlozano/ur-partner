@@ -74,8 +74,8 @@ export default function FloatingRoomMenu() {
     router.push(`/room/${activeRoom.room_id}`);
   };
 
-  const handleLeaveRoom = () => {
-    clearActive();
+  const handleLeaveRoom = async () => {
+    await clearActive();
     setShowConfirmDialog(false);
   };
 

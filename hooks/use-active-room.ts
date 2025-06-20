@@ -28,16 +28,19 @@ export function useActiveRoom() {
   }, []);
 
   const clearActive = useCallback(async () => {
+    // Get current activeRoom from state at the time of call
+    const currentRoom = activeRoom;
+
     // If there's an active room, try to leave it in the database first
-    if (activeRoom) {
+    if (currentRoom) {
       try {
-        const response = await fetch(`/api/room/${activeRoom.room_id}/leave`, {
+        const response = await fetch(`/api/room/${currentRoom.room_id}/leave`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            userRole: activeRoom.role,
+            userRole: currentRoom.role,
           }),
         });
 
@@ -59,22 +62,26 @@ export function useActiveRoom() {
     setForceRefresh((prev) => prev + 1);
   }, [activeRoom]);
 
-  // Function to verify if room still exists on server
+  // Function to verify if room still exists on server - make it independent
   const verifyRoomExists = useCallback(
     async (roomId: string) => {
       try {
         const response = await fetch(`/api/room-info/${roomId}`);
         if (!response.ok) {
           // Room doesn't exist on server, clear it from localStorage
-          clearActive();
+          setActiveRoom(null);
+          localStorage.removeItem("activeRoom");
+          setForceRefresh((prev) => prev + 1);
         }
       } catch (error) {
         console.error("Error verifying room:", error);
         // On error, assume room doesn't exist and clear it
-        clearActive();
+        setActiveRoom(null);
+        localStorage.removeItem("activeRoom");
+        setForceRefresh((prev) => prev + 1);
       }
     },
-    [clearActive]
+    [] // No dependencies to avoid circular dependency
   );
 
   // Load active room from localStorage on mount and when forceRefresh changes
@@ -106,7 +113,7 @@ export function useActiveRoom() {
     } else {
       setActiveRoom(null);
     }
-  }, [verifyRoomExists, forceRefresh]); // Include forceRefresh as dependency
+  }, [forceRefresh]); // Only depend on forceRefresh, not verifyRoomExists
 
   // Listen for storage events (when localStorage changes in other tabs/components)
   useEffect(() => {

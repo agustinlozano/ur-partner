@@ -30,6 +30,43 @@ Categories:
 
 ## How to store the data
 
+[current way]
+Using DynamoDB from AWS.
+
+The data structure is like so:
+
+| Field                  | Type    | Description                                     |
+| ---------------------- | ------- | ----------------------------------------------- |
+| `room_id`              | string  | Partition Key - Unique room identifier          |
+| `girlfriend_name`      | string  | Name of the girlfriend                          |
+| `boyfriend_name`       | string  | Name of the boyfriend                           |
+| `girlfriend_emoji`     | string  | Girlfriend's selected avatar emoji              |
+| `boyfriend_emoji`      | string  | Boyfriend's selected avatar emoji               |
+| `animal_girlfriend`    | string  | Girlfriend's animal image URL                   |
+| `animal_boyfriend`     | string  | Boyfriend's animal image URL                    |
+| `place_girlfriend`     | string  | Girlfriend's place image URL                    |
+| `place_boyfriend`      | string  | Boyfriend's place image URL                     |
+| `plant_girlfriend`     | string  | Girlfriend's plant image URL                    |
+| `plant_boyfriend`      | string  | Boyfriend's plant image URL                     |
+| `character_girlfriend` | string  | Girlfriend's character image URLs (JSON string) |
+| `character_boyfriend`  | string  | Boyfriend's character image URLs (JSON string)  |
+| `season_girlfriend`    | string  | Girlfriend's season image URL                   |
+| `season_boyfriend`     | string  | Boyfriend's season image URL                    |
+| `hobby_girlfriend`     | string  | Girlfriend's hobby image URL                    |
+| `hobby_boyfriend`      | string  | Boyfriend's hobby image URL                     |
+| `food_girlfriend`      | string  | Girlfriend's food image URL                     |
+| `food_boyfriend`       | string  | Boyfriend's food image URL                      |
+| `colour_girlfriend`    | string  | Girlfriend's colour image URL                   |
+| `colour_boyfriend`     | string  | Boyfriend's colour image URL                    |
+| `drink_girlfriend`     | string  | Girlfriend's drink image URL                    |
+| `drink_boyfriend`      | string  | Boyfriend's drink image URL                     |
+| `girlfriend_ready`     | boolean | Whether girlfriend has submitted all images     |
+| `boyfriend_ready`      | boolean | Whether boyfriend has submitted all images      |
+| `created_at`           | string  | ISO timestamp when room was created             |
+| `updated_at`           | string  | ISO timestamp when room was last updated        |
+| `ttl`                  | number  | Unix timestamp for automatic deletion (3 hours) |
+
+[deprecated module]
 Data are stored in a Google Sheet. Basic columns are:
 
 - `room_id`

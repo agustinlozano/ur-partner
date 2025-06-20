@@ -88,6 +88,46 @@ Data are stored in a Google Sheet. Basic columns are:
 
 ## How to upload the images
 
-We don't know how to handle images yet. We just know that we have to share em between the two partners when they both are ready.
+## Image Upload System Design
 
-We should avoid to use a websocket, is there any other way to listen the `ready` fields and show the images when both are ready?
+Our image upload system is designed with a client-server architecture that handles real-time synchronization without WebSockets:
+
+### 1. **Client-Side Image Management** (`personality-form.tsx`)
+
+- Users upload images through drag-and-drop or file selection
+- Images are stored as base64 strings in sessionStorage via Zustand store
+- Real-time progress tracking with visual feedback
+- Form validation ensures all 9 categories are completed before marking as "ready"
+
+### 2. **Server-Side Upload Process** (`route.ts`)
+
+- Images are uploaded to AWS S3 with organized folder structure: `{roomId}/{userRole}/{categoryId}/`
+- Character category supports multiple images (up to 5) stored as JSON arrays
+- Duplicate upload prevention by checking existing URLs in DynamoDB
+- Automatic cleanup and error handling for failed uploads
+
+### 3. **State Management** (`personality-images-store.ts`)
+
+- Zustand store with persistence to sessionStorage
+- Room-specific image storage using keys: `{roomId}_{userRole}`
+- Automatic quota management with cleanup of old data
+- Cross-tab synchronization through sessionStorage
+
+### 4. **Real-Time Partner Detection**
+
+Instead of WebSockets, we use **polling with exponential backoff**:
+
+- Client polls the room status every 2-5 seconds
+- When both partners are ready (`girlfriend_ready` && `boyfriend_ready` = true)
+- System automatically triggers image sharing between partners
+- Polling frequency increases during active uploads, decreases during idle periods
+
+### 5. **Image Sharing Flow**
+
+1. Partner A completes gallery → `{userRole}_ready` = true
+2. Partner B completes gallery → `{userRole}_ready` = true
+3. System detects both ready → Fetches partner's images from S3 URLs
+4. Displays combined personality gallery to both partners
+5. Partners can view each other's personality insights
+
+This approach provides real-time-like experience without WebSocket complexity while maintaining scalability and reliability.

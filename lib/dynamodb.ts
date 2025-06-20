@@ -275,3 +275,31 @@ export const leaveRoom = async (
     throw new Error("Failed to leave room");
   }
 };
+
+// Function to get all rooms (for development purposes)
+export const getAllRooms = async (): Promise<Room[]> => {
+  try {
+    const result = await dynamoDb.send(
+      new ScanCommand({
+        TableName: TABLES.ROOMS,
+      })
+    );
+
+    const rooms = (result.Items as Room[]) || [];
+
+    // Filter out expired rooms
+    const activeRooms = rooms.filter((room) => {
+      if (!room.created_at) return false;
+      return !isRoomExpired(room.created_at);
+    });
+
+    // Sort by created_at (newest first)
+    return activeRooms.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  } catch (error) {
+    console.error("Error getting all rooms:", error);
+    throw new Error("Failed to get all rooms");
+  }
+};

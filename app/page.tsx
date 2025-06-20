@@ -11,12 +11,12 @@ import VideoSteps from "@/components/video-steps";
 export default function Home() {
   return (
     <GradientBackground variant="blue">
-      <div className="container mx-auto px-4 py-12 max-w-2xl">
-        <div className="text-center mb-10">
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center mb-10 max-w-3xl mx-auto">
           <h1 className="text-4xl font-bold mb-6 font-mono text-gradient text-balance">
-            Imagine with ur Partner
+            Imagine With Ur Partner
           </h1>
-          <p className="text-xl text-primary/75 mx-auto">
+          <p className="text-xl md:text-3xl text-pretty font-mono text-primary/75 mx-auto">
             Describe your partner&apos;s personality through images. Discover
             how you see each other through animals, places, characters, and
             more.
@@ -26,7 +26,7 @@ export default function Home() {
         <BidirectionalBeam className="mb-10" />
 
         <div className="mx-auto space-y-6">
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto">
             <Link
               href="/room"
               className={cn(
@@ -96,7 +96,7 @@ export default function Home() {
         </div>
 
         {/* aesthetic section with my emoji */}
-        <div className="mt-16 max-w-2xl mx-auto">
+        <div className="mt-16 max-w-3xl mx-auto">
           <div className="flex gap-x-8 items-center justify-between space-y-4 bg-card/75 rounded-xl shadow-lg p-8 border">
             <img
               src="/emoji.webp"
@@ -122,35 +122,6 @@ export default function Home() {
               </a>
             </div>
           </div>
-        </div>
-
-        {/* Development/Testing section - hidden in production */}
-        {/* {enviroment === "development" && (
-          <div className="mt-16 max-w-2xl mx-auto">
-            <details className="bg-secondary/50 border rounded-lg p-4">
-              <summary className="cursor-pointer text-primary/75 font-medium">
-                🔧 Development Tools
-              </summary>
-              <div className="mt-4 space-y-4">
-                {enviroment === "development" ? (
-                  <>
-                    <Diagnostics />
-                    <SheetTest />
-                  </>
-                ) : (
-                  <p className="text-red-500 dark:text-red-300">
-                    You must be an admin to see this section.
-                  </p>
-                )}
-              </div>
-            </details>
-          </div>
-        )} */}
-
-        <div className="text-center max-w-2xl my-4">
-          <p className="font-mono text-xs mx-auto py-2 text-primary/75 rounded-lg border border-red-400 bg-red-200 dark:bg-red-900/20 dark:border-red-800">
-            ⏰ rooms expire after 2.5 hours for privacy
-          </p>
         </div>
       </div>
     </GradientBackground>

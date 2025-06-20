@@ -39,46 +39,57 @@ const videoSteps: VideoStep[] = [
   },
 ];
 
+const previewImages = ["/create.webp", "/share.webp", "/join.webp"];
+
 export default function VideoSteps() {
   const [activeVideo, setActiveVideo] = useState<number | null>(null);
   const videoRefs = useRef<{ [key: number]: HTMLVideoElement | null }>({});
 
   const handleVideoClick = async (stepId: number) => {
-    const clickedVideo = videoRefs.current[stepId];
-    if (!clickedVideo) return;
-
-    // Pause all other videos
+    // Pause all other videos first
     Object.entries(videoRefs.current).forEach(([id, video]) => {
       if (video && parseInt(id) !== stepId && !video.paused) {
         video.pause();
       }
     });
 
-    // Toggle play/pause for clicked video
-    if (clickedVideo.paused) {
-      try {
-        await clickedVideo.play();
-        setActiveVideo(stepId);
-      } catch (error) {
-        console.error("Error playing video:", error);
+    if (activeVideo === stepId) {
+      // If this video is currently playing, pause it
+      const currentVideo = videoRefs.current[stepId];
+      if (currentVideo && !currentVideo.paused) {
+        currentVideo.pause();
       }
-    } else {
-      clickedVideo.pause();
       setActiveVideo(null);
+    } else {
+      // Start playing this video (will trigger expansion)
+      setActiveVideo(stepId);
+
+      // Wait a bit for the DOM to update with the video element
+      setTimeout(async () => {
+        const clickedVideo = videoRefs.current[stepId];
+        if (clickedVideo) {
+          try {
+            await clickedVideo.play();
+          } catch (error) {
+            console.error("Error playing video:", error);
+            setActiveVideo(null);
+          }
+        }
+      }, 100);
     }
   };
 
   return (
-    <div className="mt-16 max-w-6xl mx-auto">
+    <div className="mt-16 max-w-8xl mx-auto">
       <div className="text-center mb-12">
         <h2 className="text-3xl font-bold font-mono mb-4">See How It Works</h2>
-        <p className="text-xl text-primary/75 max-w-2xl mx-auto">
+        <p className="text-xl text-primary/75 max-w-2xl text-pretty mx-auto">
           Watch these quick demos to see how easy it is to create and join rooms
           with your partner
         </p>
       </div>
 
-      <div className="flex flex-col gap-8 px-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 px-4">
         {videoSteps.map((step, index) => (
           <div
             key={step.id}
@@ -94,36 +105,55 @@ export default function VideoSteps() {
             </div>
 
             {/* Video container */}
-            <div className="relative mb-6 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden shadow-inner">
-              <div className="aspect-[640/900] relative">
-                <video
-                  ref={(el) => {
-                    videoRefs.current[step.id] = el;
-                  }}
-                  className="w-full h-full object-cover cursor-pointer"
-                  preload="metadata"
-                  onPlay={() => setActiveVideo(step.id)}
-                  onPause={() => setActiveVideo(null)}
-                  onEnded={() => setActiveVideo(null)}
-                  onClick={() => handleVideoClick(step.id)}
-                >
-                  <source src={step.videoUrl} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-
-                {/* Emoji overlay when not playing */}
+            <div className="grow relative mb-6 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden shadow-inner">
+              <div
+                className={cn(
+                  "relative transition-all duration-700 ease-in-out",
+                  activeVideo === step.id
+                    ? "aspect-[640/900]" // Video aspect ratio when playing
+                    : "aspect-[1080/542]" // Preview image aspect ratio when not playing
+                )}
+              >
+                {/* Preview image when not playing */}
                 {activeVideo !== step.id && (
-                  <div
-                    className="absolute inset-0 bg-black/20 dark:bg-black/40 flex items-center justify-center group-hover:bg-black/10 dark:group-hover:bg-black/30 transition-colors duration-300 cursor-pointer"
-                    onClick={() => handleVideoClick(step.id)}
-                  >
-                    <div className="text-6xl opacity-80 group-hover:scale-110 transition-transform duration-300">
-                      {step.emoji}
+                  <div className="absolute inset-0">
+                    <img
+                      src={previewImages[step.id - 1]}
+                      alt={step.title}
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Emoji overlay */}
+                    <div
+                      className="absolute inset-0 bg-black/20 dark:bg-black/40 flex items-center justify-center group-hover:bg-black/10 dark:group-hover:bg-black/30 transition-colors duration-300 cursor-pointer"
+                      onClick={() => handleVideoClick(step.id)}
+                    >
+                      <div className="text-6xl opacity-80 group-hover:scale-110 transition-transform duration-300">
+                        {step.emoji}
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* Play/Pause indicator */}
+                {/* Video when playing */}
+                {activeVideo === step.id && (
+                  <video
+                    ref={(el) => {
+                      videoRefs.current[step.id] = el;
+                    }}
+                    className="w-full h-full object-cover cursor-pointer"
+                    preload="metadata"
+                    onPlay={() => setActiveVideo(step.id)}
+                    onPause={() => setActiveVideo(null)}
+                    onEnded={() => setActiveVideo(null)}
+                    onClick={() => handleVideoClick(step.id)}
+                    autoPlay
+                  >
+                    <source src={step.videoUrl} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                )}
+
+                {/* Play/Pause indicator when video is active */}
                 {activeVideo === step.id && (
                   <div
                     className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200 cursor-pointer"
@@ -131,7 +161,7 @@ export default function VideoSteps() {
                   >
                     <div className="bg-black/50 rounded-full p-3">
                       <div className="text-white text-2xl">
-                        <Pause />{" "}
+                        <Pause />
                       </div>
                     </div>
                   </div>
@@ -150,7 +180,7 @@ export default function VideoSteps() {
             </div>
 
             {/* Decorative element */}
-            <div className="mx-1 mb-1 rounded h-2 bg-gradient-to-r from-purple-600/20 via-indigo-600/20 to-purple-600/20 group-hover:from-purple-600/40 group-hover:via-indigo-600/40 group-hover:to-purple-600/40 transition-colors duration-300"></div>
+            <div className="absolute bottom-2 left-0 right-0 mx-3 mb-1 rounded h-2 bg-gradient-to-r from-purple-600/20 via-indigo-600/20 to-purple-600/20 group-hover:from-purple-600/40 group-hover:via-indigo-600/40 group-hover:to-purple-600/40 transition-colors duration-300"></div>
           </div>
         ))}
       </div>
@@ -158,10 +188,19 @@ export default function VideoSteps() {
       {/* Additional info */}
       <div className="mt-12 text-center">
         <div className="inline-flex items-center gap-2 px-6 py-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-full">
-          <span className="text-blue-500">💡</span>
+          <span>💡</span>
           <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">
             Each video shows the actual interface and interactions
           </span>
+        </div>
+
+        <div className="text-center max-w-2xl mx-auto my-4">
+          <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full border border-red-400 bg-red-200 dark:bg-red-900/20 dark:border-red-800">
+            <span>💡</span>
+            <p className="text-xs mx-auto py-2 text-primary/75">
+              Rooms expire after 2.5 hours for privacy
+            </p>
+          </div>
         </div>
       </div>
     </div>

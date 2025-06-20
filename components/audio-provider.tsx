@@ -2,13 +2,14 @@
 
 import { createContext, useContext, useEffect } from "react";
 import { useAudioPlayer } from "@/hooks/use-audio-player";
+import { AUDIO_CONFIG } from "@/lib/env";
 
 interface AudioContextType {
   isPlaying: boolean;
   isMuted: boolean;
   volume: number;
   mounted: boolean;
-  initializeAudio: (audioSrc: string) => void;
+  initializeAudio: (audioSrc: string, fallbackSrc?: string) => Promise<void>;
   mount: () => Promise<void>;
   play: () => Promise<void>;
   pause: () => void;
@@ -21,9 +22,21 @@ const AudioContext = createContext<AudioContextType | null>(null);
 export function AudioProvider({ children }: { children: React.ReactNode }) {
   const audioPlayer = useAudioPlayer();
 
-  // Initialize the audio on mount and cache it
+  // Initialize the audio on mount with S3 URL and fallback
   useEffect(() => {
-    audioPlayer.initializeAudio("/uplift-piano-riff.wav");
+    const initializeAudio = async () => {
+      try {
+        await audioPlayer.initializeAudio(
+          AUDIO_CONFIG.backgroundMusicUrl,
+          AUDIO_CONFIG.fallbackUrl
+        );
+        console.log("Audio initialization completed");
+      } catch (error) {
+        console.error("Failed to initialize audio:", error);
+      }
+    };
+
+    initializeAudio();
   }, [audioPlayer.initializeAudio]);
 
   return (

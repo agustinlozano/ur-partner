@@ -19,19 +19,61 @@ export function useAudioPlayer() {
   });
 
   const initializeAudio = useCallback(
-    (audioSrc: string) => {
-      if (!audioRef.current) {
-        audioRef.current = new Audio(audioSrc);
-        audioRef.current.loop = true;
-        audioRef.current.volume = state.volume;
-        audioRef.current.preload = "auto";
+    (audioSrc: string, fallbackSrc?: string) => {
+      return new Promise<void>((resolve, reject) => {
+        if (!audioRef.current) {
+          audioRef.current = new Audio();
+          audioRef.current.loop = true;
+          audioRef.current.volume = state.volume;
+          audioRef.current.preload = "auto";
 
-        // Cache the audio file
-        audioRef.current.load();
-      } else {
-        // Update volume if audio already exists
-        audioRef.current.volume = state.volume;
-      }
+          // Handle successful load
+          const handleCanPlay = () => {
+            console.log(`Audio loaded successfully from: ${audioSrc}`);
+            if (audioRef.current) {
+              audioRef.current.removeEventListener("canplay", handleCanPlay);
+              audioRef.current.removeEventListener("error", handleError);
+            }
+            resolve();
+          };
+
+          // Handle load error
+          const handleError = (error: Event) => {
+            console.warn(`Failed to load audio from: ${audioSrc}`, error);
+
+            if (audioRef.current) {
+              audioRef.current.removeEventListener("canplay", handleCanPlay);
+              audioRef.current.removeEventListener("error", handleError);
+            }
+
+            // Try fallback if available
+            if (fallbackSrc && audioSrc !== fallbackSrc) {
+              console.log(`Attempting fallback: ${fallbackSrc}`);
+              audioRef.current = null; // Reset audio ref
+              initializeAudio(fallbackSrc).then(resolve).catch(reject);
+              return;
+            }
+
+            reject(new Error(`Failed to load audio from ${audioSrc}`));
+          };
+
+          // Set up event listeners
+          audioRef.current.addEventListener("canplay", handleCanPlay, {
+            once: true,
+          });
+          audioRef.current.addEventListener("error", handleError, {
+            once: true,
+          });
+
+          // Start loading
+          audioRef.current.src = audioSrc;
+          audioRef.current.load();
+        } else {
+          // Update volume if audio already exists
+          audioRef.current.volume = state.volume;
+          resolve();
+        }
+      });
     },
     [state.volume]
   );
@@ -45,7 +87,7 @@ export function useAudioPlayer() {
         console.log("Audio play failed:", error);
       }
     }
-  }, []);
+  }, [state.isMuted]);
 
   const pause = useCallback(() => {
     if (audioRef.current) {

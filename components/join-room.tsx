@@ -407,6 +407,7 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
               onEmojiSelect={setSelectedEmoji}
               name="emoji"
               disabled={isPending}
+              onRoleChange={() => {}}
             />
           </>
         )}

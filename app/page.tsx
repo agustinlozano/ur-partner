@@ -1,12 +1,12 @@
-import SheetTest from "@/components/sheet-test";
+// import SheetTest from "@/components/sheet-test";
 // import Diagnostics from "@/components/diagnostics";
 import GradientBackground from "@/components/gradient-background";
 import Link from "next/link";
-import { enviroment } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { Sparkles } from "@/components/sparkles";
 import { BidirectionalBeam } from "@/components/bidirectional-animated-beam";
 import { XIcon } from "@/components/ui/icons";
+import VideoSteps from "@/components/video-steps";
 
 export default function Home() {
   return (
@@ -92,35 +92,7 @@ export default function Home() {
             className="absolute inset-x-0 bottom-0 h-full w-full -z-10"
           />
 
-          <div className="bg-card/75 rounded-xl shadow-lg p-6 mt-28 border">
-            <h3 className="text-lg font-semibold mb-4">How it works</h3>
-            <div className="space-y-3 text-sm text-primary/90">
-              <div className="flex items-center gap-3">
-                <span className="border bg-secondary rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
-                  1
-                </span>
-                <p>Create or join a room with your partner</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="border bg-secondary rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
-                  2
-                </span>
-                <p>
-                  Upload images for 9 categories: animal, place, plant,
-                  character, season, hobby, food, colour, and drink
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="border bg-secondary rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
-                  3
-                </span>
-                <p>
-                  When both partners are ready, reveal and compare your
-                  personality descriptions
-                </p>
-              </div>
-            </div>
-          </div>
+          <VideoSteps />
         </div>
 
         {/* aesthetic section with my emoji */}

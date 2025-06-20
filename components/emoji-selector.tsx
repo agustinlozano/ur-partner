@@ -141,7 +141,7 @@ const EmojiSelector = forwardRef<EmojiSelectorRef, EmojiSelectorProps>(
               onClick={() => onEmojiSelect(emoji)}
               onKeyDown={(e) => handleKeyDown(e, index)}
               className={`
-              p-1 md:p-2 text-2xl rounded-lg border-2 transition-all duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1
+              p-1 md:p-2 text-2xl rounded-lg border-2 transition-all duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-2 focus:outline-pink-400/25 focus:outline-offset-2
               ${
                 selectedEmoji === emoji
                   ? "border-purple-300 dark:border-purple-500 bg-purple-100 shadow-md dark:bg-purple-950"

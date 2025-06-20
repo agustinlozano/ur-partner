@@ -285,8 +285,9 @@ export default function CreateRoom() {
                 value="girlfriend"
                 required
                 disabled={isPending}
+                checked={selectedRole === "girlfriend"}
                 onChange={() => handleRoleChange("girlfriend")}
-                className="h-4 w-4 text-pink-600 focus:ring-pink-500 disabled:cursor-not-allowed"
+                className="size-5 text-pink-600 focus:ring-pink-500 disabled:cursor-not-allowed"
               />
               <span className="ml-2 text-sm">Girlfriend 💛</span>
             </label>
@@ -297,8 +298,9 @@ export default function CreateRoom() {
                 value="boyfriend"
                 required
                 disabled={isPending}
+                checked={selectedRole === "boyfriend"}
                 onChange={() => handleRoleChange("boyfriend")}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed"
+                className="size-5 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed"
               />
               <span className="ml-2 text-sm">Boyfriend 🩶</span>
             </label>

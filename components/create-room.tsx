@@ -1,12 +1,18 @@
 "use client";
 
-import { useState, useActionState, useTransition } from "react";
+import {
+  useState,
+  useActionState,
+  useTransition,
+  useRef,
+  useEffect,
+} from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createRoomAndRedirect } from "@/lib/actions";
 import { Button } from "./ui/button";
 import { capitalize } from "@/lib/utils";
-import EmojiSelector from "./emoji-selector";
+import EmojiSelector, { type EmojiSelectorRef } from "./emoji-selector";
 import { useActiveRoom } from "@/hooks/use-active-room";
 
 // Componente moderno para el botón usando useFormStatus
@@ -14,15 +20,18 @@ function SubmitButton({
   selectedRole,
   selectedEmoji,
   disabled,
+  submitButtonRef,
 }: {
   selectedRole: "girlfriend" | "boyfriend" | null;
   selectedEmoji: string;
   disabled: boolean;
+  submitButtonRef?: React.RefObject<HTMLButtonElement | null>;
 }) {
   const { pending } = useFormStatus();
 
   return (
     <Button
+      ref={submitButtonRef}
       type="submit"
       variant="shadow"
       disabled={pending || disabled}
@@ -55,6 +64,18 @@ export default function CreateRoom() {
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
   const [name, setName] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
+
+  // Refs para manejar el focus
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
+  const emojiSelectorRef = useRef<EmojiSelectorRef>(null);
+
+  // Auto-focus en el input de nombre al cargar el componente
+  useEffect(() => {
+    if (!activeRoom && nameInputRef.current) {
+      nameInputRef.current.focus();
+    }
+  }, [activeRoom]);
 
   // Validación de nombre
   function validateName(value: string): string | null {
@@ -109,6 +130,17 @@ export default function CreateRoom() {
   const handleRoleChange = (role: "girlfriend" | "boyfriend") => {
     setSelectedRole(role);
     setSelectedEmoji(""); // Reset emoji when role changes
+  };
+
+  // Función para manejar la selección de emoji y el focus
+  const handleEmojiSelect = (emoji: string) => {
+    setSelectedEmoji(emoji);
+    // Mover el focus al botón de submit después de seleccionar emoji
+    setTimeout(() => {
+      if (submitButtonRef.current) {
+        submitButtonRef.current.focus();
+      }
+    }, 100);
   };
 
   // If there's an active room, show it instead of the create form
@@ -230,6 +262,7 @@ export default function CreateRoom() {
             autoComplete="off"
             spellCheck={false}
             maxLength={24}
+            ref={nameInputRef}
           />
           <div className="mt-1 h-2 flex items-start">
             {nameError && (
@@ -276,9 +309,11 @@ export default function CreateRoom() {
           <EmojiSelector
             role={selectedRole}
             selectedEmoji={selectedEmoji}
-            onEmojiSelect={setSelectedEmoji}
+            onEmojiSelect={handleEmojiSelect}
+            onRoleChange={handleRoleChange}
             name="emoji"
             disabled={isPending}
+            ref={emojiSelectorRef}
           />
         )}
 
@@ -286,6 +321,7 @@ export default function CreateRoom() {
           selectedRole={selectedRole}
           selectedEmoji={selectedEmoji}
           disabled={!!nameError || !name.trim()}
+          submitButtonRef={submitButtonRef}
         />
       </form>
 

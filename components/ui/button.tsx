@@ -21,7 +21,7 @@ const buttonVariants = cva(
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
         shadow:
-          "relative overflow-hidden bg-gradient-to-r from-[#f6f7ff] to-[#f5f6ff] dark:from-[#070e41] dark:to-[#263381] border-2 border-[#263381] dark:border-[rgb(76_100_255)] text-black dark:text-white transition-all duration-100 [box-shadow:5px_5px_rgb(38_51_129)] dark:[box-shadow:5px_5px_rgb(30_40_100)] active:translate-x-[3px] active:translate-y-[3px] active:[box-shadow:0px_0px_rgb(38_51_129)] dark:active:[box-shadow:0px_0px_rgb(30_40_100)]",
+          "relative overflow-hidden bg-gradient-to-r from-[#f6f7ff] to-[#f5f6ff] dark:from-[#070e41] dark:to-[#263381] border-2 border-[#263381] dark:border-[rgb(76_100_255)] text-black dark:text-white transition-all duration-100 [box-shadow:5px_5px_rgb(38_51_129)] dark:[box-shadow:5px_5px_rgb(30_40_100)] active:translate-x-[3px] active:translate-y-[3px] active:[box-shadow:0px_0px_rgb(38_51_129)] dark:active:[box-shadow:0px_0px_rgb(30_40_100)] focus-visible:bg-gradient-to-r focus-visible:from-purple-50 focus-visible:to-indigo-50 dark:focus-visible:from-purple-900/50 dark:focus-visible:to-indigo-900/50 focus-visible:border-purple-400 dark:focus-visible:border-purple-500 focus-visible:[box-shadow:8px_8px_rgb(147_51_234)] dark:focus-visible:[box-shadow:8px_8px_rgb(147_51_234)] focus-visible:scale-[1.02] focus-visible:ring-purple-400/30 focus-visible:ring-4",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

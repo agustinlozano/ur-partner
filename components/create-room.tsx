@@ -29,6 +29,10 @@ function SubmitButton({
 }) {
   const { pending } = useFormStatus();
 
+  // Determinar si el botón está listo para submit
+  const isReadyForSubmit =
+    selectedRole && selectedEmoji && !disabled && !pending;
+
   return (
     <Button
       ref={submitButtonRef}
@@ -47,7 +51,9 @@ function SubmitButton({
       ) : !selectedEmoji ? (
         "Choose Your Avatar"
       ) : (
-        "Create Room"
+        <span className={isReadyForSubmit ? "text-gradient" : ""}>
+          Create Room
+        </span>
       )}
     </Button>
   );
@@ -140,7 +146,7 @@ export default function CreateRoom() {
       if (submitButtonRef.current) {
         submitButtonRef.current.focus();
       }
-    }, 100);
+    }, 200);
   };
 
   // If there's an active room, show it instead of the create form
@@ -255,7 +261,7 @@ export default function CreateRoom() {
             name="name"
             required
             disabled={isPending}
-            className="w-full px-3 py-2 border bg-primary/5 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:cursor-not-allowed"
+            className="w-full px-3 py-2 border bg-primary/5 rounded-lg focus:outline-2 focus:outline-purple-400/25 focus:outline-offset-2 disabled:cursor-not-allowed"
             placeholder="Enter your name"
             value={name}
             onChange={handleNameChange}

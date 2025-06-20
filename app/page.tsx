@@ -33,7 +33,7 @@ export default function Home() {
                 "block p-6 rounded-xl shadow-lg border group select-none",
                 "bg-gradient-to-t from-amber-400/20 to-amber-200/75 dark:from-amber-900/20 dark:to-amber-700/25",
                 "border-amber-400 dark:border-amber-800",
-                "hover:shadow-xl hover:scale-105 transition-all duration-300"
+                "hover:shadow-xl md:hover:scale-105 transition-all duration-300"
               )}
             >
               <div className="text-center">
@@ -55,7 +55,7 @@ export default function Home() {
                 "block p-6 rounded-xl shadow-lg border group select-none",
                 "bg-gradient-to-t from-purple-200/80 to-purple-600/30 dark:from-purple-900/20 dark:to-purple-700/25",
                 "border-purple-400 dark:border-purple-800",
-                "hover:shadow-xl hover:scale-105 transition-all duration-300"
+                "hover:shadow-xl md:hover:scale-105 transition-all duration-300"
               )}
             >
               <div className="text-center">

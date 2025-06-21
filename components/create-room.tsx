@@ -233,7 +233,7 @@ export default function CreateRoom() {
   return (
     <div className="max-w-md mx-auto p-6 bg-card/60 rounded-xl shadow-lg border">
       <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold">Create a Room</h1>
+        <h2 className="text-2xl font-bold">Create a Room</h2>
         <p className="text-primary/85 mt-2">
           Start your personality sharing journey with your partner
         </p>

@@ -125,29 +125,55 @@ function validateImageData(imageData: string): {
   }
 }
 
-// Get content type based on image data
-function getContentType(imageData: string): string {
+// Get content type and file extension based on image data
+function getContentTypeAndExtension(imageData: string): {
+  contentType: string;
+  extension: string;
+} {
   // Remove data:image/...;base64, prefix if present
   const base64Data = imageData.replace(/^data:image\/[a-z]+;base64,/, "");
   const buffer = Buffer.from(base64Data, "base64");
 
-  if (buffer[0] === 0xff && buffer[1] === 0xd8) return "image/jpeg";
-  if (buffer[0] === 0x89 && buffer[1] === 0x50) return "image/png";
-  if (buffer[0] === 0xaf && buffer[1] === 0x00) return "image/avif";
-  if (buffer.toString("ascii", 8, 12) === "WEBP") return "image/webp";
+  // Detect format from binary data
+  if (buffer[0] === 0xff && buffer[1] === 0xd8) {
+    return { contentType: "image/jpeg", extension: "jpg" };
+  }
+  if (
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47
+  ) {
+    return { contentType: "image/png", extension: "png" };
+  }
+  if (buffer.toString("ascii", 8, 12) === "WEBP") {
+    return { contentType: "image/webp", extension: "webp" };
+  }
+  if (buffer[0] === 0x00 && buffer[1] === 0x00 && buffer[2] === 0x00) {
+    return { contentType: "image/avif", extension: "avif" };
+  }
 
-  return "image/jpeg"; // fallback
+  // Fallback to JPEG if format not detected
+  return { contentType: "image/jpeg", extension: "jpg" };
+}
+
+// Get content type based on image data (kept for backward compatibility)
+function getContentType(imageData: string): string {
+  return getContentTypeAndExtension(imageData).contentType;
 }
 
 // Upload single image to S3 with the same structure as route.ts
 async function uploadImageToS3(
   base64Image: string,
-  filename: string
+  filenameWithoutExtension: string
 ): Promise<string> {
   // Remove data:image/...;base64, prefix if present
   const base64Data = base64Image.replace(/^data:image\/[a-z]+;base64,/, "");
   const buffer = Buffer.from(base64Data, "base64");
-  const contentType = getContentType(base64Image);
+  const { contentType, extension } = getContentTypeAndExtension(base64Image);
+
+  // Add correct extension to filename
+  const filename = `${filenameWithoutExtension}.${extension}`;
 
   const putObjectParams: PutObjectCommandInput = {
     Bucket: process.env.S3_BUCKET!,
@@ -160,6 +186,7 @@ async function uploadImageToS3(
     CacheControl: "public, max-age=31536000", // 1 year cache
     Metadata: {
       uploadedAt: new Date().toISOString(),
+      originalFormat: extension,
     },
     // Enable server-side encryption
     ServerSideEncryption: "AES256",
@@ -175,7 +202,7 @@ async function uploadImageToS3(
     }.amazonaws.com/${filename}`;
 
     console.log(
-      `✅ Successfully uploaded: ${filename} (${buffer.length} bytes)`
+      `✅ Successfully uploaded: ${filename} (${buffer.length} bytes, ${contentType})`
     );
 
     return url;
@@ -216,9 +243,14 @@ async function processImages(
 
         for (let i = 0; i < imageData.length; i++) {
           const base64Image = imageData[i] as string;
-          // Same filename structure as route.ts
-          const filename = `${roomId}/${userRole}/${categoryId}/${i + 1}.jpg`;
-          const url = await uploadImageToS3(base64Image, filename);
+          // Same filename structure as route.ts (without extension, will be added based on format)
+          const filenameWithoutExtension = `${roomId}/${userRole}/${categoryId}/${
+            i + 1
+          }`;
+          const url = await uploadImageToS3(
+            base64Image,
+            filenameWithoutExtension
+          );
           uploadedImageUrls.push(url);
           uploadCount++;
 
@@ -230,9 +262,12 @@ async function processImages(
         uploadedUrls[categoryId] = uploadedImageUrls;
       } else {
         // Single image category
-        // Same filename structure as route.ts
-        const filename = `${roomId}/${userRole}/${categoryId}/main.jpg`;
-        const url = await uploadImageToS3(imageData as string, filename);
+        // Same filename structure as route.ts (without extension, will be added based on format)
+        const filenameWithoutExtension = `${roomId}/${userRole}/${categoryId}/main`;
+        const url = await uploadImageToS3(
+          imageData as string,
+          filenameWithoutExtension
+        );
         uploadedUrls[categoryId] = url;
         uploadCount++;
 

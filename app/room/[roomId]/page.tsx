@@ -266,7 +266,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
           {/* Girlfriend Card */}
           <div
             className={cn(
-              "bg-card/60 rounded-xl shadow-lg p-6 border relative",
+              "bg-card/60 rounded-xl shadow-lg p-6 border relative select-none",
               "bg-amber-100/50 dark:bg-amber-900/25 backdrop-blur-sm",
               "border-amber-400 dark:border-amber-800"
             )}
@@ -306,7 +306,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
           {/* Boyfriend Card */}
           <div
             className={cn(
-              "bg-card/60 rounded-xl shadow-lg p-6 border relative",
+              "bg-card/60 rounded-xl shadow-lg p-6 border relative select-none",
               "bg-blue-100/50 dark:bg-blue-900/25 backdrop-blur-sm",
               "border-blue-400 dark:border-blue-800"
             )}
@@ -360,7 +360,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
         )}
 
         {!missingPartner && (
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-xl shadow-lg p-6 border border-green-200 dark:border-green-800 mb-8">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-xl shadow-lg p-6 border border-green-200 dark:border-green-800 mb-8 select-none">
             <div className="text-center">
               <div className="text-6xl mb-4">🎉</div>
               <h3 className="text-xl font-semibold mb-4 text-green-800 dark:text-green-200">
@@ -452,7 +452,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
         <div className="mt-8 text-center">
           <Link
             href="/"
-            className="text-purple-600 hover:text-purple-700 font-medium dark:text-purple-400 dark:hover:text-purple-300"
+            className="text-purple-600 hover:text-purple-700 font-medium dark:text-purple-400 dark:hover:text-purple-300 select-none"
           >
             ← Back to Home
           </Link>

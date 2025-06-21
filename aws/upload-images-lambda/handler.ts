@@ -4,7 +4,7 @@ import {
   PutObjectCommand,
   PutObjectCommandInput,
 } from "@aws-sdk/client-s3";
-// import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
+import { updateRoomImages } from "./lib/dynamodb";
 // import { Redis } from "redis";
 
 // Initialize AWS clients with optimized configuration
@@ -453,14 +453,22 @@ export const uploadImages = async (
     );
     console.log("@ `uploadImageToS3` uploadedUrls:", uploadedUrls);
 
-    // Update DynamoDB (commented for now)
-    // try {
-    //   const success = await updateRoomImages(roomId, userRole, uploadedUrls);
-    //   console.log("📝 DynamoDB updated successfully");
-    // } catch (dbError) {
-    //   console.warn("⚠️ DynamoDB update failed:", dbError);
-    //   // Continue anyway - S3 upload succeeded
-    // }
+    // Update DynamoDB
+    try {
+      const success = await updateRoomImages(
+        roomId,
+        userRole as "girlfriend" | "boyfriend",
+        uploadedUrls
+      );
+      if (success) {
+        console.log("📝 DynamoDB updated successfully");
+      } else {
+        console.warn("⚠️ DynamoDB update failed but S3 upload succeeded");
+      }
+    } catch (dbError) {
+      console.warn("⚠️ DynamoDB update failed:", dbError);
+      // Continue anyway - S3 upload succeeded
+    }
 
     console.log(
       `Upload complete for ${userRole}: ${uploadCount}/${totalImages} images uploaded`

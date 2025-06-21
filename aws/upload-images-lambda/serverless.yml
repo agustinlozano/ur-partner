@@ -3,7 +3,7 @@ service: upload-images-lambda
 plugins:
   - serverless-esbuild
 
-# Optimized package configuration for S3-only functionality
+# Optimized package configuration for S3 and DynamoDB functionality
 package:
   exclude:
     - node_modules/**
@@ -16,6 +16,7 @@ package:
     - "*.ts"
   include:
     - handler.js
+    - lib/**/*.js
 
 custom:
   esbuild:
@@ -23,7 +24,7 @@ custom:
     minify: true
     target: "node20"
     exclude: ["aws-sdk"]
-    # Optimize for S3 operations
+    # Optimize for S3 and DynamoDB operations
     external: []
     keepNames: true
 
@@ -34,17 +35,16 @@ provider:
   timeout: 30
   memorySize: 1024
 
-  # Environment variables for S3-only setup
+  # Environment variables for S3 and DynamoDB
   environment:
     S3_BUCKET: ur-partner
+    DYNAMODB_TABLE: Rooms
     # Redis configuration (commented for now)
     # REDIS_HOST: ur-partner-cache-iqc8dm.serverless.use2.cache.amazonaws.com
     # REDIS_PORT: 6379
     # REDIS_TLS: "true"
-    # DynamoDB configuration (commented for now)
-    # DYNAMODB_TABLE: Rooms
 
-  # ✅ Optimized IAM Permissions for S3 operations
+  # ✅ IAM Permissions for S3 and DynamoDB operations
   iam:
     role:
       statements:
@@ -55,13 +55,12 @@ provider:
             - s3:GetObject
             - s3:DeleteObject
           Resource: "arn:aws:s3:::ur-partner/*"
-        # DynamoDB permissions (commented for now)
-        # - Effect: Allow
-        #   Action:
-        #     - dynamodb:Query
-        #     - dynamodb:UpdateItem
-        #     - dynamodb:GetItem
-        #   Resource: "arn:aws:dynamodb:us-east-2:*:table/Rooms"
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:UpdateItem
+            - dynamodb:GetItem
+          Resource: "arn:aws:dynamodb:us-east-2:*:table/Rooms"
         # VPC permissions for ElastiCache (commented for now)
         # - Effect: Allow
         #   Action:

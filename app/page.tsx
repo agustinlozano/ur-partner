@@ -7,6 +7,7 @@ import { Sparkles } from "@/components/sparkles";
 import { BidirectionalBeam } from "@/components/bidirectional-animated-beam";
 import { XIcon } from "@/components/ui/icons";
 import VideoSteps from "@/components/video-steps";
+import StatsSection from "@/components/stats-section";
 
 export default function Home() {
   return (
@@ -81,6 +82,9 @@ export default function Home() {
               </div>
             </Link>
           </div>
+
+          {/* Stats Section */}
+          <StatsSection />
 
           <Sparkles
             density={800}

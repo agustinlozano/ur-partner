@@ -26,9 +26,27 @@ const s3Client = new S3Client({
 // });
 
 // Constants
-const MAX_IMAGES = 14;
+const MAX_IMAGES_PER_CATEGORY = 5; // For character category
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB per image
 const PARALLEL_UPLOAD_LIMIT = 3; // Upload max 3 images in parallel to avoid timeouts
+
+// Valid categories from the original route
+const VALID_CATEGORIES = [
+  "animal",
+  "place",
+  "plant",
+  "character",
+  "season",
+  "hobby",
+  "food",
+  "colour",
+  "drink",
+];
+
+// Interface matching the original route.ts
+interface ImageData {
+  [categoryId: string]: string | string[]; // base64 images from sessionStorage
+}
 
 // CORS headers
 const corsHeaders = {
@@ -66,8 +84,9 @@ function validateImageData(imageData: string): {
   size?: number;
 } {
   try {
-    // Check if it's valid base64
-    const buffer = Buffer.from(imageData, "base64");
+    // Remove data:image/...;base64, prefix if present
+    const base64Data = imageData.replace(/^data:image\/[a-z]+;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
 
     if (buffer.length === 0) {
       return { isValid: false, error: "Empty image data" };
@@ -108,7 +127,9 @@ function validateImageData(imageData: string): {
 
 // Get content type based on image data
 function getContentType(imageData: string): string {
-  const buffer = Buffer.from(imageData, "base64");
+  // Remove data:image/...;base64, prefix if present
+  const base64Data = imageData.replace(/^data:image\/[a-z]+;base64,/, "");
+  const buffer = Buffer.from(base64Data, "base64");
 
   if (buffer[0] === 0xff && buffer[1] === 0xd8) return "image/jpeg";
   if (buffer[0] === 0x89 && buffer[1] === 0x50) return "image/png";
@@ -118,29 +139,27 @@ function getContentType(imageData: string): string {
   return "image/jpeg"; // fallback
 }
 
-// Upload single image to S3 with optimized settings
+// Upload single image to S3 with the same structure as route.ts
 async function uploadImageToS3(
-  imageData: string,
-  roomId: string,
-  imageIndex: number
-): Promise<{ url: string; key: string; size: number }> {
-  const buffer = Buffer.from(imageData, "base64");
-  const contentType = getContentType(imageData);
-  const extension =
-    contentType.split("/")[1] === "jpeg" ? "jpg" : contentType.split("/")[1];
-  const key = `${roomId}/image-${imageIndex}-${Date.now()}.${extension}`;
+  base64Image: string,
+  filename: string
+): Promise<string> {
+  // Remove data:image/...;base64, prefix if present
+  const base64Data = base64Image.replace(/^data:image\/[a-z]+;base64,/, "");
+  const buffer = Buffer.from(base64Data, "base64");
+  const contentType = getContentType(base64Image);
 
   const putObjectParams: PutObjectCommandInput = {
     Bucket: process.env.S3_BUCKET!,
-    Key: key,
+    Key: filename,
     Body: buffer,
     ContentType: contentType,
+    // Match the original route.ts settings
+    ACL: "public-read",
     // Optimized S3 settings
     CacheControl: "public, max-age=31536000", // 1 year cache
     Metadata: {
-      roomId,
       uploadedAt: new Date().toISOString(),
-      originalIndex: imageIndex.toString(),
     },
     // Enable server-side encryption
     ServerSideEncryption: "AES256",
@@ -153,62 +172,79 @@ async function uploadImageToS3(
 
     const url = `https://${process.env.S3_BUCKET}.s3.${
       process.env.AWS_REGION || "us-east-2"
-    }.amazonaws.com/${key}`;
+    }.amazonaws.com/${filename}`;
 
     console.log(
-      `✅ Successfully uploaded image ${imageIndex + 1}: ${key} (${
-        buffer.length
-      } bytes)`
+      `✅ Successfully uploaded: ${filename} (${buffer.length} bytes)`
     );
 
-    return { url, key, size: buffer.length };
+    return url;
   } catch (error) {
-    console.error(`❌ Failed to upload image ${imageIndex + 1}:`, error);
+    console.error(`❌ Failed to upload ${filename}:`, error);
     throw new Error(
-      `Failed to upload image ${imageIndex + 1}: ${
+      `Failed to upload ${filename}: ${
         error instanceof Error ? error.message : "Unknown error"
       }`
     );
   }
 }
 
-// Process images in batches to avoid timeout
-async function uploadImagesInBatches(
-  images: string[],
-  roomId: string
-): Promise<{ url: string; key: string; size: number }[]> {
-  const results: { url: string; key: string; size: number }[] = [];
+// Process images with the same logic as route.ts
+async function processImages(
+  roomId: string,
+  userRole: string,
+  images: ImageData
+): Promise<{
+  uploadedUrls: { [categoryId: string]: string | string[] };
+  uploadCount: number;
+  totalImages: number;
+}> {
+  const uploadedUrls: { [categoryId: string]: string | string[] } = {};
+  let uploadCount = 0;
+  const totalImages = Object.values(images).flat().length;
 
-  for (let i = 0; i < images.length; i += PARALLEL_UPLOAD_LIMIT) {
-    const batch = images.slice(i, i + PARALLEL_UPLOAD_LIMIT);
-    console.log(
-      `📦 Processing batch ${Math.floor(i / PARALLEL_UPLOAD_LIMIT) + 1} with ${
-        batch.length
-      } images`
-    );
+  console.log(
+    `📊 Processing ${totalImages} images for ${userRole} in room: ${roomId}`
+  );
 
-    const batchPromises = batch.map((imageData, batchIndex) =>
-      uploadImageToS3(imageData, roomId, i + batchIndex)
-    );
-
+  // Process each category (matching route.ts logic exactly)
+  for (const [categoryId, imageData] of Object.entries(images)) {
     try {
-      const batchResults = await Promise.all(batchPromises);
-      results.push(...batchResults);
-      console.log(
-        `✅ Batch ${
-          Math.floor(i / PARALLEL_UPLOAD_LIMIT) + 1
-        } completed successfully`
-      );
+      if (Array.isArray(imageData)) {
+        // Character category with multiple images
+        const uploadedImageUrls: string[] = [];
+
+        for (let i = 0; i < imageData.length; i++) {
+          const base64Image = imageData[i] as string;
+          // Same filename structure as route.ts
+          const filename = `${roomId}/${userRole}/${categoryId}/${i + 1}.jpg`;
+          const url = await uploadImageToS3(base64Image, filename);
+          uploadedImageUrls.push(url);
+          uploadCount++;
+
+          console.log(
+            `Uploaded ${categoryId}[${i + 1}]: ${uploadCount}/${totalImages}`
+          );
+        }
+
+        uploadedUrls[categoryId] = uploadedImageUrls;
+      } else {
+        // Single image category
+        // Same filename structure as route.ts
+        const filename = `${roomId}/${userRole}/${categoryId}/main.jpg`;
+        const url = await uploadImageToS3(imageData as string, filename);
+        uploadedUrls[categoryId] = url;
+        uploadCount++;
+
+        console.log(`Uploaded ${categoryId}: ${uploadCount}/${totalImages}`);
+      }
     } catch (error) {
-      console.error(
-        `❌ Batch ${Math.floor(i / PARALLEL_UPLOAD_LIMIT) + 1} failed:`,
-        error
-      );
-      throw error;
+      console.error(`Failed to upload ${categoryId}:`, error);
+      // Continue with other categories even if one fails (same as route.ts)
     }
   }
 
-  return results;
+  return { uploadedUrls, uploadCount, totalImages };
 }
 
 // Main handler function
@@ -232,37 +268,71 @@ export const uploadImages = async (
       return errorResponse(400, "Request body is required");
     }
 
-    const { roomId, images } = JSON.parse(event.body);
+    // Parse request body - matching route.ts contract
+    const { roomId, userRole, images } = JSON.parse(event.body);
 
-    // Validation
-    if (!roomId || typeof roomId !== "string") {
-      return errorResponse(400, "Valid roomId is required");
+    // Validation matching route.ts
+    if (!roomId || !userRole || !images) {
+      return errorResponse(400, "Room ID, user role, and images are required");
     }
 
-    if (!images || !Array.isArray(images)) {
-      return errorResponse(400, "images array is required");
+    if (typeof roomId !== "string" || typeof userRole !== "string") {
+      return errorResponse(400, "roomId and userRole must be strings");
     }
 
-    if (images.length === 0) {
-      return errorResponse(400, "At least one image is required");
+    if (typeof images !== "object" || images === null) {
+      return errorResponse(400, "images must be an object");
     }
 
-    if (images.length > MAX_IMAGES) {
-      return errorResponse(400, `Maximum ${MAX_IMAGES} images allowed`);
-    }
+    console.log(`Starting upload process for ${userRole} in room ${roomId}`);
+    console.log(
+      `Number of categories with images: ${Object.keys(images).length}`
+    );
 
-    console.log(`📊 Processing ${images.length} images for room: ${roomId}`);
+    // Validate categories
+    const invalidCategories = Object.keys(images).filter(
+      (category) => !VALID_CATEGORIES.includes(category)
+    );
+
+    if (invalidCategories.length > 0) {
+      return errorResponse(
+        400,
+        `Invalid categories: ${invalidCategories.join(
+          ", "
+        )}. Valid categories: ${VALID_CATEGORIES.join(", ")}`
+      );
+    }
 
     // Validate all images first
     const validationErrors: string[] = [];
     let totalSize = 0;
 
-    for (let i = 0; i < images.length; i++) {
-      const validation = validateImageData(images[i]);
-      if (!validation.isValid) {
-        validationErrors.push(`Image ${i + 1}: ${validation.error}`);
+    for (const [categoryId, imageData] of Object.entries(images)) {
+      if (Array.isArray(imageData)) {
+        if (imageData.length > MAX_IMAGES_PER_CATEGORY) {
+          validationErrors.push(
+            `Category ${categoryId}: Maximum ${MAX_IMAGES_PER_CATEGORY} images allowed`
+          );
+          continue;
+        }
+
+        for (let i = 0; i < imageData.length; i++) {
+          const validation = validateImageData(imageData[i] as string);
+          if (!validation.isValid) {
+            validationErrors.push(
+              `${categoryId}[${i + 1}]: ${validation.error}`
+            );
+          } else {
+            totalSize += validation.size!;
+          }
+        }
       } else {
-        totalSize += validation.size!;
+        const validation = validateImageData(imageData as string);
+        if (!validation.isValid) {
+          validationErrors.push(`${categoryId}: ${validation.error}`);
+        } else {
+          totalSize += validation.size!;
+        }
       }
     }
 
@@ -278,14 +348,14 @@ export const uploadImages = async (
 
     // Rate limiting check (commented for now)
     // try {
-    //   const rateLimitKey = `upload:${roomId}`;
+    //   const rateLimitKey = `upload:${roomId}:${userRole}`;
     //   const now = Date.now();
     //   const windowStart = now - 60000; // 1 minute window
     //
     //   await redis.zremrangebyscore(rateLimitKey, 0, windowStart);
     //   const requestCount = await redis.zcard(rateLimitKey);
     //
-    //   if (requestCount >= 10) {
+    //   if (requestCount >= 5) {
     //     return errorResponse(429, "Rate limit exceeded. Try again later.");
     //   }
     //
@@ -296,67 +366,48 @@ export const uploadImages = async (
     //   // Continue without rate limiting
     // }
 
-    // Upload images to S3 in optimized batches
-    const uploadResults = await uploadImagesInBatches(images, roomId);
-
-    const totalUploadedSize = uploadResults.reduce(
-      (sum, result) => sum + result.size,
-      0
+    // Process images with same logic as route.ts
+    const { uploadedUrls, uploadCount, totalImages } = await processImages(
+      roomId,
+      userRole,
+      images
     );
+
     const processingTime = Date.now() - startTime;
 
     console.log(
-      `✅ Successfully uploaded ${uploadResults.length} images in ${processingTime}ms`
+      `✅ Successfully uploaded ${uploadCount} images in ${processingTime}ms`
     );
-    console.log(
-      `📊 Total size: ${(totalUploadedSize / 1024 / 1024).toFixed(2)}MB`
-    );
+    console.log("@ `uploadImageToS3` uploadedUrls:", uploadedUrls);
 
     // Update DynamoDB (commented for now)
     // try {
-    //   const imageUrls = uploadResults.map(result => result.url);
-    //   const updateCommand = new UpdateItemCommand({
-    //     TableName: process.env.DYNAMODB_TABLE!,
-    //     Key: {
-    //       roomId: { S: roomId },
-    //     },
-    //     UpdateExpression: "SET images = :images, updatedAt = :updatedAt, imageCount = :count",
-    //     ExpressionAttributeValues: {
-    //       ":images": { SS: imageUrls },
-    //       ":updatedAt": { S: new Date().toISOString() },
-    //       ":count": { N: uploadResults.length.toString() },
-    //     },
-    //   });
-
-    //   await dynamoClient.send(updateCommand);
+    //   const success = await updateRoomImages(roomId, userRole, uploadedUrls);
     //   console.log("📝 DynamoDB updated successfully");
     // } catch (dbError) {
     //   console.warn("⚠️ DynamoDB update failed:", dbError);
     //   // Continue anyway - S3 upload succeeded
     // }
 
+    console.log(
+      `Upload complete for ${userRole}: ${uploadCount}/${totalImages} images uploaded`
+    );
+
+    // Return response matching route.ts format
     return successResponse({
-      message: `Successfully uploaded ${uploadResults.length} images`,
+      success: true,
+      message: `Uploaded ${uploadCount} images successfully`,
       roomId,
-      images: uploadResults.map((result) => ({
-        url: result.url,
-        key: result.key,
-        size: result.size,
-      })),
-      stats: {
-        totalImages: uploadResults.length,
-        totalSize: totalUploadedSize,
-        processingTimeMs: processingTime,
-        averageSizePerImage: Math.round(
-          totalUploadedSize / uploadResults.length
-        ),
-      },
+      userRole,
+      uploadCount,
+      totalImages,
+      uploadedUrls,
     });
   } catch (error) {
     const processingTime = Date.now() - startTime;
     console.error("❌ Error processing images:", error);
 
-    return errorResponse(500, "Internal server error", {
+    return errorResponse(500, "Failed to upload images", {
       processingTimeMs: processingTime,
       error: error instanceof Error ? error.message : "Unknown error",
     });

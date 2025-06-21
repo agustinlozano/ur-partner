@@ -237,12 +237,17 @@ async function processImages(
   // Process each category (matching route.ts logic exactly)
   for (const [categoryId, imageData] of Object.entries(images)) {
     try {
-      if (Array.isArray(imageData)) {
-        // Character category with multiple images
+      // Character category is always treated as array (can have multiple images)
+      if (categoryId === "character") {
         const uploadedImageUrls: string[] = [];
 
-        for (let i = 0; i < imageData.length; i++) {
-          const base64Image = imageData[i] as string;
+        // Ensure character data is always treated as array
+        const characterImages = Array.isArray(imageData)
+          ? imageData
+          : [imageData as string];
+
+        for (let i = 0; i < characterImages.length; i++) {
+          const base64Image = characterImages[i] as string;
           // Same filename structure as route.ts (without extension, will be added based on format)
           const filenameWithoutExtension = `${roomId}/${userRole}/${categoryId}/${
             i + 1
@@ -260,8 +265,23 @@ async function processImages(
         }
 
         uploadedUrls[categoryId] = uploadedImageUrls;
+      } else if (Array.isArray(imageData)) {
+        // This shouldn't happen for non-character categories, but handle it just in case
+        console.warn(
+          `⚠️ Category ${categoryId} received as array but should be single image. Taking first image only.`
+        );
+        const base64Image = imageData[0] as string;
+        const filenameWithoutExtension = `${roomId}/${userRole}/${categoryId}/main`;
+        const url = await uploadImageToS3(
+          base64Image,
+          filenameWithoutExtension
+        );
+        uploadedUrls[categoryId] = url;
+        uploadCount++;
+
+        console.log(`Uploaded ${categoryId}: ${uploadCount}/${totalImages}`);
       } else {
-        // Single image category
+        // Single image category (all categories except character)
         // Same filename structure as route.ts (without extension, will be added based on format)
         const filenameWithoutExtension = `${roomId}/${userRole}/${categoryId}/main`;
         const url = await uploadImageToS3(
@@ -343,16 +363,22 @@ export const uploadImages = async (
     let totalSize = 0;
 
     for (const [categoryId, imageData] of Object.entries(images)) {
-      if (Array.isArray(imageData)) {
-        if (imageData.length > MAX_IMAGES_PER_CATEGORY) {
+      // Character category is always treated as array
+      if (categoryId === "character") {
+        // Ensure character data is always treated as array for validation
+        const characterImages = Array.isArray(imageData)
+          ? imageData
+          : [imageData as string];
+
+        if (characterImages.length > MAX_IMAGES_PER_CATEGORY) {
           validationErrors.push(
             `Category ${categoryId}: Maximum ${MAX_IMAGES_PER_CATEGORY} images allowed`
           );
           continue;
         }
 
-        for (let i = 0; i < imageData.length; i++) {
-          const validation = validateImageData(imageData[i] as string);
+        for (let i = 0; i < characterImages.length; i++) {
+          const validation = validateImageData(characterImages[i] as string);
           if (!validation.isValid) {
             validationErrors.push(
               `${categoryId}[${i + 1}]: ${validation.error}`
@@ -361,7 +387,19 @@ export const uploadImages = async (
             totalSize += validation.size!;
           }
         }
+      } else if (Array.isArray(imageData)) {
+        // Non-character categories shouldn't be arrays, but handle gracefully
+        console.warn(
+          `⚠️ Category ${categoryId} received as array but should be single image. Validating first image only.`
+        );
+        const validation = validateImageData(imageData[0] as string);
+        if (!validation.isValid) {
+          validationErrors.push(`${categoryId}: ${validation.error}`);
+        } else {
+          totalSize += validation.size!;
+        }
       } else {
+        // Single image category (all categories except character)
         const validation = validateImageData(imageData as string);
         if (!validation.isValid) {
           validationErrors.push(`${categoryId}: ${validation.error}`);

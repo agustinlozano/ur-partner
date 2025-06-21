@@ -31,7 +31,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
+.env
 
 # vercel
 .vercel
@@ -43,3 +43,8 @@ secrets.json
 
 /public/cele-*
 .env*.local
+components/samples/*
+public/*.mp4
+/aws/**/node_modules
+/aws/**/.build
+/aws/**/.serverless

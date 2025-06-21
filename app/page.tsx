@@ -96,7 +96,7 @@ export default function Home() {
         </div>
 
         {/* aesthetic section with my emoji */}
-        <div className="mt-16 max-w-3xl mx-auto">
+        <div className="mt-16 max-w-3xl mx-auto select-none">
           <div className="flex gap-x-8 items-center justify-between space-y-4 bg-card/75 rounded-xl shadow-lg p-8 border">
             <img
               src="/emoji.webp"

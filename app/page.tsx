@@ -8,6 +8,7 @@ import { BidirectionalBeam } from "@/components/bidirectional-animated-beam";
 import { XIcon } from "@/components/ui/icons";
 import VideoSteps from "@/components/video-steps";
 import StatsSection from "@/components/stats-section";
+import HoverCardDemo from "@/components/hover-card-demo";
 
 export default function Home() {
   return (
@@ -85,7 +86,8 @@ export default function Home() {
 
           {/* Stats Section */}
           <StatsSection />
-
+          <HoverCardDemo />
+          <VideoSteps />
           <Sparkles
             density={800}
             speed={1.2}
@@ -95,8 +97,6 @@ export default function Home() {
             color="#9810fa"
             className="absolute inset-x-0 bottom-0 h-full w-full -z-10"
           />
-
-          <VideoSteps />
         </div>
 
         {/* aesthetic section with my emoji */}

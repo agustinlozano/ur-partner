@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "motion/react";
 import {
   categories,
   type PartnerTrackerProps,
@@ -162,37 +163,50 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
       </div>
 
       {/* Both Completed - Show Reveal Button */}
-      {canReveal && (
-        <div className="text-center p-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-          <div className="text-4xl mb-3">✨</div>
-          <strong className="font-bold font-mono text-purple-800 dark:text-purple-200 text-lg mb-2">
-            {bothCompleted ? "Both Completed!" : "Both Ready!"}
-          </strong>
-          <div className="text-sm text-purple-600 dark:text-purple-400 mb-4">
-            {bothCompleted
-              ? "You've both uploaded all 9 images! Time to discover how you see each other..."
-              : "Time to discover how you see each other..."}
-          </div>
-
-          <button
-            onClick={handleReveal}
-            disabled={isRevealing}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:hover:scale-100 shadow-lg"
+      <AnimatePresence>
+        {canReveal && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: -20 }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 20,
+              duration: 0.6,
+            }}
+            className="text-center p-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border border-purple-200 dark:border-purple-800"
           >
-            {isRevealing ? (
-              <div className="flex items-center justify-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                <span>Starting Reveal...</span>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center gap-2">
-                <span>🔮</span>
-                <span>Reveal Personalities</span>
-              </div>
-            )}
-          </button>
-        </div>
-      )}
+            <div className="text-4xl mb-3">✨</div>
+            <strong className="font-bold font-mono text-purple-800 dark:text-purple-200 text-lg mb-2">
+              {bothCompleted ? "Both Completed!" : "Both Ready!"}
+            </strong>
+            <div className="text-sm text-purple-600 dark:text-purple-400 mb-4">
+              {bothCompleted
+                ? "You've both uploaded all 9 images! Time to discover how you see each other..."
+                : "Time to discover how you see each other..."}
+            </div>
+
+            <button
+              onClick={handleReveal}
+              disabled={isRevealing}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:hover:scale-100 shadow-lg"
+            >
+              {isRevealing ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  <span>Starting Reveal...</span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center gap-2">
+                  <span>🔮</span>
+                  <span>Reveal Personalities</span>
+                </div>
+              )}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Progress Overview */}
       <div className="space-y-4">

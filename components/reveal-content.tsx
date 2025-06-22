@@ -9,7 +9,11 @@ import { CategoryMarquee } from "./personality-form/category-marquee";
 import CategoryHoverReveal from "./personality-form/category-hover-reveal";
 import CategoryExpandableGallery from "./personality-form/category-expandable-gallery";
 import { useRouter } from "next/navigation";
-import { enviroment } from "@/lib/env";
+import {
+  enviroment,
+  USE_LAMBDA_UPLOAD,
+  LAMBDA_UPLOAD_ENDPOINT,
+} from "@/lib/env";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 
 interface RevealContentProps {
@@ -304,6 +308,42 @@ export default function RevealContent({ roomId }: RevealContentProps) {
     }
   };
 
+  // Helper function to handle upload to either original route or Lambda
+  const uploadImages = async (
+    roomId: string,
+    userRole: string,
+    images: any
+  ) => {
+    if (USE_LAMBDA_UPLOAD && LAMBDA_UPLOAD_ENDPOINT) {
+      const response = await fetch(LAMBDA_UPLOAD_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          roomId,
+          userRole,
+          images,
+        }),
+      });
+
+      return await response.json();
+    } else {
+      const response = await fetch(`/api/room/${roomId}/upload-images`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userRole,
+          images,
+        }),
+      });
+
+      return await response.json();
+    }
+  };
+
   // Function to start the image upload process
   const startImageUpload = async () => {
     try {
@@ -337,18 +377,7 @@ export default function RevealContent({ roomId }: RevealContentProps) {
         });
       }, 400);
 
-      const response = await fetch(`/api/room/${roomId}/upload-images`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userRole,
-          images: uploadedImages,
-        }),
-      });
-
-      const result = await response.json();
+      const result = await uploadImages(roomId, userRole, uploadedImages);
 
       // Clear the progress interval
       clearInterval(uploadProgressInterval);

@@ -120,7 +120,7 @@ export default function VideoSteps() {
                     <img
                       src={previewImages[step.id - 1]}
                       alt={step.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover opacity-75"
                     />
                     {/* Emoji overlay */}
                     <div

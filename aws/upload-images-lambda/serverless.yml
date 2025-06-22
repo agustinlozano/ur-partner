@@ -1,0 +1,101 @@
+service: upload-images-lambda
+
+plugins:
+  - serverless-esbuild
+
+# Optimized package configuration for S3 and DynamoDB functionality
+package:
+  exclude:
+    - node_modules/**
+    - .env*
+    - .build/**
+    - .serverless/**
+    - README.md
+    - tsconfig.json
+    - "*.md"
+    - "*.ts"
+  include:
+    - handler.js
+    - lib/**/*.js
+
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+    target: "node20"
+    exclude: ["aws-sdk"]
+    # Optimize for S3 and DynamoDB operations
+    external: []
+    keepNames: true
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-2
+  timeout: 30
+  memorySize: 1024
+
+  # Environment variables for S3 and DynamoDB
+  environment:
+    S3_BUCKET: ur-partner
+    DYNAMODB_TABLE: Rooms
+    # Redis configuration (commented for now)
+    # REDIS_HOST: ur-partner-cache-iqc8dm.serverless.use2.cache.amazonaws.com
+    # REDIS_PORT: 6379
+    # REDIS_TLS: "true"
+
+  # ✅ IAM Permissions for S3 and DynamoDB operations
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+            - s3:PutObjectAcl
+            - s3:GetObject
+            - s3:DeleteObject
+          Resource: "arn:aws:s3:::ur-partner/*"
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:UpdateItem
+            - dynamodb:GetItem
+          Resource: "arn:aws:dynamodb:us-east-2:*:table/Rooms"
+        # VPC permissions for ElastiCache (commented for now)
+        # - Effect: Allow
+        #   Action:
+        #     - ec2:CreateNetworkInterface
+        #     - ec2:DescribeNetworkInterfaces
+        #     - ec2:DeleteNetworkInterface
+        #   Resource: "*"
+
+# VPC configuration for ElastiCache (commented for now)
+# vpc:
+#   securityGroupIds:
+#     - sg-005478a6cc0d8a8b8
+#   subnetIds:
+#     - subnet-0a253be3cf45b60cd
+#     - subnet-018e5eeea059ec6bd
+
+functions:
+  uploadImages:
+    handler: handler.uploadImages
+    events:
+      - http:
+          path: upload
+          method: post
+          cors:
+            origin: "*"
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: false
+      - http:
+          path: upload
+          method: options
+          cors:
+            origin: "*"
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: false

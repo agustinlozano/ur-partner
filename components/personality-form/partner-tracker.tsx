@@ -141,7 +141,7 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 max-w-2xl mx-auto md:w-2xl">
       {/* Partner Status Header */}
       <div className="text-center">
         <div className="inline-flex items-center gap-3 bg-muted rounded-full px-4 py-2">

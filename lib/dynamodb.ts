@@ -303,3 +303,25 @@ export const getAllRooms = async (): Promise<Room[]> => {
     throw new Error("Failed to get all rooms");
   }
 };
+
+// Function to get all rooms including expired ones (for development purposes)
+export const getAllRoomsIncludingExpired = async (): Promise<Room[]> => {
+  try {
+    const result = await dynamoDb.send(
+      new ScanCommand({
+        TableName: TABLES.ROOMS,
+      })
+    );
+
+    const rooms = (result.Items as Room[]) || [];
+
+    // Sort by created_at (newest first) - no filtering
+    return rooms.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  } catch (error) {
+    console.error("Error getting all rooms including expired:", error);
+    throw new Error("Failed to get all rooms including expired");
+  }
+};

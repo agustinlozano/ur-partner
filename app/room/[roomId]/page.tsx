@@ -6,7 +6,7 @@ import GradientBackground from "@/components/gradient-background";
 import Link from "next/link";
 import ActiveRoomSaver from "@/components/active-room-saver";
 import CopyRoomId from "@/components/copy-room-id";
-import AudioTrigger from "@/components/audio-trigger";
+// import AudioTrigger from "@/components/audio-trigger";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
 import { checkRevealReady } from "@/lib/check-reveal-ready";
@@ -240,7 +240,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
         )}
 
       {/* Trigger audio playback when landing on a new room */}
-      <AudioTrigger shouldPlay={searchParamsData.new === "true"} />
+      {/* <AudioTrigger shouldPlay={searchParamsData.new === "true"} /> */}
 
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">

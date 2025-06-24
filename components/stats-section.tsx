@@ -64,7 +64,7 @@ function StatCard({
   );
 }
 
-export default function StatsSection() {
+export default function StatsSection({ className }: { className?: string }) {
   const stats = [
     {
       icon: <Users className="w-6 h-6" />,
@@ -99,7 +99,7 @@ export default function StatsSection() {
   ];
 
   return (
-    <div className="w-full max-w-4xl mx-auto py-8">
+    <div className={cn("w-full max-w-4xl mx-auto py-8", className)}>
       <div className="grid md:grid-cols-3 gap-6">
         {stats.map((stat, index) => (
           <StatCard key={stat.label} {...stat} />

@@ -117,7 +117,7 @@ export default function HoverCardDemo() {
             />
             <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">
               {isPlaying
-                ? "Playing"
+                ? "Online"
                 : isVisible
                 ? "Ready to play"
                 : "Loading..."}

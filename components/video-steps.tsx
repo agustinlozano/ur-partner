@@ -41,7 +41,7 @@ const videoSteps: VideoStep[] = [
 
 const previewImages = ["/create.webp", "/share.webp", "/join.webp"];
 
-export default function VideoSteps() {
+export default function VideoSteps({ className }: { className?: string }) {
   const [activeVideo, setActiveVideo] = useState<number | null>(null);
   const videoRefs = useRef<{ [key: number]: HTMLVideoElement | null }>({});
 
@@ -80,7 +80,7 @@ export default function VideoSteps() {
   };
 
   return (
-    <div className="mt-16 max-w-8xl mx-auto">
+    <div className={className}>
       <div className="text-center mb-12">
         <h2 className="text-3xl font-bold font-mono mb-4">See How It Works</h2>
         <p className="text-xl text-primary/75 max-w-2xl text-pretty mx-auto">
@@ -127,7 +127,7 @@ export default function VideoSteps() {
                       className="absolute inset-0 bg-black/20 dark:bg-black/40 flex items-center justify-center group-hover:bg-black/10 dark:group-hover:bg-black/30 transition-colors duration-300 cursor-pointer"
                       onClick={() => handleVideoClick(step.id)}
                     >
-                      <div className="text-6xl opacity-80 group-hover:scale-110 transition-transform duration-300">
+                      <div className="text-4xl opacity-80 group-hover:scale-110 transition-transform duration-300">
                         {step.emoji}
                       </div>
                     </div>

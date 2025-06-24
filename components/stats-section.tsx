@@ -46,7 +46,26 @@ function StatCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: delay / 1000 }}
     >
-      <div className="text-center space-y-3">
+      {/* Mobile layout: row with icon+number left, text right */}
+      <div className="flex items-center gap-8 md:hidden">
+        <div className="flex flex-col items-center space-y-2">
+          <div className={cn("inline-flex p-3 rounded-full", iconColor)}>
+            {icon}
+          </div>
+          <NumberFlow
+            value={currentValue}
+            className="text-2xl font-bold font-mono"
+            format={{ notation: "compact" }}
+          />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold font-mono">{label}</h3>
+          <p className="text-sm text-primary/75">{description}</p>
+        </div>
+      </div>
+
+      {/* Desktop layout: centered column */}
+      <div className="hidden md:block text-center space-y-3">
         <div className={cn("inline-flex p-3 rounded-full", iconColor)}>
           {icon}
         </div>

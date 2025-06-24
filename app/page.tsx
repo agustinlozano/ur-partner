@@ -9,12 +9,13 @@ import { XIcon } from "@/components/ui/icons";
 import VideoSteps from "@/components/video-steps";
 import StatsSection from "@/components/stats-section";
 import HoverCardDemo from "@/components/hover-card-demo";
+import { MatrixBoard } from "@/components/ui/matrix-board";
 
 export default function Home() {
   return (
     <GradientBackground variant="blue">
       <div className="container mx-auto px-4 py-12 relative">
-        <div className="text-center mb-10 max-w-3xl mx-auto">
+        <div className="text-center mb-6 max-w-3xl mx-auto">
           <h1 className="text-4xl font-bold mb-6 font-mono text-gradient text-balance">
             Imagine With Ur Partner
           </h1>
@@ -25,10 +26,10 @@ export default function Home() {
           </p>
         </div>
 
-        <BidirectionalBeam className="mb-10" />
+        <BidirectionalBeam className="mb-8" />
 
         <div className="mx-auto space-y-6">
-          <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
             <Link
               href="/room"
               className={cn(
@@ -83,12 +84,13 @@ export default function Home() {
               </div>
             </Link>
           </div>
-
-          {/* Stats Section */}
-          <StatsSection />
-          <HoverCardDemo />
-          <VideoSteps />
         </div>
+
+        {/* Stats Section */}
+        <StatsSection className="max-w-2xl mx-auto" />
+        <HoverCardDemo className="mx-auto max-w-5xl mt-16" />
+        <VideoSteps className="mx-auto max-w-5xl mt-16" />
+
         <div className="absolute top-32 z-[2] h-[400px] w-full overflow-hidden [mask-image:radial-gradient(100%_50%,white,transparent)] before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_bottom_center,#3273ffaa,transparent_70%)] before:opacity-35 after:absolute">
           <Sparkles
             density={800}
@@ -102,33 +104,13 @@ export default function Home() {
         </div>
 
         {/* aesthetic section with my emoji */}
-        <div className="mt-16 max-w-3xl mx-auto select-none">
-          <div className="flex gap-x-8 items-center justify-between space-y-4 bg-card/75 rounded-xl shadow-lg p-8 border">
-            <img
-              src="/emoji.webp"
-              alt="Agustin's avatar"
-              className="w-28 mb-0 rounded-md object-cover border-2 border-primary/20 shadow-md"
-            />
-
-            <div className="grow flex flex-col gap-4">
-              <div>
-                <h3 className="text-xl font-bold font-mono">Agustin</h3>
-                <p className="text-primary/80 text-base">
-                  Guy from Argentina 🇦🇷 doin' software.
-                </p>
-              </div>
-              <a
-                href="https://x.com/gustinlzn"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex w-fit items-center gap-2 px-4 py-2 rounded-lg bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-300 font-medium text-sm outline-none focus-visible:ring-4 focus-visible:ring-gray-400/50 focus-visible:scale-105 focus-visible:shadow-lg"
-              >
-                <XIcon className="w-4 h-4" />
-                @gustinlzn
-              </a>
-            </div>
-          </div>
-        </div>
+        <MatrixBoard
+          className="mx-auto w-full my-8 mt-20"
+          text="Front."
+          title="Software Engineer"
+          finalTitle="Frontend Engineer"
+          description="Guy from Argentina 🇦🇷 doin' software"
+        />
       </div>
     </GradientBackground>
   );

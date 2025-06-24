@@ -61,7 +61,7 @@
 .fluidText {
   margin: 0;
   text-align: center;
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
   font-weight: var(--weight);
   letter-spacing: 1px;
   line-height: var(--line);
@@ -75,7 +75,7 @@
   clip-path: inset(0 100% 0 0);
   transition: clip-path 0.5s steps(calc(100 / var(--spread)));
   transition-delay: 0.5s;
-  font-size: clamp(1rem, calc(var(--font) * 1cqi), 8rem);
+  font-size: clamp(1rem, calc(var(--font) * 1cqi), 12rem);
 }
 
 .container:is(:hover, :focus-within) .fluidText {
@@ -86,7 +86,7 @@
 .details {
   padding: 1rem 0;
   display: flex;
-  flex-direction: column;
+  width: 100%;
   gap: 0.5rem;
   justify-content: center;
 }

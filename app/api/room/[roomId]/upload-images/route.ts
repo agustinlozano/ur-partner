@@ -1,216 +1,125 @@
-import { NextRequest } from "next/server";
-import { S3 } from "aws-sdk";
-import { findRoomByRoomId, updateRoomImages } from "@/lib/dynamodb";
+import { NextRequest, NextResponse } from "next/server";
+import { LAMBDA_UPLOAD_ENDPOINT, RATE_LIMIT_ENDPOINT } from "@/lib/env";
 
-interface ImageData {
-  [categoryId: string]: string | string[]; // base64 images from sessionStorage
+// Helper function to check rate limiting
+async function checkRateLimit(
+  clientIp: string
+): Promise<{ allowed: boolean; error?: string }> {
+  if (!RATE_LIMIT_ENDPOINT) {
+    // If rate limiting is not configured, allow the request
+    return { allowed: true };
+  }
+
+  try {
+    const rateLimitResponse = await fetch(`${RATE_LIMIT_ENDPOINT}/check`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        serviceId: "upload-images",
+        clientId: clientIp,
+        metadata: {
+          userTier: "default", // You can make this dynamic based on user data
+        },
+      }),
+    });
+
+    const rateLimitResult = await rateLimitResponse.json();
+
+    if (!rateLimitResponse.ok) {
+      return {
+        allowed: false,
+        error: rateLimitResult.message || "Rate limit check failed",
+      };
+    }
+
+    // Assuming the rate limit service returns { allowed: boolean }
+    return { allowed: rateLimitResult.allowed || true };
+  } catch (error) {
+    console.error("Error checking rate limit:", error);
+    // In case of rate limit service failure, allow the request to proceed
+    // You might want to change this behavior based on your requirements
+    return { allowed: true };
+  }
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ roomId: string }> }
+  { params }: { params: { roomId: string } }
 ) {
   try {
-    const { roomId } = await params;
+    // Get the request body
     const body = await request.json();
     const { userRole, images } = body;
 
-    if (!roomId || !userRole || !images) {
-      return Response.json(
-        { error: "Room ID, user role, and images are required" },
+    // Validate required fields
+    if (!userRole || !images) {
+      return NextResponse.json(
+        { success: false, error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    console.log(`Starting upload process for ${userRole} in room ${roomId}`);
-    console.log(
-      `Number of categories with images: ${Object.keys(images).length}`
-    );
+    // Get client IP
+    const forwarded = request.headers.get("x-forwarded-for");
+    const realIp = request.headers.get("x-real-ip");
+    const clientIp = forwarded
+      ? forwarded.split(",")[0].trim()
+      : realIp || "unknown";
 
-    // Check if images are already uploaded to avoid duplicates
-    const existingUrls = await checkExistingImageUrls(roomId, userRole);
-    if (existingUrls && Object.keys(existingUrls).length > 0) {
-      console.log(`Images already uploaded for ${userRole} in room ${roomId}`);
-      return Response.json({
-        success: true,
-        message: "Images already uploaded",
-        roomId,
-        userRole,
-        uploadCount: Object.values(existingUrls).flat().length,
-        totalImages: Object.values(images).flat().length,
-        uploadedUrls: existingUrls,
-        alreadyExists: true,
-      });
+    // Check rate limiting first
+    const rateLimitCheck = await checkRateLimit(clientIp);
+    if (!rateLimitCheck.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            rateLimitCheck.error ||
+            "Rate limit exceeded. Please try again later.",
+        },
+        { status: 429 }
+      );
     }
 
-    const uploadedUrls: { [categoryId: string]: string | string[] } = {};
-    let uploadCount = 0;
-    const totalImages = Object.values(images).flat().length;
-
-    // Subir cada imagen a AWS S3
-    for (const [categoryId, imageData] of Object.entries(images)) {
-      try {
-        if (Array.isArray(imageData)) {
-          // Character category with multiple images
-          const uploadedImageUrls: string[] = [];
-
-          for (let i = 0; i < imageData.length; i++) {
-            const base64Image = imageData[i] as string;
-            const filename = `${roomId}/${userRole}/${categoryId}/${i + 1}.jpg`;
-            const url = await uploadImageToS3(base64Image, filename);
-            console.log("@ `uploadImageToS3` URL:", url);
-            uploadedImageUrls.push(url);
-            uploadCount++;
-
-            console.log(
-              `Uploaded ${categoryId}[${i + 1}]: ${uploadCount}/${totalImages}`
-            );
-          }
-
-          uploadedUrls[categoryId] = uploadedImageUrls;
-        } else {
-          // Single image category
-          const filename = `${roomId}/${userRole}/${categoryId}/main.jpg`;
-          const url = await uploadImageToS3(imageData as string, filename);
-          uploadedUrls[categoryId] = url;
-          uploadCount++;
-
-          console.log(`Uploaded ${categoryId}: ${uploadCount}/${totalImages}`);
-        }
-      } catch (error) {
-        console.error(`Failed to upload ${categoryId}:`, error);
-        // Continue with other categories even if one fails
-      }
+    // Check if lambda endpoint is configured
+    if (!LAMBDA_UPLOAD_ENDPOINT) {
+      return NextResponse.json(
+        { success: false, error: "Lambda endpoint not configured" },
+        { status: 500 }
+      );
     }
 
-    console.log("@ `uploadImageToS3` uploadedUrls:", uploadedUrls);
-
-    // Store the uploaded URLs in DynamoDB for later retrieval
-    const success = await updateRoomImages(roomId, userRole, uploadedUrls);
-
-    console.log(
-      `Upload complete for ${userRole}: ${uploadCount}/${totalImages} images uploaded`
-    );
-
-    return Response.json({
-      success,
-      message: `Uploaded ${uploadCount} images successfully`,
-      roomId,
+    // Prepare payload for lambda (no need to include IP since it's only used for rate limiting)
+    const lambdaPayload = {
+      roomId: params.roomId,
       userRole,
-      uploadCount,
-      totalImages,
-      uploadedUrls,
+      images,
+    };
+
+    // Make request to lambda
+    const lambdaResponse = await fetch(LAMBDA_UPLOAD_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(lambdaPayload),
     });
-  } catch (error) {
-    console.error("Error in upload process:", error);
-    return Response.json({ error: "Failed to upload images" }, { status: 500 });
-  }
-}
 
-// Helper function to upload images to AWS S3
-async function uploadImageToS3(
-  base64Image: string,
-  filename: string
-): Promise<string> {
-  try {
-    // Configuración de AWS desde variables de entorno
-    const s3 = new S3({
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      region: process.env.AWS_REGION,
-    });
-    const bucket = process.env.AWS_S3_BUCKET;
-    if (!bucket)
-      throw new Error("AWS_S3_BUCKET no definido en variables de entorno");
+    // Get lambda response
+    const lambdaResult = await lambdaResponse.json();
 
-    // Convertir base64 a buffer
-    const base64Data = base64Image.replace(/^data:image\/[a-z]+;base64,/, "");
-    const buffer = Buffer.from(base64Data, "base64");
-
-    // Subir a S3
-    const uploadResult = await s3
-      .upload({
-        Bucket: bucket,
-        Key: filename,
-        Body: buffer,
-        ContentType: "image/jpeg",
-        ACL: "public-read",
-      })
-      .promise();
-
-    return uploadResult.Location;
-  } catch (error) {
-    console.error("Error uploading to S3:", error);
-    throw error;
-  }
-}
-
-/**
- * Variables de entorno necesarias para AWS S3:
- * - AWS_ACCESS_KEY_ID
- * - AWS_SECRET_ACCESS_KEY
- * - AWS_REGION
- * - AWS_S3_BUCKET
- */
-
-// Helper function to check if images are already uploaded
-async function checkExistingImageUrls(
-  roomId: string,
-  userRole: string
-): Promise<{ [categoryId: string]: string | string[] } | null> {
-  try {
-    const room = await findRoomByRoomId(roomId);
-    if (!room) {
-      return null;
+    // Return lambda response with appropriate status
+    if (lambdaResponse.ok) {
+      return NextResponse.json(lambdaResult);
+    } else {
+      return NextResponse.json(lambdaResult, { status: lambdaResponse.status });
     }
-
-    const categories = [
-      "animal",
-      "place",
-      "plant",
-      "character",
-      "season",
-      "hobby",
-      "food",
-      "colour",
-      "drink",
-    ];
-
-    const existingUrls: { [key: string]: string | string[] } = {};
-    let hasAnyUrls = false;
-
-    for (const category of categories) {
-      const columnKey = `${category}_${userRole}` as keyof typeof room;
-      const imageData = room[columnKey];
-
-      if (imageData && typeof imageData === "string" && imageData.trim()) {
-        try {
-          // Try to parse as JSON (for character category with multiple images)
-          const parsed = JSON.parse(imageData);
-          if (
-            Array.isArray(parsed) &&
-            parsed.length > 0 &&
-            parsed[0].startsWith("http")
-          ) {
-            existingUrls[category] = parsed;
-            hasAnyUrls = true;
-          } else if (typeof parsed === "string" && parsed.startsWith("http")) {
-            existingUrls[category] = parsed;
-            hasAnyUrls = true;
-          }
-        } catch {
-          // If not JSON, check if it's a direct URL
-          if (imageData.startsWith("http")) {
-            existingUrls[category] = imageData;
-            hasAnyUrls = true;
-          }
-        }
-      }
-    }
-
-    return hasAnyUrls ? existingUrls : null;
   } catch (error) {
-    console.error("Error checking existing image URLs:", error);
-    return null;
+    console.error("Error in upload-images API route:", error);
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

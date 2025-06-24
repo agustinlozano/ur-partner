@@ -21,7 +21,33 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Imagine & describe your Partner",
-  description: "Describe your partner's personality through images.",
+  description:
+    "Describe your partner's personality through images. Discover how you see each other through animals, places, characters, and more.",
+  openGraph: {
+    title: "Imagine & describe your Partner",
+    description:
+      "Describe your partner's personality through images. Discover how you see each other through animals, places, characters, and more.",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Imagine & describe your Partner - App Preview",
+      },
+    ],
+    type: "website",
+    siteName: "Ur Partner",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Imagine & describe your Partner",
+    description:
+      "Describe your partner's personality through images. Discover how you see each other through animals, places, characters, and more.",
+    images: ["/og-image.jpg"],
+  },
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_BASE_URL || "https://ur-partner.vercel.app"
+  ),
 };
 
 export default function RootLayout({

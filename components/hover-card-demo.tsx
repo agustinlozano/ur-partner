@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Pause, Play } from "lucide-react";
 
-export default function HoverCardDemo() {
+export default function HoverCardDemo({ className }: { className?: string }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -44,7 +44,7 @@ export default function HoverCardDemo() {
   const handleEnded = () => setIsPlaying(false);
 
   return (
-    <div ref={containerRef} className="mt-16 w-full max-w-5xl mx-auto px-4">
+    <div ref={containerRef} className={cn("w-full", className)}>
       <div className="relative">
         <div
           className={cn(

@@ -89,7 +89,7 @@ export default function Home() {
           <HoverCardDemo />
           <VideoSteps />
         </div>
-        <div className="absolute top-32 z-[2] h-[400px] w-screen overflow-hidden [mask-image:radial-gradient(100%_50%,white,transparent)] before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_bottom_center,#3273ffaa,transparent_70%)] before:opacity-35 after:absolute">
+        <div className="absolute top-32 z-[2] h-[400px] w-full overflow-hidden [mask-image:radial-gradient(100%_50%,white,transparent)] before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_bottom_center,#3273ffaa,transparent_70%)] before:opacity-35 after:absolute">
           <Sparkles
             density={800}
             speed={1.2}

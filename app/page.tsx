@@ -1,11 +1,8 @@
-// import SheetTest from "@/components/sheet-test";
-// import Diagnostics from "@/components/diagnostics";
 import GradientBackground from "@/components/gradient-background";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Sparkles } from "@/components/sparkles";
 import { BidirectionalBeam } from "@/components/bidirectional-animated-beam";
-import { XIcon } from "@/components/ui/icons";
 import VideoSteps from "@/components/video-steps";
 import StatsSection from "@/components/stats-section";
 import HoverCardDemo from "@/components/hover-card-demo";
@@ -87,9 +84,9 @@ export default function Home() {
         </div>
 
         {/* Stats Section */}
-        <StatsSection className="max-w-2xl mx-auto" />
+        <StatsSection className="mt-16 max-w-2xl mx-auto" />
         <HoverCardDemo className="mx-auto max-w-5xl mt-16" />
-        <VideoSteps className="mx-auto max-w-5xl mt-16" />
+        <VideoSteps className="mx-auto max-w-4xl mt-16" />
 
         <div className="absolute top-32 z-[2] h-[400px] w-full overflow-hidden [mask-image:radial-gradient(100%_50%,white,transparent)] before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_bottom_center,#3273ffaa,transparent_70%)] before:opacity-35 after:absolute">
           <Sparkles
@@ -102,16 +99,17 @@ export default function Home() {
             className="absolute inset-x-0 bottom-0 h-full w-full -z-10"
           />
         </div>
+      </div>
 
-        {/* aesthetic section with my emoji */}
+      <footer className="mt-20 mb-12 mx-2 bg-background/25 md:mx-auto">
         <MatrixBoard
-          className="mx-auto w-full my-8 mt-20"
+          className="mx-auto max-w-lg my-8"
           text="Front."
           title="Software Engineer"
           finalTitle="Frontend Engineer"
           description="Guy from Argentina 🇦🇷 doin' software"
         />
-      </div>
+      </footer>
     </GradientBackground>
   );
 }

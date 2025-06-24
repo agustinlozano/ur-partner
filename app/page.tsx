@@ -11,7 +11,7 @@ import { MatrixBoard } from "@/components/ui/matrix-board";
 export default function Home() {
   return (
     <GradientBackground variant="blue">
-      <div className="container mx-auto px-4 py-12 relative">
+      <div className="container py-12 relative mx-2 sm:mx-auto">
         <div className="text-center mb-6 max-w-3xl mx-auto">
           <h1 className="text-4xl font-bold mb-6 font-mono text-gradient text-balance">
             Imagine With Ur Partner
@@ -101,7 +101,7 @@ export default function Home() {
         </div>
       </div>
 
-      <footer className="mt-20 py-12 mx-2 bg-background/25 md:mx-auto ">
+      <footer className="mt-20 py-12 mx-2 bg-background/25 md:mx-auto overflow-x-hidden">
         <MatrixBoard
           className="mx-auto max-w-lg"
           text="Front."

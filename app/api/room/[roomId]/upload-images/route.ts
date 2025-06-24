@@ -90,9 +90,12 @@ async function checkRateLimit(clientIp: string): Promise<{
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { roomId: string } }
+  { params }: { params: Promise<{ roomId: string }> }
 ) {
   try {
+    // Await the params
+    const { roomId } = await params;
+
     // Get the request body
     const body = await request.json();
     const { userRole, images } = body;
@@ -145,7 +148,7 @@ export async function POST(
 
     // Prepare payload for lambda (no need to include IP since it's only used for rate limiting)
     const lambdaPayload = {
-      roomId: params.roomId,
+      roomId,
       userRole,
       images,
     };

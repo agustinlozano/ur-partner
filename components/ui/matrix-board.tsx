@@ -89,7 +89,7 @@ export function MatrixBoard({
       <div className={"flex w-full gap-4 p-2 sm:gap-8 border bg-muted/50"}>
         <div className={styles.avatar}>
           <img
-            src="/emoji.png"
+            src="/emoji.webp"
             alt="Agustin's avatar"
             className="w-32 mb-0 rounded-md object-cover select-none"
           />

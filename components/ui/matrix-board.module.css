@@ -1,6 +1,6 @@
 .container {
   background: color-mix(in lch, canvas, canvasText 10%);
-  width: clamp(360px, 50vw, 600px);
+  /* width: clamp(360px, 50vw, 768px); */
   min-height: 200px;
   max-height: 450px;
   border: 1px solid color-mix(in lch, canvas, canvasText 35%);
@@ -84,19 +84,9 @@
   transition-delay: 0s;
 }
 
-.details {
-  padding: 1rem 0;
-  display: flex;
-  width: 100%;
-  gap: 2rem;
-  justify-content: center;
-}
-
 .title {
   margin: 0;
   color: color-mix(in lch, canvasText, canvas 5%);
-  font-size: 1.5rem;
-  font-weight: 600;
 }
 
 .title a {
@@ -109,11 +99,4 @@
   text-decoration: underline;
   text-underline-offset: 4px;
   text-decoration-color: color-mix(in lch, canvasText, transparent 50%);
-}
-
-.description {
-  margin: 0;
-  color: color-mix(in lch, canvasText, canvas 20%);
-  line-height: 1.5;
-  font-weight: 400;
 }

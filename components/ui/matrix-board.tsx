@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
-import styles from "./matrix-board.module.css";
-import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
+import React, { useState } from "react";
+import { cn } from "@/lib/utils";
 import { XIcon } from "./icons";
+import styles from "./matrix-board.module.css";
 
 interface MatrixBoardProps {
   text?: string;
@@ -86,16 +86,21 @@ export function MatrixBoard({
           </div>
         </div>
       </div>
-      <div className={cn(styles.details, "border bg-muted/50")}>
+      <div className={"flex w-full gap-4 p-2 sm:gap-8 border bg-muted/50"}>
         <div className={styles.avatar}>
           <img
-            src="/emoji.webp"
+            src="/emoji.png"
             alt="Agustin's avatar"
-            className="w-28 mb-0 rounded-md object-cover select-none"
+            className="w-32 mb-0 rounded-md object-cover select-none"
           />
         </div>
         <div className="flex flex-col justify-center">
-          <h2 className={styles.title}>
+          <h2
+            className={cn(
+              styles.title,
+              "text-lg font-mono sm:text-2xl font-bold"
+            )}
+          >
             <AnimatePresence mode="wait" initial={false}>
               <motion.span
                 key={hovered && finalTitle ? "final" : "initial"}
@@ -109,7 +114,7 @@ export function MatrixBoard({
               </motion.span>
             </AnimatePresence>
           </h2>
-          <p className={styles.description}>{description}</p>
+          <p className="m-0 text-sm text-primary/75">{description}</p>
           <a
             href="https://x.com/gustinlzn"
             target="_blank"

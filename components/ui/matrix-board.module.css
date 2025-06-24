@@ -51,6 +51,7 @@
   overflow: hidden;
   clip-path: inset(0 0 0 100%);
   transition: clip-path 0.5s steps(calc(100 / var(--spread)));
+  user-select: none;
 }
 
 .container:is(:hover, :focus-within) .textWrap {
@@ -87,7 +88,7 @@
   padding: 1rem 0;
   display: flex;
   width: 100%;
-  gap: 0.5rem;
+  gap: 2rem;
   justify-content: center;
 }
 

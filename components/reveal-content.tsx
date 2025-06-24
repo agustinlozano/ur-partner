@@ -391,10 +391,21 @@ export default function RevealContent({ roomId }: RevealContentProps) {
           currentStep: "Complete! 🎉",
         });
       } else {
+        // Check if it's a rate limit error and provide specific feedback
+        let errorMessage = "Upload failed";
+
+        if (result.error === "Rate limit exceeded") {
+          errorMessage =
+            result.message ||
+            "You've reached the upload limit. Please wait before trying again.";
+        } else if (result.message) {
+          errorMessage = result.message;
+        }
+
         setRevealState((prev) => ({
           ...prev,
           stage: "error",
-          message: "Upload failed",
+          message: errorMessage,
         }));
       }
     } catch (error) {
@@ -408,19 +419,71 @@ export default function RevealContent({ roomId }: RevealContentProps) {
   };
 
   if (revealState.stage === "error") {
+    const isRateLimit =
+      revealState.message.includes("upload limit") ||
+      revealState.message.includes("wait");
+
     return (
       <div className="max-w-2xl mx-auto p-6 text-center">
-        <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-8 border border-red-200 dark:border-red-800">
-          <div className="text-4xl mb-4">😕</div>
-          <h2 className="text-xl font-semibold font-mono text-red-800 dark:text-red-200 mb-4">
-            Something went wrong
+        <div
+          className={`rounded-xl p-8 border ${
+            isRateLimit
+              ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
+              : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+          }`}
+        >
+          <div className="text-4xl mb-4">{isRateLimit ? "⏰" : "😕"}</div>
+          <h2
+            className={`text-xl font-semibold font-mono mb-4 ${
+              isRateLimit
+                ? "text-amber-800 dark:text-amber-200"
+                : "text-red-800 dark:text-red-200"
+            }`}
+          >
+            {isRateLimit ? "Upload Limit Reached" : "Something went wrong"}
           </h2>
-          <p className="text-red-600 dark:text-red-400 mb-6">
-            We encountered an issue preparing your reveal. Please try again.
+          <p
+            className={`mb-6 ${
+              isRateLimit
+                ? "text-amber-600 dark:text-amber-400"
+                : "text-red-600 dark:text-red-400"
+            }`}
+          >
+            {revealState.message}
           </p>
-          <Button asChild variant="outline">
-            <Link href={`/room/${roomId}`}>Back to Room</Link>
-          </Button>
+
+          {isRateLimit && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800 mb-6">
+              <div className="flex items-start gap-3">
+                <div className="text-blue-500 text-xl">💡</div>
+                <div className="text-left">
+                  <h3 className="font-medium font-mono text-blue-800 dark:text-blue-200 text-sm">
+                    Why do we have upload limits?
+                  </h3>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                    We limit uploads to ensure fair usage and maintain optimal
+                    performance for everyone. This helps us keep the service
+                    running smoothly!
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3 justify-center">
+            <Button asChild variant="outline">
+              <Link href={`/room/${roomId}`}>Back to Room</Link>
+            </Button>
+            {isRateLimit && (
+              <Button
+                onClick={() => window.location.reload()}
+                variant="secondary"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Try Again
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     );

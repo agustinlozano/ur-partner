@@ -1,10 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LAMBDA_UPLOAD_ENDPOINT, RATE_LIMIT_ENDPOINT } from "@/lib/env";
 
+// Rate limit response interface
+interface RateLimitResponse {
+  allowed: boolean;
+  remaining: number;
+  resetTime: number;
+  retryAfter?: number;
+  metadata: {
+    serviceId: string;
+    windowMs: number;
+    maxRequests: number;
+  };
+}
+
 // Helper function to check rate limiting
-async function checkRateLimit(
-  clientIp: string
-): Promise<{ allowed: boolean; error?: string }> {
+async function checkRateLimit(clientIp: string): Promise<{
+  allowed: boolean;
+  error?: string;
+  rateLimitInfo?: RateLimitResponse;
+  userFriendlyMessage?: string;
+}> {
   if (!RATE_LIMIT_ENDPOINT) {
     // If rate limiting is not configured, allow the request
     return { allowed: true };
@@ -25,17 +41,45 @@ async function checkRateLimit(
       }),
     });
 
-    const rateLimitResult = await rateLimitResponse.json();
+    const rateLimitResult: RateLimitResponse = await rateLimitResponse.json();
 
     if (!rateLimitResponse.ok) {
       return {
         allowed: false,
-        error: rateLimitResult.message || "Rate limit check failed",
+        error: "Rate limit service error",
+        userFriendlyMessage:
+          "Unable to process request at this time. Please try again later.",
       };
     }
 
-    // Assuming the rate limit service returns { allowed: boolean }
-    return { allowed: rateLimitResult.allowed || true };
+    if (!rateLimitResult.allowed) {
+      // Create user-friendly message based on rate limit info
+      const waitTime =
+        rateLimitResult.retryAfter ||
+        Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000);
+      const waitMinutes = Math.ceil(waitTime / 60);
+
+      let friendlyMessage = "You've reached the upload limit. ";
+      if (waitTime <= 60) {
+        friendlyMessage += `Please wait ${waitTime} seconds before trying again.`;
+      } else if (waitMinutes <= 60) {
+        friendlyMessage += `Please wait ${waitMinutes} minutes before trying again.`;
+      } else {
+        friendlyMessage += "Please try again later.";
+      }
+
+      return {
+        allowed: false,
+        rateLimitInfo: rateLimitResult,
+        error: "Rate limit exceeded",
+        userFriendlyMessage: friendlyMessage,
+      };
+    }
+
+    return {
+      allowed: true,
+      rateLimitInfo: rateLimitResult,
+    };
   } catch (error) {
     console.error("Error checking rate limit:", error);
     // In case of rate limit service failure, allow the request to proceed
@@ -71,15 +115,24 @@ export async function POST(
     // Check rate limiting first
     const rateLimitCheck = await checkRateLimit(clientIp);
     if (!rateLimitCheck.allowed) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            rateLimitCheck.error ||
-            "Rate limit exceeded. Please try again later.",
-        },
-        { status: 429 }
-      );
+      const responseData: any = {
+        success: false,
+        error: rateLimitCheck.error || "Rate limit exceeded",
+        message:
+          rateLimitCheck.userFriendlyMessage || "Please try again later.",
+      };
+
+      // Include rate limit details if available
+      if (rateLimitCheck.rateLimitInfo) {
+        responseData.rateLimitInfo = {
+          remaining: rateLimitCheck.rateLimitInfo.remaining,
+          resetTime: rateLimitCheck.rateLimitInfo.resetTime,
+          retryAfter: rateLimitCheck.rateLimitInfo.retryAfter,
+          maxRequests: rateLimitCheck.rateLimitInfo.metadata.maxRequests,
+        };
+      }
+
+      return NextResponse.json(responseData, { status: 429 });
     }
 
     // Check if lambda endpoint is configured

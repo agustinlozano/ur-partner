@@ -101,9 +101,9 @@ export default function Home() {
         </div>
       </div>
 
-      <footer className="mt-20 mb-12 mx-2 bg-background/25 md:mx-auto">
+      <footer className="mt-20 py-12 mx-2 bg-background/25 md:mx-auto ">
         <MatrixBoard
-          className="mx-auto max-w-lg my-8"
+          className="mx-auto max-w-lg"
           text="Front."
           title="Software Engineer"
           finalTitle="Frontend Engineer"

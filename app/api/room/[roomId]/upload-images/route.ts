@@ -20,39 +20,99 @@ async function checkRateLimit(clientIp: string): Promise<{
   error?: string;
   rateLimitInfo?: RateLimitResponse;
   userFriendlyMessage?: string;
+  debugInfo?: any;
 }> {
+  console.log("🔍 Starting rate limit check:", {
+    clientIp,
+    endpoint: RATE_LIMIT_ENDPOINT,
+    hasEndpoint: !!RATE_LIMIT_ENDPOINT,
+  });
+
   if (!RATE_LIMIT_ENDPOINT) {
-    // If rate limiting is not configured, allow the request
+    console.log("⚠️ Rate limiting not configured, allowing request");
     return { allowed: true };
   }
 
   try {
+    const requestPayload = {
+      serviceId: "upload-images",
+      clientId: clientIp,
+      metadata: {
+        userTier: "default", // You can make this dynamic based on user data
+      },
+    };
+
+    console.log("🚀 Rate Limit Request:", {
+      endpoint: `${RATE_LIMIT_ENDPOINT}/check`,
+      payload: requestPayload,
+      clientIp,
+    });
+
     const rateLimitResponse = await fetch(`${RATE_LIMIT_ENDPOINT}/check`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        serviceId: "upload-images",
-        clientId: clientIp,
-        metadata: {
-          userTier: "default", // You can make this dynamic based on user data
-        },
-      }),
+      body: JSON.stringify(requestPayload),
     });
 
-    const rateLimitResult: RateLimitResponse = await rateLimitResponse.json();
+    console.log("📡 Rate Limit Response Status:", {
+      status: rateLimitResponse.status,
+      statusText: rateLimitResponse.statusText,
+      ok: rateLimitResponse.ok,
+      headers: Object.fromEntries(rateLimitResponse.headers.entries()),
+    });
 
-    if (!rateLimitResponse.ok) {
+    // Clone the response to read it multiple times
+    const responseClone = rateLimitResponse.clone();
+    const responseText = await responseClone.text();
+
+    console.log("📄 Rate Limit Response Body (raw):", responseText);
+
+    let rateLimitResult: RateLimitResponse;
+    try {
+      rateLimitResult = JSON.parse(responseText);
+      console.log("✅ Rate Limit Response Body (parsed):", rateLimitResult);
+    } catch (parseError) {
+      console.error("❌ Failed to parse rate limit response:", parseError);
       return {
         allowed: false,
-        error: "Rate limit service error",
+        error: "Rate limit service returned invalid JSON",
         userFriendlyMessage:
           "Unable to process request at this time. Please try again later.",
       };
     }
 
+    if (!rateLimitResponse.ok) {
+      console.error("❌ Rate Limit Request Failed:", {
+        status: rateLimitResponse.status,
+        statusText: rateLimitResponse.statusText,
+        response: rateLimitResult,
+      });
+
+      return {
+        allowed: false,
+        error: "Rate limit service error",
+        userFriendlyMessage:
+          "Unable to process request at this time. Please try again later.",
+        debugInfo: {
+          status: rateLimitResponse.status,
+          statusText: rateLimitResponse.statusText,
+          endpoint: RATE_LIMIT_ENDPOINT,
+          clientIp,
+          responseText: responseText.substring(0, 200), // First 200 chars
+        },
+      };
+    }
+
     if (!rateLimitResult.allowed) {
+      console.log("🚫 Rate Limit Exceeded:", {
+        remaining: rateLimitResult.remaining,
+        resetTime: rateLimitResult.resetTime,
+        retryAfter: rateLimitResult.retryAfter,
+        metadata: rateLimitResult.metadata,
+      });
+
       // Create user-friendly message based on rate limit info
       const waitTime =
         rateLimitResult.retryAfter ||
@@ -76,14 +136,26 @@ async function checkRateLimit(clientIp: string): Promise<{
       };
     }
 
+    console.log("✅ Rate Limit Passed:", {
+      remaining: rateLimitResult.remaining,
+      resetTime: rateLimitResult.resetTime,
+      metadata: rateLimitResult.metadata,
+    });
+
     return {
       allowed: true,
       rateLimitInfo: rateLimitResult,
     };
   } catch (error) {
-    console.error("Error checking rate limit:", error);
+    console.error("💥 Error checking rate limit:", {
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
+      clientIp,
+      endpoint: RATE_LIMIT_ENDPOINT,
+    });
     // In case of rate limit service failure, allow the request to proceed
     // You might want to change this behavior based on your requirements
+    console.log("🔄 Allowing request to proceed despite rate limit error");
     return { allowed: true };
   }
 }
@@ -133,6 +205,11 @@ export async function POST(
           retryAfter: rateLimitCheck.rateLimitInfo.retryAfter,
           maxRequests: rateLimitCheck.rateLimitInfo.metadata.maxRequests,
         };
+      }
+
+      // Include debug info in development or if available
+      if (rateLimitCheck.debugInfo) {
+        responseData.debugInfo = rateLimitCheck.debugInfo;
       }
 
       return NextResponse.json(responseData, { status: 429 });

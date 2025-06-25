@@ -101,6 +101,7 @@ export default function HoverCardDemo({ className }: { className?: string }) {
                 webkit-playsinline="true" // Para compatibilidad con versiones antiguas de iOS
                 controls={false} // Asegurar que no se muestren controles nativos
                 disablePictureInPicture // Desactivar picture-in-picture
+                poster="/hover-card-demo-thumbnail.webp" // Thumbnail cuando está pausado
                 style={{
                   objectFit: "cover",
                   WebkitTransform: "translateZ(0)", // Forzar aceleración de hardware

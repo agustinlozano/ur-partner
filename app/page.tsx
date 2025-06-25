@@ -103,7 +103,7 @@ export default function Home() {
 
       <footer className="mt-20 py-12 mx-2 bg-background/25 md:mx-auto overflow-x-hidden">
         <MatrixBoard
-          className="mx-auto max-w-lg"
+          className="mx-4 p-2 sm:p-4 sm:mx-auto max-w-lg"
           text="Front."
           title="Software Engineer"
           finalTitle="Frontend Engineer"

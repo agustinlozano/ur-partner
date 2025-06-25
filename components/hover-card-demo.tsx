@@ -3,11 +3,13 @@
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Pause, Play } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 
 export default function HoverCardDemo({ className }: { className?: string }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showThumbnail, setShowThumbnail] = useState(true);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -60,9 +62,20 @@ export default function HoverCardDemo({ className }: { className?: string }) {
     };
   }, [isPlaying, isMobile]);
 
-  const handlePlay = () => setIsPlaying(true);
-  const handlePause = () => setIsPlaying(false);
-  const handleEnded = () => setIsPlaying(false);
+  const handlePlay = () => {
+    setIsPlaying(true);
+    setShowThumbnail(false);
+  };
+
+  const handlePause = () => {
+    setIsPlaying(false);
+    setShowThumbnail(true);
+  };
+
+  const handleEnded = () => {
+    setIsPlaying(false);
+    setShowThumbnail(true);
+  };
 
   const handleVideoClick = () => {
     if (!videoRef.current) return;
@@ -88,7 +101,8 @@ export default function HoverCardDemo({ className }: { className?: string }) {
           {/* Video container */}
           <div className="relative bg-background/10 overflow-hidden shadow-inner rounded-[0.3rem]">
             <div className="relative aspect-[2454/1554]">
-              <video
+              {/* Video element */}
+              <motion.video
                 ref={videoRef}
                 className="w-full h-full object-cover"
                 preload="metadata"
@@ -97,28 +111,46 @@ export default function HoverCardDemo({ className }: { className?: string }) {
                 onEnded={handleEnded}
                 loop
                 muted
-                playsInline // Crucial para iOS - previene fullscreen automático
-                webkit-playsinline="true" // Para compatibilidad con versiones antiguas de iOS
-                controls={false} // Asegurar que no se muestren controles nativos
-                disablePictureInPicture // Desactivar picture-in-picture
-                poster="/hover-card-demo-thumbnail.webp" // Thumbnail cuando está pausado
+                playsInline // iOS - avoid auto fullscreen
+                webkit-playsinline="true" // iOS - for older versions
+                controls={false} // avoid native controls
+                disablePictureInPicture // disable picture-in-picture
                 style={{
                   objectFit: "cover",
-                  WebkitTransform: "translateZ(0)", // Forzar aceleración de hardware
+                  WebkitTransform: "translateZ(0)", // force hardware acceleration
                 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isPlaying ? 1 : 0 }}
+                transition={{ duration: 0.6, ease: "easeInOut" }}
               >
                 <source
                   src="https://ur-partner.s3.us-east-2.amazonaws.com/assets/hover-card-demo.mp4"
                   type="video/mp4"
                 />
                 Your browser does not support the video tag.
-              </video>
+              </motion.video>
+
+              {/* Thumbnail overlay */}
+              <AnimatePresence>
+                {showThumbnail && (
+                  <motion.div
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                    style={{
+                      backgroundImage: "url('/hover-card-demo-thumbnail.webp')",
+                    }}
+                    initial={{ opacity: 1 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
+                  />
+                )}
+              </AnimatePresence>
 
               {/* Play/Pause overlay - Solo en móviles o cuando no está reproduciendo */}
               {(isMobile || !isPlaying) && (
                 <div
                   className={cn(
-                    "absolute inset-0 flex items-center justify-center transition-opacity duration-200 cursor-pointer",
+                    "absolute inset-0 flex items-center justify-center transition-opacity duration-200 cursor-pointer z-10",
                     isPlaying ? "opacity-0 hover:opacity-100" : "opacity-100"
                   )}
                   onClick={handleVideoClick}

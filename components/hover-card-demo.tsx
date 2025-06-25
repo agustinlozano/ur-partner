@@ -7,8 +7,23 @@ import { Pause, Play } from "lucide-react";
 export default function HoverCardDemo({ className }: { className?: string }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // Detectar si es dispositivo móvil
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent;
+      const isMobileDevice =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          userAgent
+        );
+      setIsMobile(isMobileDevice);
+    };
+
+    checkMobile();
+  }, []);
 
   // Intersection Observer para detectar cuando el componente está visible
   useEffect(() => {
@@ -16,15 +31,21 @@ export default function HoverCardDemo({ className }: { className?: string }) {
       ([entry]) => {
         setIsVisible(entry.isIntersecting);
 
-        // Auto-play cuando el video está visible por primera vez
+        // Auto-play solo en desktop o cuando no es iOS
         if (entry.isIntersecting && videoRef.current && !isPlaying) {
-          videoRef.current.play().catch((error) => {
-            console.error("Error auto-playing video:", error);
-          });
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+          // En iOS, ser menos agresivo con el autoplay
+          if (!isIOS) {
+            videoRef.current.play().catch((error) => {
+              console.error("Error auto-playing video:", error);
+            });
+          }
         }
       },
       {
-        threshold: 0.5, // Se activa cuando el 50% del componente está visible
+        threshold: isMobile ? 0.3 : 0.5, // Threshold menor en móviles
+        rootMargin: "0px 0px -100px 0px", // Margen para activar antes
       }
     );
 
@@ -37,11 +58,23 @@ export default function HoverCardDemo({ className }: { className?: string }) {
         observer.unobserve(containerRef.current);
       }
     };
-  }, [isPlaying]);
+  }, [isPlaying, isMobile]);
 
   const handlePlay = () => setIsPlaying(true);
   const handlePause = () => setIsPlaying(false);
   const handleEnded = () => setIsPlaying(false);
+
+  const handleVideoClick = () => {
+    if (!videoRef.current) return;
+
+    if (isPlaying) {
+      videoRef.current.pause();
+    } else {
+      videoRef.current.play().catch((error) => {
+        console.error("Error playing video:", error);
+      });
+    }
+  };
 
   return (
     <div ref={containerRef} className={cn("w-full", className)}>
@@ -63,7 +96,15 @@ export default function HoverCardDemo({ className }: { className?: string }) {
                 onPause={handlePause}
                 onEnded={handleEnded}
                 loop
-                muted // Necesario para auto-play en la mayoría de navegadores
+                muted
+                playsInline // Crucial para iOS - previene fullscreen automático
+                webkit-playsinline="true" // Para compatibilidad con versiones antiguas de iOS
+                controls={false} // Asegurar que no se muestren controles nativos
+                disablePictureInPicture // Desactivar picture-in-picture
+                style={{
+                  objectFit: "cover",
+                  WebkitTransform: "translateZ(0)", // Forzar aceleración de hardware
+                }}
               >
                 <source
                   src="https://ur-partner.s3.us-east-2.amazonaws.com/assets/hover-card-demo.mp4"
@@ -72,22 +113,24 @@ export default function HoverCardDemo({ className }: { className?: string }) {
                 Your browser does not support the video tag.
               </video>
 
-              {/* Play/Pause overlay */}
-              {/* <div
-                className={cn(
-                  "absolute inset-0 flex items-center justify-center transition-opacity duration-200 cursor-pointer",
-                  isPlaying ? "opacity-0 hover:opacity-100" : "opacity-100"
-                )}
-                // onClick={handleVideoClick}
-              >
-                <div className="bg-black/50 rounded-full p-4 backdrop-blur-sm">
-                  {isPlaying ? (
-                    <Pause className="text-white text-2xl" />
-                  ) : (
-                    <Play className="text-white text-2xl" />
+              {/* Play/Pause overlay - Solo en móviles o cuando no está reproduciendo */}
+              {(isMobile || !isPlaying) && (
+                <div
+                  className={cn(
+                    "absolute inset-0 flex items-center justify-center transition-opacity duration-200 cursor-pointer",
+                    isPlaying ? "opacity-0 hover:opacity-100" : "opacity-100"
                   )}
+                  onClick={handleVideoClick}
+                >
+                  <div className="bg-black/50 rounded-full p-4 backdrop-blur-sm">
+                    {isPlaying ? (
+                      <Pause className="text-white text-2xl" />
+                    ) : (
+                      <Play className="text-white text-2xl" />
+                    )}
+                  </div>
                 </div>
-              </div> */}
+              )}
             </div>
           </div>
 
@@ -117,9 +160,11 @@ export default function HoverCardDemo({ className }: { className?: string }) {
             />
             <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">
               {isPlaying
-                ? "Online"
+                ? "Playing"
                 : isVisible
-                ? "Ready to play"
+                ? isMobile
+                  ? "Tap to play"
+                  : "Ready to play"
                 : "Loading..."}
             </span>
           </div>

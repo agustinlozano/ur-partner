@@ -11,7 +11,7 @@ import { MatrixBoard } from "@/components/ui/matrix-board";
 export default function Home() {
   return (
     <GradientBackground variant="blue">
-      <div className="container py-12 relative mx-2 sm:mx-auto">
+      <div className="mx-2 py-12 relative sm:mx-auto">
         <div className="text-center mb-6 max-w-3xl mx-auto">
           <h1 className="text-4xl font-bold mb-6 font-mono text-gradient text-balance">
             Imagine With Ur Partner

@@ -43,8 +43,6 @@ export function MatrixBoard({
   style = {},
   containerBg = "color-mix(in lch, canvas, canvasText 5%)",
   containerBorder = "1px solid color-mix(in lch, canvas, canvasText 35%)",
-  containerRadius = 12,
-  containerPadding = "1rem",
   containerShadow = "0 1px 0 0 hsl(0 0% 100% / 0.5) inset",
 }: MatrixBoardProps) {
   const [hovered, setHovered] = useState(false);
@@ -62,8 +60,6 @@ export function MatrixBoard({
   const containerStyle: React.CSSProperties = {
     background: containerBg,
     border: containerBorder,
-    borderRadius: containerRadius,
-    padding: containerPadding,
     boxShadow: containerShadow,
     ...cssVars,
     ...style,
@@ -86,7 +82,11 @@ export function MatrixBoard({
           </div>
         </div>
       </div>
-      <div className={"flex w-full gap-4 p-2 sm:gap-8 border bg-muted/50"}>
+      <div
+        className={
+          "flex w-full gap-4 p-2 sm:gap-8 border rounded-b-md bg-muted/50"
+        }
+      >
         <div className={styles.avatar}>
           <img
             src="/emoji.webp"

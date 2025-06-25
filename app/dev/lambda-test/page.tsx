@@ -140,16 +140,13 @@ export default function LambdaTestPage() {
 
       console.log("Sending payload:", payload);
 
-      const response = await fetch(
-        "https://pjaifa57me.execute-api.us-east-2.amazonaws.com/dev/upload",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch(`/api/room/${roomId}/upload-images`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
       const data = await response.json();
 
@@ -231,10 +228,9 @@ export default function LambdaTestPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              🧪 Lambda Upload Test
+              🧪 API Upload Test (with Rate Limiting)
               <span className="text-sm font-normal text-muted-foreground">
-                Testing with route.ts contract: roomId + userRole + images by
-                category
+                Testing via Next.js API route with rate limiting + lambda proxy
               </span>
             </CardTitle>
           </CardHeader>
@@ -612,21 +608,24 @@ export default function LambdaTestPage() {
           <CardContent className="pt-6">
             <div className="text-sm text-muted-foreground space-y-2">
               <p>
-                <strong>Lambda Endpoint:</strong>{" "}
-                https://pjaifa57me.execute-api.us-east-2.amazonaws.com/dev/upload
+                <strong>API Endpoint:</strong> /api/room/{`{roomId}`}
+                /upload-images
               </p>
               <p>
                 <strong>Method:</strong> POST
               </p>
               <p>
-                <strong>Contract:</strong> Same as route.ts
+                <strong>Features:</strong> Rate limiting + Lambda proxy
               </p>
               <p>
                 <strong>Payload:</strong>{" "}
-                {`{ roomId: string, userRole: string, images: { [categoryId]: string | string[] } }`}
+                {`{ userRole: string, images: { [categoryId]: string | string[] } }`}
               </p>
               <p>
                 <strong>Valid Categories:</strong> {VALID_CATEGORIES.join(", ")}
+              </p>
+              <p>
+                <strong>Rate Limiting:</strong> Configured per IP + service
               </p>
             </div>
           </CardContent>

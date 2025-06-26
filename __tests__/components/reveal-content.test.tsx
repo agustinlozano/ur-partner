@@ -35,6 +35,13 @@ vi.mock("@/lib/actions", () => ({
   uploadImages: vi.fn().mockResolvedValue({ success: true }),
 }));
 
+vi.mock("@/lib/env", () => ({
+  enviroment: "test",
+  LAMBDA_UPLOAD_ENDPOINT: "http://test-endpoint",
+  USE_LAMBDA_UPLOAD: false,
+  RATE_LIMIT_ENDPOINT: "http://test-rate-limit",
+}));
+
 // Mock the UI components that we don't need to test yet
 vi.mock("@/components/personality-form/category-marquee", () => ({
   CategoryMarquee: () => <div data-testid="category-marquee">Marquee</div>,

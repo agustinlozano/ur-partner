@@ -8,6 +8,30 @@ export default defineConfig({
     environment: "happy-dom",
     setupFiles: ["./vitest.setup.ts"],
     globals: true,
+    coverage: {
+      reporter: ["text", "json", "html", "lcov"],
+      exclude: [
+        "node_modules/",
+        "__tests__/",
+        "vitest.config.ts",
+        "vitest.setup.ts",
+        "next.config.ts",
+        "tailwind.config.js",
+        "postcss.config.js",
+        "**/*.d.ts",
+        "public/",
+        ".next/",
+        "scripts/",
+      ],
+      thresholds: {
+        global: {
+          branches: 80,
+          functions: 80,
+          lines: 80,
+          statements: 80,
+        },
+      },
+    },
   },
   resolve: {
     alias: {

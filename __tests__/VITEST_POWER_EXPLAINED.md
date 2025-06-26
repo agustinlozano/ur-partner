@@ -1,12 +1,4 @@
-# The Power of Vitest: Understanding Modern Component Testing Magic
-
-## Why Vitest Has Earned Its Reputation
-
-Vitest has become the go-to testing framework for modern React applications because it solves the fundamental challenge that makes component testing so difficult: **controlling complex dependencies**. When people say Vitest feels like "magic," they're referring to how seamlessly it isolates and controls all the external dependencies that modern components rely on.
-
 ## Our Case Study: The RevealContent Component
-
-Our `RevealContent` component perfectly demonstrates why modern component testing is challenging. Look at its dependencies:
 
 ```typescript
 // components/reveal-content.tsx
@@ -28,7 +20,7 @@ Testing this component means controlling **all** of these dependencies. Here's h
 
 ### 1. Import Hijacking at Runtime
 
-The first piece of magic happens before your component even loads. Vitest intercepts module imports and replaces them with controlled mocks:
+The first piece before your component even loads. Vitest intercepts module imports and replaces them with controlled mocks:
 
 ```typescript
 // vitest.setup.ts - This runs BEFORE any test
@@ -278,7 +270,7 @@ test("complete user flow with error recovery", async () => {
 - Polling behavior
 - Navigation on completion
 
-## Why This Feels Like Magic
+## Cool feats
 
 ### 1. Complete Transparency to Component
 
@@ -455,5 +447,3 @@ mockZustandWithImages(createMockImages()); // Has images state
 rerender(<RevealContent />);
 expect(screen.getByText(/uploading/i)).toBeInTheDocument();
 ```
-
-This is the true power of Vitest - it makes testing modern React components feel like testing simple functions, while actually validating complex, real-world user interactions.

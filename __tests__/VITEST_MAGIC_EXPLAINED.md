@@ -1,8 +1,4 @@
-# The Magic of Vitest: How Modern Component Testing Works
-
-## Why Vitest is Revolutionary for Component Testing
-
-Vitest has gained its reputation because it solves the fundamental challenge of testing modern React components: **dependency isolation**. Modern components don't exist in isolation - they depend on stores, routers, APIs, timers, and browser APIs. Vitest makes testing these complex interdependencies feel like magic.
+# How Modern Component Testing Works
 
 ## The Challenge: Our RevealContent Component
 
@@ -196,7 +192,7 @@ test("complete upload flow with error recovery", async () => {
 });
 ```
 
-## Why This Feels Like Magic
+## Cool feats
 
 ### 1. Seamless Integration
 
@@ -294,14 +290,6 @@ mockZustandWithImages(createMockImages());
 rerender(<RevealContent />);
 expect(screen.getByText(/uploading/i)).toBeInTheDocument();
 ```
-
-## Why Vitest Beats Jest for This
-
-1. **Faster**: Native ES modules, no transpilation needed
-2. **Better Mocking**: More intuitive module mocking
-3. **TypeScript Support**: Works with our TS setup seamlessly
-4. **Modern APIs**: Built for modern React patterns
-5. **Better DX**: Clear error messages, great debugging
 
 ## The Result: Confident Testing
 

@@ -14,7 +14,8 @@ import {
 } from "../utils/test-data";
 
 // Get references to the mocked functions so we can control them per test
-import { uploadImages, checkPartnerImages } from "@/lib/actions";
+// Import types for mocking
+import type { uploadImages, checkPartnerImages } from "@/lib/actions";
 
 // Create mockable store function
 const mockGetImagesForRoom = vi.fn();
@@ -40,9 +41,13 @@ global.fetch = vi.fn().mockResolvedValue({
   }),
 });
 
+// Create mock functions that we can control in tests
+const mockUploadImages = vi.fn();
+const mockCheckPartnerImages = vi.fn();
+
 vi.mock("@/lib/actions", () => ({
-  checkPartnerImages: vi.fn().mockResolvedValue({ success: false }),
-  uploadImages: vi.fn().mockResolvedValue({ success: true }),
+  checkPartnerImages: () => mockCheckPartnerImages(),
+  uploadImages: (...args: any[]) => mockUploadImages(...args),
 }));
 
 vi.mock("@/lib/env", () => ({
@@ -114,6 +119,16 @@ describe("RevealContent - Working Tests", () => {
 
     // Default: no images (prevents upload flow by default)
     mockZustandWithImages({});
+
+    // Set default mock behaviors
+    mockUploadImages.mockResolvedValue({ success: true });
+    mockCheckPartnerImages.mockResolvedValue({
+      success: true,
+      isReady: false,
+      partnerRole: "boyfriend",
+      totalImages: 0,
+      categoriesCompleted: 0,
+    });
   });
 
   afterEach(() => {
@@ -196,8 +211,6 @@ describe("RevealContent - Working Tests", () => {
       const mockImages = createMockImages();
       mockZustandWithImages(mockImages);
 
-      const mockUpload = vi.mocked(uploadImages);
-
       render(<RevealContent roomId="test-room-123" />);
 
       // Fast-forward through upload process
@@ -206,7 +219,7 @@ describe("RevealContent - Working Tests", () => {
       });
 
       // Verify upload API was called with correct parameters
-      expect(mockUpload).toHaveBeenCalledWith(
+      expect(mockUploadImages).toHaveBeenCalledWith(
         "test-room-123",
         "boyfriend",
         mockImages
@@ -217,8 +230,7 @@ describe("RevealContent - Working Tests", () => {
       mockLocalStorageWithUser(createMockUserData({ role: "girlfriend" }));
       mockZustandWithImages(createMockImages());
 
-      const mockUpload = vi.mocked(uploadImages);
-      mockUpload.mockResolvedValueOnce({
+      mockUploadImages.mockResolvedValueOnce({
         success: false,
         error: "Upload failed",
       });
@@ -239,8 +251,7 @@ describe("RevealContent - Working Tests", () => {
       mockLocalStorageWithUser(createMockUserData({ role: "girlfriend" }));
       mockZustandWithImages(createMockImages());
 
-      const mockUpload = vi.mocked(uploadImages);
-      mockUpload.mockResolvedValueOnce({
+      mockUploadImages.mockResolvedValueOnce({
         success: false,
         error: "Rate limit exceeded",
         message:
@@ -265,8 +276,7 @@ describe("RevealContent - Working Tests", () => {
       mockLocalStorageWithUser(createMockUserData({ role: "girlfriend" }));
       mockZustandWithImages(createMockImages());
 
-      const mockUpload = vi.mocked(uploadImages);
-      mockUpload.mockResolvedValueOnce({
+      mockUploadImages.mockResolvedValueOnce({
         success: false,
         error: "Network error",
       });
@@ -317,15 +327,13 @@ describe("RevealContent - Working Tests", () => {
       mockLocalStorageWithUser(userData);
       mockZustandWithImages(images);
 
-      const mockUpload = vi.mocked(uploadImages);
-
       render(<RevealContent roomId="test-room-123" />);
 
       await act(async () => {
         vi.advanceTimersByTime(3000);
       });
 
-      expect(mockUpload).toHaveBeenCalledWith(
+      expect(mockUploadImages).toHaveBeenCalledWith(
         "test-room-123",
         "boyfriend",
         images
@@ -338,11 +346,8 @@ describe("RevealContent - Working Tests", () => {
       mockLocalStorageWithUser(userData);
       mockZustandWithImages(createMockImages());
 
-      const mockUpload = vi.mocked(uploadImages);
-      const mockCheckPartner = vi.mocked(checkPartnerImages);
-
-      mockUpload.mockResolvedValueOnce({ success: true });
-      mockCheckPartner.mockResolvedValue({
+      mockUploadImages.mockResolvedValueOnce({ success: true });
+      mockCheckPartnerImages.mockResolvedValue({
         success: true,
         isReady: false,
         partnerRole: "boyfriend",
@@ -355,7 +360,7 @@ describe("RevealContent - Working Tests", () => {
       });
 
       // Don't need to wait for the partner check call - just verify upload was called
-      expect(mockUpload).toHaveBeenCalledWith(
+      expect(mockUploadImages).toHaveBeenCalledWith(
         "test-room-123",
         "girlfriend",
         createMockImages()

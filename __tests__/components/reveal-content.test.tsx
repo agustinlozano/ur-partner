@@ -31,7 +31,14 @@ vi.mock("@/hooks/use-is-mobile", () => ({
 }));
 
 // Mock fetch globally to prevent real HTTP calls
-global.fetch = vi.fn();
+global.fetch = vi.fn().mockResolvedValue({
+  ok: true,
+  status: 200,
+  json: vi.fn().mockResolvedValue({
+    success: true,
+    message: "Upload successful",
+  }),
+});
 
 vi.mock("@/lib/actions", () => ({
   checkPartnerImages: vi.fn().mockResolvedValue({ success: false }),

@@ -30,6 +30,9 @@ vi.mock("@/hooks/use-is-mobile", () => ({
   useIsMobile: () => false,
 }));
 
+// Mock fetch globally to prevent real HTTP calls
+global.fetch = vi.fn();
+
 vi.mock("@/lib/actions", () => ({
   checkPartnerImages: vi.fn().mockResolvedValue({ success: false }),
   uploadImages: vi.fn().mockResolvedValue({ success: true }),
@@ -40,6 +43,18 @@ vi.mock("@/lib/env", () => ({
   LAMBDA_UPLOAD_ENDPOINT: "http://test-endpoint",
   USE_LAMBDA_UPLOAD: false,
   RATE_LIMIT_ENDPOINT: "http://test-rate-limit",
+}));
+
+// Mock Next.js navigation
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+  }),
+  useSearchParams: () => ({
+    get: vi.fn(),
+  }),
 }));
 
 // Mock the UI components that we don't need to test yet

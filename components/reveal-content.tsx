@@ -9,11 +9,17 @@ import { CategoryMarquee } from "./personality-form/category-marquee";
 import CategoryHoverReveal from "./personality-form/category-hover-reveal";
 import CategoryExpandableGallery from "./personality-form/category-expandable-gallery";
 import { useRouter } from "next/navigation";
-import { enviroment } from "@/lib/env";
+import {
+  enviroment,
+  LAMBDA_UPLOAD_ENDPOINT,
+  USE_LAMBDA_UPLOAD,
+} from "@/lib/env";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import {
-  checkPartnerImages as checkPartnerImagesAPI,
-  uploadImages as uploadImagesAPI,
+  PartnerImagesResult,
+  // checkPartnerImages as checkPartnerImagesAPI,
+  UploadImagesResult,
+  // uploadImages as uploadImagesAPI,
 } from "@/lib/actions";
 
 interface RevealContentProps {
@@ -92,6 +98,17 @@ export default function RevealContent({ roomId }: RevealContentProps) {
     }
   }, [isMobile, viewMode]);
 
+  // Check if user data exists and handle redirect
+  useEffect(() => {
+    const userData = localStorage.getItem("activeRoom");
+
+    if (!userData) {
+      console.warn("No user data found in localStorage for reveal");
+      router.push("/");
+      return;
+    }
+  }, [router]);
+
   // Get user data and images from Zustand store
   useEffect(() => {
     const userData = localStorage.getItem("activeRoom");
@@ -109,19 +126,17 @@ export default function RevealContent({ roomId }: RevealContentProps) {
       } else {
         console.warn("No images found in Zustand store for reveal");
       }
-    } else {
-      console.warn("No user data found in localStorage for reveal");
-      // redirect to home
-      router.push("/");
     }
   }, [roomId, getImagesForRoom]);
+
+  // Add state to track when to start upload
+  const [shouldStartUpload, setShouldStartUpload] = useState(false);
 
   // Real upload and processing stages
   useEffect(() => {
     if (!userRole || Object.keys(uploadedImages).length === 0) return;
 
     let currentMessageIndex = 0;
-    let hasStartedUploading = false;
 
     // Initial loading phase
     const loadingInterval = setInterval(() => {
@@ -139,12 +154,8 @@ export default function RevealContent({ roomId }: RevealContentProps) {
 
         if (newProgress >= 25) {
           clearInterval(loadingInterval);
-
-          // Start the actual upload process
-          if (!hasStartedUploading) {
-            hasStartedUploading = true;
-            startImageUpload();
-          }
+          // Trigger upload in separate effect
+          setShouldStartUpload(true);
         }
 
         return {
@@ -157,6 +168,14 @@ export default function RevealContent({ roomId }: RevealContentProps) {
 
     return () => clearInterval(loadingInterval);
   }, [userRole, uploadedImages]);
+
+  // Separate effect to handle upload start
+  useEffect(() => {
+    if (shouldStartUpload) {
+      setShouldStartUpload(false);
+      startImageUpload();
+    }
+  }, [shouldStartUpload]);
 
   // Check partner images when ready state is reached
   useEffect(() => {
@@ -751,4 +770,104 @@ export default function RevealContent({ roomId }: RevealContentProps) {
       )}
     </div>
   );
+}
+
+export async function uploadImagesAPI(
+  roomId: string,
+  userRole: string,
+  images: Record<string, any>
+): Promise<UploadImagesResult> {
+  try {
+    let response: Response;
+
+    if (USE_LAMBDA_UPLOAD && LAMBDA_UPLOAD_ENDPOINT) {
+      response = await fetch(LAMBDA_UPLOAD_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          roomId,
+          userRole,
+          images,
+        }),
+      });
+    } else {
+      response = await fetch(`/api/room/${roomId}/upload-images`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userRole,
+          images,
+        }),
+      });
+    }
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return {
+      success: data.success || false,
+      message: data.message,
+      error: data.error,
+    };
+  } catch (error) {
+    console.error("Error uploading images:", error);
+    return {
+      success: false,
+      error: "Failed to connect to server",
+    };
+  }
+}
+
+export async function checkPartnerImagesAPI(
+  roomId: string,
+  userRole: string
+): Promise<PartnerImagesResult> {
+  try {
+    const response = await fetch(
+      `/api/room/${roomId}/partner-images?userRole=${userRole}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.success) {
+      return {
+        success: true,
+        isReady: data.isReady,
+        images: data.images,
+        partnerRole: data.partnerRole,
+        totalImages: data.totalImages,
+        categoriesCompleted: data.categoriesCompleted,
+      };
+    } else {
+      return {
+        success: false,
+        isReady: false,
+        error: data.error || "Failed to check partner images",
+      };
+    }
+  } catch (error) {
+    console.error("Error checking partner images:", error);
+    return {
+      success: false,
+      isReady: false,
+      error: "Failed to connect to server",
+    };
+  }
 }

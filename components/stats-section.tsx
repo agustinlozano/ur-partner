@@ -107,7 +107,7 @@ export default function StatsSection({ className }: { className?: string }) {
     },
     {
       icon: <Images className="w-6 h-6" />,
-      targetValue: 1680,
+      targetValue: 723,
       label: "Images Uploaded",
       description: "Personalities shared",
       gradient:

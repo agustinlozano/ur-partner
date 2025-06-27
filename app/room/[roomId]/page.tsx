@@ -265,6 +265,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           {/* Girlfriend Card */}
           <div
+            data-testid="girlfriend-card"
             className={cn(
               "bg-card/60 rounded-xl shadow-lg p-6 border relative select-none",
               "bg-amber-100/50 dark:bg-amber-900/25 backdrop-blur-sm",
@@ -305,6 +306,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
 
           {/* Boyfriend Card */}
           <div
+            data-testid="boyfriend-card"
             className={cn(
               "bg-card/60 rounded-xl shadow-lg p-6 border relative select-none",
               "bg-blue-100/50 dark:bg-blue-900/25 backdrop-blur-sm",
@@ -345,7 +347,10 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
         </div>
 
         {missingPartner && (
-          <div className="bg-card/60 rounded-xl shadow-lg p-6 border mb-8">
+          <div
+            data-testid="share-room-id"
+            className="bg-card/60 rounded-xl shadow-lg p-6 border mb-8"
+          >
             <div className="text-center">
               <h3 className="text-xl font-semibold mb-4">
                 Share this Room ID with your partner

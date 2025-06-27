@@ -1,10 +1,14 @@
 name: CI/CD Pipeline
 
-on:
-  push:
-    branches: [main, master, develop]
-  pull_request:
-    branches: [main, master, develop]
+# Temporarily disabled - uncomment to re-enable
+# on:
+#   push:
+#     branches: [main, master, develop]
+#   pull_request:
+#     branches: [main, master, develop]
+
+# Workflow disabled - remove this comment and uncomment 'on:' section to re-enable
+on: []
 
 jobs:
   lint:

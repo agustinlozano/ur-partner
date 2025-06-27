@@ -32,7 +32,7 @@ vi.mock("@/hooks/use-is-mobile", () => ({
 }));
 
 // Mock fetch globally to prevent real HTTP calls
-global.fetch = vi.fn().mockResolvedValue({
+const mockFetch = vi.fn().mockResolvedValue({
   ok: true,
   status: 200,
   json: vi.fn().mockResolvedValue({
@@ -40,6 +40,19 @@ global.fetch = vi.fn().mockResolvedValue({
     message: "Upload successful",
   }),
 });
+
+global.fetch = mockFetch;
+
+// Also mock any HTTP client modules that might be used
+vi.mock("http", () => ({
+  request: vi.fn(),
+  get: vi.fn(),
+}));
+
+vi.mock("https", () => ({
+  request: vi.fn(),
+  get: vi.fn(),
+}));
 
 // Create mock functions that we can control in tests
 const mockUploadImages = vi.fn();
@@ -116,6 +129,9 @@ describe("RevealContent - Working Tests", () => {
 
     // Clear all mocks
     vi.clearAllMocks();
+
+    // Reset fetch mock
+    mockFetch.mockClear();
 
     // Default: no images (prevents upload flow by default)
     mockZustandWithImages({});

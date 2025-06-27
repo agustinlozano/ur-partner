@@ -1,5 +1,4 @@
-![Tests](https://github.com/tu-usuario/ur-partner/workflows/CI%2FCD%20Pipeline/badge.svg)
-[![codecov](https://codecov.io/gh/tu-usuario/ur-partner/branch/master/graph/badge.svg)](https://codecov.io/gh/tu-usuario/ur-partner)
+![CI/CD Pipeline](https://github.com/wizard/ur-partner/workflows/CI%2FCD%20Pipeline/badge.svg)
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 

@@ -13,9 +13,8 @@ import {
   TEST_SCENARIOS,
 } from "../utils/test-data";
 
-// Get references to the mocked functions so we can control them per test
-// Import types for mocking
-import type { uploadImages, checkPartnerImages } from "@/lib/actions";
+// Import types for type checking
+import type { UploadImagesResult, PartnerImagesResult } from "@/lib/actions";
 
 // Create mockable store function
 const mockGetImagesForRoom = vi.fn();
@@ -54,14 +53,8 @@ vi.mock("https", () => ({
   get: vi.fn(),
 }));
 
-// Create mock functions that we can control in tests
-const mockUploadImages = vi.fn();
-const mockCheckPartnerImages = vi.fn();
-
-vi.mock("@/lib/actions", () => ({
-  checkPartnerImages: () => mockCheckPartnerImages(),
-  uploadImages: (...args: any[]) => mockUploadImages(...args),
-}));
+// Since uploadImages and checkPartnerImages are now inside the component,
+// we'll rely on the fetch mock to control their behavior
 
 vi.mock("@/lib/env", () => ({
   enviroment: "test",
@@ -136,14 +129,38 @@ describe("RevealContent - Working Tests", () => {
     // Default: no images (prevents upload flow by default)
     mockZustandWithImages({});
 
-    // Set default mock behaviors
-    mockUploadImages.mockResolvedValue({ success: true });
-    mockCheckPartnerImages.mockResolvedValue({
-      success: true,
-      isReady: false,
-      partnerRole: "boyfriend",
-      totalImages: 0,
-      categoriesCompleted: 0,
+    // Set default fetch responses for upload and partner check
+    mockFetch.mockImplementation((url: string) => {
+      if (url.includes("/upload-images")) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () =>
+            Promise.resolve({
+              success: true,
+              message: "Upload successful",
+            }),
+        });
+      } else if (url.includes("/partner-images")) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () =>
+            Promise.resolve({
+              success: true,
+              isReady: false,
+              partnerRole: "boyfriend",
+              totalImages: 0,
+              categoriesCompleted: 0,
+            }),
+        });
+      }
+      // Default response
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ success: true }),
+      });
     });
   });
 
@@ -234,11 +251,19 @@ describe("RevealContent - Working Tests", () => {
         vi.advanceTimersByTime(5000);
       });
 
-      // Verify upload API was called with correct parameters
-      expect(mockUploadImages).toHaveBeenCalledWith(
-        "test-room-123",
-        "boyfriend",
-        mockImages
+      // Verify fetch was called with upload endpoint
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/room/test-room-123/upload-images",
+        expect.objectContaining({
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userRole: "boyfriend",
+            images: mockImages,
+          }),
+        })
       );
     });
 
@@ -246,9 +271,24 @@ describe("RevealContent - Working Tests", () => {
       mockLocalStorageWithUser(createMockUserData({ role: "girlfriend" }));
       mockZustandWithImages(createMockImages());
 
-      mockUploadImages.mockResolvedValueOnce({
-        success: false,
-        error: "Upload failed",
+      // Configure fetch to return error for upload
+      mockFetch.mockImplementationOnce((url: string) => {
+        if (url.includes("/upload-images")) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: () =>
+              Promise.resolve({
+                success: false,
+                error: "Upload failed",
+              }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ success: true }),
+        });
       });
 
       render(<RevealContent roomId="test-room-123" />);
@@ -267,11 +307,26 @@ describe("RevealContent - Working Tests", () => {
       mockLocalStorageWithUser(createMockUserData({ role: "girlfriend" }));
       mockZustandWithImages(createMockImages());
 
-      mockUploadImages.mockResolvedValueOnce({
-        success: false,
-        error: "Rate limit exceeded",
-        message:
-          "You've reached the upload limit. Please wait before trying again.",
+      // Configure fetch to return rate limit error
+      mockFetch.mockImplementationOnce((url: string) => {
+        if (url.includes("/upload-images")) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: () =>
+              Promise.resolve({
+                success: false,
+                error: "Rate limit exceeded",
+                message:
+                  "You've reached the upload limit. Please wait before trying again.",
+              }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ success: true }),
+        });
       });
 
       render(<RevealContent roomId="test-room-123" />);
@@ -292,9 +347,24 @@ describe("RevealContent - Working Tests", () => {
       mockLocalStorageWithUser(createMockUserData({ role: "girlfriend" }));
       mockZustandWithImages(createMockImages());
 
-      mockUploadImages.mockResolvedValueOnce({
-        success: false,
-        error: "Network error",
+      // Configure fetch to return network error
+      mockFetch.mockImplementationOnce((url: string) => {
+        if (url.includes("/upload-images")) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: () =>
+              Promise.resolve({
+                success: false,
+                error: "Network error",
+              }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ success: true }),
+        });
       });
 
       render(<RevealContent roomId="test-room-123" />);
@@ -349,10 +419,19 @@ describe("RevealContent - Working Tests", () => {
         vi.advanceTimersByTime(3000);
       });
 
-      expect(mockUploadImages).toHaveBeenCalledWith(
-        "test-room-123",
-        "boyfriend",
-        images
+      // Verify fetch was called with correct upload parameters
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/room/test-room-123/upload-images",
+        expect.objectContaining({
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userRole: "boyfriend",
+            images: images,
+          }),
+        })
       );
     });
 
@@ -362,24 +441,25 @@ describe("RevealContent - Working Tests", () => {
       mockLocalStorageWithUser(userData);
       mockZustandWithImages(createMockImages());
 
-      mockUploadImages.mockResolvedValueOnce({ success: true });
-      mockCheckPartnerImages.mockResolvedValue({
-        success: true,
-        isReady: false,
-        partnerRole: "boyfriend",
-      });
-
       render(<RevealContent roomId="test-room-123" />);
 
       await act(async () => {
-        vi.advanceTimersByTime(3000);
+        vi.advanceTimersByTime(5000); // Wait for upload to complete and partner check to start
       });
 
-      // Don't need to wait for the partner check call - just verify upload was called
-      expect(mockUploadImages).toHaveBeenCalledWith(
-        "test-room-123",
-        "girlfriend",
-        createMockImages()
+      // Verify both upload and partner check fetch calls were made
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/room/test-room-123/upload-images",
+        expect.objectContaining({
+          method: "POST",
+        })
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/room/test-room-123/partner-images?userRole=girlfriend",
+        expect.objectContaining({
+          method: "GET",
+        })
       );
     });
   });

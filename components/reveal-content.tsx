@@ -9,12 +9,12 @@ import { CategoryMarquee } from "./personality-form/category-marquee";
 import CategoryHoverReveal from "./personality-form/category-hover-reveal";
 import CategoryExpandableGallery from "./personality-form/category-expandable-gallery";
 import { useRouter } from "next/navigation";
-import {
-  enviroment,
-  USE_LAMBDA_UPLOAD,
-  LAMBDA_UPLOAD_ENDPOINT,
-} from "@/lib/env";
+import { enviroment } from "@/lib/env";
 import { useIsMobile } from "@/hooks/use-is-mobile";
+import {
+  checkPartnerImages as checkPartnerImagesAPI,
+  uploadImages as uploadImagesAPI,
+} from "@/lib/actions";
 
 interface RevealContentProps {
   roomId: string;
@@ -189,37 +189,25 @@ export default function RevealContent({ roomId }: RevealContentProps) {
 
     setPartnerImages((prev) => ({ ...prev, loading: true, error: null }));
 
-    try {
-      const response = await fetch(
-        `/api/room/${roomId}/partner-images?userRole=${userRole}`
-      );
-      const data = await response.json();
+    const result = await checkPartnerImagesAPI(roomId, userRole);
 
-      if (data.success) {
-        setPartnerImages({
-          isReady: data.isReady,
-          loading: false,
-          error: null,
-          images: data.images,
-          cachedImages: {},
-          partnerRole: data.partnerRole,
-          totalImages: data.totalImages,
-          categoriesCompleted: data.categoriesCompleted,
-          imagesDownloaded: false,
-        });
-      } else {
-        setPartnerImages((prev) => ({
-          ...prev,
-          loading: false,
-          error: data.error || "Failed to check partner images",
-        }));
-      }
-    } catch (error) {
-      console.error("Error checking partner images:", error);
+    if (result.success) {
+      setPartnerImages({
+        isReady: result.isReady,
+        loading: false,
+        error: null,
+        images: result.images || {},
+        cachedImages: {},
+        partnerRole: result.partnerRole || "",
+        totalImages: result.totalImages || 0,
+        categoriesCompleted: result.categoriesCompleted || 0,
+        imagesDownloaded: false,
+      });
+    } else {
       setPartnerImages((prev) => ({
         ...prev,
         loading: false,
-        error: "Failed to connect to server",
+        error: result.error || "Failed to check partner images",
       }));
     }
   };
@@ -308,42 +296,6 @@ export default function RevealContent({ roomId }: RevealContentProps) {
     }
   };
 
-  // Helper function to handle upload to either original route or Lambda
-  const uploadImages = async (
-    roomId: string,
-    userRole: string,
-    images: any
-  ) => {
-    if (USE_LAMBDA_UPLOAD && LAMBDA_UPLOAD_ENDPOINT) {
-      const response = await fetch(LAMBDA_UPLOAD_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          roomId,
-          userRole,
-          images,
-        }),
-      });
-
-      return await response.json();
-    } else {
-      const response = await fetch(`/api/room/${roomId}/upload-images`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userRole,
-          images,
-        }),
-      });
-
-      return await response.json();
-    }
-  };
-
   // Function to start the image upload process
   const startImageUpload = async () => {
     try {
@@ -377,7 +329,7 @@ export default function RevealContent({ roomId }: RevealContentProps) {
         });
       }, 400);
 
-      const result = await uploadImages(roomId, userRole, uploadedImages);
+      const result = await uploadImagesAPI(roomId, userRole, uploadedImages);
 
       // Clear the progress interval
       clearInterval(uploadProgressInterval);

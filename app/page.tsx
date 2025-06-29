@@ -48,7 +48,7 @@ export default function Home() {
                 <h2 className="text-xl font-mono font-semibold mb-2 group-hover:text-amber-600 group-focus-visible:text-gradient transition-colors duration-300">
                   Create Room
                 </h2>
-                <p className="text-primary/75 text-sm group-hover:text-primary/90 group-focus-visible:text-primary transition-colors duration-300">
+                <p className="text-primary/75 text-pretty text-sm group-hover:text-primary/90 group-focus-visible:text-primary transition-colors duration-300">
                   Start a new personality sharing session with your partner
                 </p>
               </div>
@@ -75,7 +75,7 @@ export default function Home() {
                 <h2 className="text-xl font-mono font-semibold mb-2 group-hover:text-purple-600 group-focus-visible:text-gradient transition-colors duration-300">
                   Join Room
                 </h2>
-                <p className="text-primary/75 text-sm group-hover:text-primary/90 group-focus-visible:text-primary transition-colors duration-300">
+                <p className="text-primary/75 text-pretty text-sm group-hover:text-primary/90 group-focus-visible:text-primary transition-colors duration-300">
                   Enter an existing one using a room ID from your partner
                 </p>
               </div>

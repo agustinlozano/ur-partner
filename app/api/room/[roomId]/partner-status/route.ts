@@ -16,7 +16,7 @@ export async function GET(
     const url = new URL(request.url);
     const currentUserRole = url.searchParams.get("role") || "girlfriend"; // Default fallback
 
-    // Get room data from sheets
+    // Get room data from DynamoDB
     const roomData = await findRoomByRoomId(roomId);
 
     if (!roomData) {
@@ -34,7 +34,7 @@ export async function GET(
     // Check which categories the partner has completed
     const partnerCompletedCategories: string[] = [];
 
-    // Map sheet columns to category IDs based on partner role
+    // Map DynamoDB columns to category IDs based on partner role
     const categoryMapping = {
       animal:
         partnerRole === "girlfriend"

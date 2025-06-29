@@ -52,10 +52,43 @@ _Prioridad: P0 (Crítico)_
 
 **Tareas específicas**:
 
-- [ ] Extender interface `Room` con campos partner_a/partner_b
-- [ ] Mantener campos legacy para backward compatibility
-- [ ] Agregar tipos opcionales para los nuevos campos
-- [ ] Documentar mapping entre old/new fields
+- [x] Extender interface `Room` con campos partner_a/partner_b
+- [x] Mantener campos legacy para backward compatibility
+- [x] Agregar tipos opcionales para los nuevos campos
+- [x] Documentar mapping entre old/new fields
+
+**Cambios implementados**:
+
+- **Interface Room**: Extendida con 100+ líneas de documentación, nuevos campos:
+
+  - `partner_a_name`, `partner_b_name` (names)
+  - `partner_a_display_role`, `partner_b_display_role` (custom role labels)
+  - `partner_a_display_emoji`, `partner_b_display_emoji` (visual representation)
+  - `partner_a_pronouns`, `partner_b_pronouns` (inclusivity support)
+  - `partner_a_ready`, `partner_b_ready` (status tracking)
+  - `format_version`, `migration_date` (migration tracking)
+  - Todos los campos de imágenes: `{category}_partner_a/b`
+
+- **Nuevos tipos**:
+
+  - `LegacyRole = "girlfriend" | "boyfriend"`
+  - Import de `LogicRole`, `ImageCategory` desde `lib/types`
+
+- **Constantes de mapeo**:
+
+  - `FIELD_MAPPING`: legacy → new field mapping
+  - `REVERSE_FIELD_MAPPING`: new → legacy field mapping
+  - `LOGIC_TO_LEGACY_ROLE`: partner_a/b → girlfriend/boyfriend
+  - `LEGACY_TO_LOGIC_ROLE`: girlfriend/boyfriend → partner_a/b
+  - `IMAGE_CATEGORIES`: array con todas las categorías
+
+- **Helper functions**:
+
+  - `getImageFieldName()`: Obtiene field name para categoría e rol (legacy/new format)
+
+- **Funciones actualizadas**:
+  - `updateRoomImages()`: Ahora soporta `LegacyRole | LogicRole`, dual format option, automatic role conversion
+  - `leaveRoom()`: Comprehensive cleanup de ambos formatos, automatic role mapping
 
 ---
 
@@ -405,22 +438,23 @@ _Prioridad: P2 (Medio)_
 
 ## 📊 **Progress Tracking**
 
-**Phase 1**: ✅ 1/3 tasks completed  
+**Phase 1**: ✅ 2/3 tasks completed  
 **Phase 2**: ⏳ 0/3 tasks completed  
 **Phase 3**: ⏳ 0/3 tasks completed  
 **Phase 4**: ⏳ 0/3 tasks completed  
 **Phase 5**: ⏳ 0/2 tasks completed  
 **Phase 6**: ⏳ 0/2 tasks completed
 
-**Overall Progress**: 1/16 tasks (6%) 🚀
+**Overall Progress**: 2/16 tasks (12%) 🚀
 
 ---
 
 ## 📝 **Next Steps**
 
 1. ✅ **Task 1.1 COMPLETED**: TypeScript interfaces created
-2. **Current focus**: **Task 1.2** - Update DynamoDB schema types
-3. **After that**: **Task 1.3** - Create role constants & presets
-4. **Continue sequentially** following dependencies
+2. ✅ **Task 1.2 COMPLETED**: DynamoDB schema types updated
+3. **Current focus**: **Task 1.3** - Create role constants & presets
+4. **After that**: **Task 2.1** - Create compatibility layer
+5. **Continue sequentially** following dependencies
 
-**Ready to continue with Task 1.2! 💪**
+**Ready to continue with Task 1.3! 💪**

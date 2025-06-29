@@ -236,13 +236,38 @@ Our image upload system is designed with a client-server architecture that handl
 - Form validation ensures all 9 categories are completed before marking as "ready"
 - Character category supports multiple images (up to 5) with grid layout
 
-### 2. **Server-Side Upload Process** (`route.ts`)
+### 2. **Server-Side Upload Process** (`api/room/[roomId]/upload-images/route.ts`)
 
-- Images are uploaded to AWS S3 with organized folder structure: `{roomId}/{userRole}/{categoryId}/`
-- Character category supports multiple images stored as JSON arrays
-- Duplicate upload prevention by checking existing URLs in DynamoDB
-- Automatic cleanup and error handling for failed uploads
-- Rate limiting and security measures
+The upload process uses a **multi-lambda architecture** for security and scalability:
+
+#### **Step 1: Rate Limiting Check**
+
+- Next.js API route extracts client IP from headers (`x-forwarded-for`, `x-real-ip`)
+- Calls **Rate Limit Lambda** with DynamoDB backend to check upload limits
+- Service ID: `"upload-images"` with configurable limits per user tier
+- Returns user-friendly messages with retry timeouts if limit exceeded
+
+#### **Step 2: Lambda Upload Process**
+
+- If rate limit passes, forwards request to **Upload Lambda**
+- Upload Lambda handles:
+  - Image processing and optimization
+  - S3 upload with organized folder structure: `{roomId}/{userRole}/{categoryId}/`
+  - Character category supports multiple images (stored as JSON arrays)
+  - Room data updates with new image URLs
+  - Automatic cleanup and error handling for failed uploads
+
+#### **Architecture Flow**
+
+```
+Client → Next.js API Route → Rate Limit Lambda (DynamoDB) → Upload Lambda (S3) → DynamoDB (room data)
+```
+
+#### **Environment Configuration**
+
+- `RATE_LIMIT_ENDPOINT`: Rate limiting lambda endpoint
+- `LAMBDA_UPLOAD_ENDPOINT`: Image upload lambda endpoint
+- Graceful fallback if rate limiting service is unavailable
 
 ### 3. **State Management** (`personality-images-store.ts`)
 

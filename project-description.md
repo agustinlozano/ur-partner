@@ -14,23 +14,90 @@ Categories:
 - a colour,
 - a drink.
 
-## Flow
+## Complete Application Flow
 
-1. An interface to create a room. Generate a unique room id. Ask your role in the relationship (girlfriend/boyfriend). Finally create the room by adding `room_id` and `girlfriend_name` | `boyfriend_name` to the DynamoDB as a new row.
-2. An interface to join an existing room. Ask for the `room_id` and then according to the missing field we assume the role. Finally ask for her/his name and complete the missed field with the name of the person in the existing room (DynamoDB row).
-3. Room: An interface to upload images based on `@personality-form.tsx` component.
-4. Room: A button to submit the images (both should be `ready` to show what your partner has uploaded according your personality).
+1. **Home Page** (`/`) - Choose to create or join a room with beautiful UI and animations
+2. **Create Room** (`/room`) - Enter name, emoji, select role (girlfriend/boyfriend) → creates room
+3. **Join Room** (`/join` or `/join/[roomId]`) - Enter room ID, name, emoji → joins existing room
+4. **Room Detail** (`/room/[roomId]`) - Wait for both partners, shows real-time status and connection
+5. **Personality Form** (`/room/[roomId]/personality`) - Upload 9 category images with drag & drop
+6. **Reveal Page** (`/room/[roomId]/reveal`) - View partner's personality gallery with multiple viewing modes
 
 ## How to route the app
 
-- `/` -> Home page
-- `/room` -> Room page (to create a room)
-- `/join` -> Join room page (to join an existing room)
-- `/room/:room_id` -> Room page
+- `/` -> Home page (create or join room options)
+- `/room` -> Create room page
+- `/join` -> Join existing room page
+- `/join/[roomId]` -> Join specific room with pre-filled ID
+- `/room/[roomId]` -> Room detail page (waiting for both partners + status tracking)
+- `/room/[roomId]/personality` -> Personality form for uploading images
+- `/room/[roomId]/reveal` -> Final reveal page showing both galleries
+
+## API Endpoints
+
+### Room Management
+
+- `POST /api/rooms` - Create new room
+- `GET /api/room-info/[roomId]` - Get room information
+- `POST /api/room/[roomId]/leave` - Leave room
+
+### Image Upload & Progress
+
+- `POST /api/room/[roomId]/upload-images` - Upload personality images to S3
+- `POST /api/room/[roomId]/update-progress` - Update user progress
+- `POST /api/room/[roomId]/update-ready` - Mark user as ready
+
+### Partner Interaction
+
+- `GET /api/room/[roomId]/partner-status` - Get partner's status and progress
+- `GET /api/room/[roomId]/partner-images` - Get partner's uploaded images
+- `POST /api/room/[roomId]/reveal` - Initialize reveal process
+
+### Debug & Development
+
+- `/api/debug/rate-limit` - Rate limiting testing
+- `/api/get-image` - Image retrieval utility
+
+## State Management
+
+### Client-side Storage
+
+- **Zustand Store**: Personality images with sessionStorage persistence
+- **localStorage**: Active room and user data
+- **React State**: Component-specific UI state
+
+### Key Storage Keys
+
+- `activeRoom`: Current user's room data and role
+- `personality-images-storage`: Zustand persistence key for images by room
+
+### State Structure
+
+```typescript
+// localStorage.activeRoom
+{
+  room_id: string,
+  role: "girlfriend" | "boyfriend",
+  name: string,
+  emoji: string
+}
+
+// Zustand store structure
+{
+  imagesByRoom: {
+    "[roomId]_[userRole]": {
+      animal: string,
+      place: string,
+      // ... other categories
+      character: string[] // Multiple images for character category
+    }
+  }
+}
+```
 
 ## How to store the data
 
-[current way]
+[Current implementation]
 Using DynamoDB from AWS.
 
 The data structure is like so:
@@ -66,7 +133,96 @@ The data structure is like so:
 | `updated_at`           | string  | ISO timestamp when room was last updated        |
 | `ttl`                  | number  | Unix timestamp for automatic deletion (3 hours) |
 
-## How to upload the images
+### TypeScript Interface
+
+```typescript
+interface Room {
+  room_id: string; // Partition Key
+  girlfriend_name?: string;
+  boyfriend_name?: string;
+  girlfriend_emoji?: string;
+  boyfriend_emoji?: string;
+
+  animal_girlfriend?: string;
+  animal_boyfriend?: string;
+  place_girlfriend?: string;
+  place_boyfriend?: string;
+  plant_girlfriend?: string;
+  plant_boyfriend?: string;
+  character_girlfriend?: string; // JSON string for arrays
+  character_boyfriend?: string;
+  season_girlfriend?: string;
+  season_boyfriend?: string;
+  hobby_girlfriend?: string;
+  hobby_boyfriend?: string;
+  food_girlfriend?: string;
+  food_boyfriend?: string;
+  colour_girlfriend?: string;
+  colour_boyfriend?: string;
+  drink_girlfriend?: string;
+  drink_boyfriend?: string;
+
+  girlfriend_ready?: boolean;
+  boyfriend_ready?: boolean;
+  created_at: string;
+  updated_at: string;
+  ttl?: number;
+}
+```
+
+## Technical Features & User Experience
+
+### Real-time Synchronization
+
+- **Polling System**: Every 5 seconds for room status updates (not exponential backoff as initially planned)
+- **Partner Tracking**: Real-time progress tracking with live updates
+- **Automatic Transitions**: Redirect when both partners ready for reveal
+
+### Advanced UI/UX Features
+
+- **Mobile-Responsive Design**: Adaptive components with mobile-specific behaviors
+- **Theme System**: Dark/light mode support with theme toggle
+- **Drag & Drop**: Image upload with paste functionality (Cmd+V)
+- **Multiple View Modes**: Reveal page supports marquee, hover, and gallery views
+- **Copy Room ID**: Easy sharing functionality
+- **Progress Tracking**: Visual progress bars and completion indicators
+- **Partner Tracker Component**: Real-time drawer showing partner's progress
+
+### Image Handling
+
+- **Multiple Upload Methods**: Drag & drop, click to upload, paste (Cmd+V)
+- **Character Category Special**: Supports up to 5 images (others support 1)
+- **Image Compression**: Client-side optimization before upload
+- **Blob URL Management**: Proper cleanup to prevent memory leaks
+- **S3 Storage**: Organized folder structure `{roomId}/{userRole}/{categoryId}/`
+
+### Development Features
+
+- **Demo Images**: Predefined images for testing (development mode only)
+- **Audio System**: Configurable audio feedback (currently commented out)
+- **Diagnostics**: Built-in debugging and monitoring tools
+- **Testing Suite**: Comprehensive tests with Vitest and Playwright
+- **Error Handling**: Graceful error states and user feedback
+
+## Component Architecture
+
+### Key Components
+
+- `PersonalityForm`: Main image upload interface
+- `RevealContent`: Final reveal experience with multiple view modes
+- `PartnerTracker`: Real-time partner progress monitoring
+- `CategoryMarquee`: Animated image display
+- `CategoryHoverReveal`: Interactive hover-based reveal
+- `CategoryExpandableGallery`: Grid-based expandable gallery
+- `ActiveRoomSaver`: Persistent room state management
+- `GradientBackground`: Consistent theming across pages
+
+### Custom Hooks
+
+- `usePersonalityForm`: Image upload and form state management
+- `useAudioPlayer`: Audio feedback system
+- `useIsMobile`: Responsive design detection
+- `useActiveRoom`: Room state persistence
 
 ## Image Upload System Design
 
@@ -74,17 +230,19 @@ Our image upload system is designed with a client-server architecture that handl
 
 ### 1. **Client-Side Image Management** (`personality-form.tsx`)
 
-- Users upload images through drag-and-drop or file selection
+- Users upload images through drag-and-drop, file selection, or paste (Cmd+V)
 - Images are stored as base64 strings in sessionStorage via Zustand store
-- Real-time progress tracking with visual feedback
+- Real-time progress tracking with visual feedback and animations
 - Form validation ensures all 9 categories are completed before marking as "ready"
+- Character category supports multiple images (up to 5) with grid layout
 
 ### 2. **Server-Side Upload Process** (`route.ts`)
 
 - Images are uploaded to AWS S3 with organized folder structure: `{roomId}/{userRole}/{categoryId}/`
-- Character category supports multiple images (up to 5) stored as JSON arrays
+- Character category supports multiple images stored as JSON arrays
 - Duplicate upload prevention by checking existing URLs in DynamoDB
 - Automatic cleanup and error handling for failed uploads
+- Rate limiting and security measures
 
 ### 3. **State Management** (`personality-images-store.ts`)
 
@@ -92,22 +250,25 @@ Our image upload system is designed with a client-server architecture that handl
 - Room-specific image storage using keys: `{roomId}_{userRole}`
 - Automatic quota management with cleanup of old data
 - Cross-tab synchronization through sessionStorage
+- Blob URL management for memory optimization
 
 ### 4. **Real-Time Partner Detection**
 
-Instead of WebSockets, we use **polling with exponential backoff**:
+Instead of WebSockets, we use **consistent polling**:
 
-- Client polls the room status every 2-5 seconds
+- Client polls the room status every 5 seconds (fixed interval, not exponential backoff)
 - When both partners are ready (`girlfriend_ready` && `boyfriend_ready` = true)
 - System automatically triggers image sharing between partners
-- Polling frequency increases during active uploads, decreases during idle periods
+- Polling stops when room is complete (both partners joined)
+- Partner progress tracking shows real-time category completion
 
-### 5. **Image Sharing Flow**
+### 5. **Image Sharing & Reveal Flow**
 
 1. Partner A completes gallery → `{userRole}_ready` = true
 2. Partner B completes gallery → `{userRole}_ready` = true
-3. System detects both ready → Fetches partner's images from S3 URLs
-4. Displays combined personality gallery to both partners
-5. Partners can view each other's personality insights
+3. System detects both ready → Enables reveal functionality
+4. Partners can access `/room/[roomId]/reveal` to view combined galleries
+5. Multiple viewing modes: Marquee (animated), Hover (interactive), Gallery (grid)
+6. Image caching and optimization for smooth reveal experience
 
-This approach provides real-time-like experience without WebSocket complexity while maintaining scalability and reliability.
+This approach provides real-time-like experience without WebSocket complexity while maintaining scalability and reliability through efficient polling and state management.

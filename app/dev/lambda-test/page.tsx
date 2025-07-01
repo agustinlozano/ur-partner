@@ -1,17 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, Send, Trash2, CheckCircle, XCircle } from "lucide-react";
 import Image from "next/image";
 import { predefinedImages } from "@/lib/personality-form-constants";
+import { toast } from "sonner";
 
 interface TestResponse {
   success: boolean;
   message: string;
   roomId?: string;
-  userRole?: string;
+  userSlot?: string;
   uploadCount?: number;
   totalImages?: number;
   uploadedUrls?: { [categoryId: string]: string | string[] };
@@ -34,7 +35,7 @@ const VALID_CATEGORIES = [
 
 export default function LambdaTestPage() {
   const [roomId, setRoomId] = useState("test-room-" + Date.now());
-  const [userRole, setUserRole] = useState("player1");
+  const [userSlot, setUserSlot] = useState("a");
   const [selectedImages, setSelectedImages] = useState<{
     [categoryId: string]: string | string[];
   }>({});
@@ -112,9 +113,9 @@ export default function LambdaTestPage() {
   };
 
   const sendToLambda = async () => {
-    // Filter out empty categories
+    // Filter out empty images
     const filteredImages = Object.fromEntries(
-      Object.entries(selectedImages).filter(([_, imageData]) => {
+      Object.entries(selectedImages).filter(([_category, imageData]) => {
         if (Array.isArray(imageData)) {
           return (
             imageData.length > 0 && imageData.some((img) => img.trim() !== "")
@@ -125,7 +126,9 @@ export default function LambdaTestPage() {
     );
 
     if (Object.keys(filteredImages).length === 0) {
-      alert("Please select some images first!");
+      toast.warning("No images selected", {
+        description: "Please select some images first!",
+      });
       return;
     }
 
@@ -134,7 +137,7 @@ export default function LambdaTestPage() {
     try {
       const payload = {
         roomId: roomId,
-        userRole: userRole,
+        userSlot: userSlot,
         images: filteredImages,
       };
 
@@ -154,7 +157,7 @@ export default function LambdaTestPage() {
         success: response.ok && data.success,
         message: data.message || data.error || "Unknown response",
         roomId: data.roomId,
-        userRole: data.userRole,
+        userSlot: data.userSlot,
         uploadCount: data.uploadCount,
         totalImages: data.totalImages,
         uploadedUrls: data.uploadedUrls,
@@ -166,11 +169,20 @@ export default function LambdaTestPage() {
 
       if (response.ok && data.success) {
         console.log("✅ Success:", data);
+        toast.success("Images uploaded successfully!", {
+          description: `Uploaded ${data.uploadCount} images to room ${data.roomId}`,
+        });
       } else {
         console.error("❌ Error:", data);
+        toast.error("Upload failed", {
+          description: data.error || "Unknown error occurred",
+        });
       }
     } catch (error) {
       console.error("❌ Network error:", error);
+      toast.error("Network error", {
+        description: "Please check your connection and try again",
+      });
       const testResponse: TestResponse = {
         success: false,
         message: "Network error",
@@ -250,15 +262,15 @@ export default function LambdaTestPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  User Role
+                  User Slot
                 </label>
                 <select
-                  value={userRole}
-                  onChange={(e) => setUserRole(e.target.value)}
+                  value={userSlot}
+                  onChange={(e) => setUserSlot(e.target.value)}
                   className="w-full px-3 py-2 border border-border rounded-md bg-background"
                 >
-                  <option value="player1">player1</option>
-                  <option value="player2">player2</option>
+                  <option value="a">a</option>
+                  <option value="b">b</option>
                 </select>
               </div>
             </div>
@@ -539,7 +551,7 @@ export default function LambdaTestPage() {
                             <strong>Room:</strong> {response.roomId}
                           </p>
                           <p>
-                            <strong>User:</strong> {response.userRole}
+                            <strong>User:</strong> {response.userSlot}
                           </p>
                           <p>
                             <strong>Uploaded:</strong> {response.uploadCount}/
@@ -619,7 +631,7 @@ export default function LambdaTestPage() {
               </p>
               <p>
                 <strong>Payload:</strong>{" "}
-                {`{ userRole: string, images: { [categoryId]: string | string[] } }`}
+                {`{ userSlot: string, images: { [categoryId]: string | string[] } }`}
               </p>
               <p>
                 <strong>Valid Categories:</strong> {VALID_CATEGORIES.join(", ")}

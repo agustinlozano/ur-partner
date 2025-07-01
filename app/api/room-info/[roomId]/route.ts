@@ -28,24 +28,24 @@ export async function GET(request: Request, context: RouteContext) {
       );
     }
 
-    // Check if room is full
-    const isGirlfriendMissing = !room.girlfriend_name;
-    const isBoyfriendMissing = !room.boyfriend_name;
-    const isFull = !isGirlfriendMissing && !isBoyfriendMissing;
+    // Check if room is full using new schema
+    const isSlotAMissing = !room.a_name;
+    const isSlotBMissing = !room.b_name;
+    const isFull = !isSlotAMissing && !isSlotBMissing;
 
     return NextResponse.json({
       success: true,
       room: {
         room_id: room.room_id,
-        girlfriend_name: room.girlfriend_name,
-        boyfriend_name: room.boyfriend_name,
-        girlfriend_emoji: room.girlfriend_emoji,
-        boyfriend_emoji: room.boyfriend_emoji,
+        a_name: room.a_name,
+        b_name: room.b_name,
+        a_emoji: room.a_emoji,
+        b_emoji: room.b_emoji,
         created_at: room.created_at,
         is_full: isFull,
-        missing_role: isGirlfriendMissing
+        missing_role: isSlotAMissing
           ? "girlfriend"
-          : isBoyfriendMissing
+          : isSlotBMissing
           ? "boyfriend"
           : null,
       },

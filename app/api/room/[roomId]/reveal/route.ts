@@ -1,6 +1,11 @@
 import { NextRequest } from "next/server";
 // import { findRoomByRoomId } from "@/lib/sheets";
 import { findRoomByRoomId } from "@/lib/dynamodb";
+import {
+  slotToRole,
+  type LogicalRole,
+  type DatabaseSlot,
+} from "@/lib/role-utils";
 
 export async function POST(
   request: NextRequest,
@@ -9,11 +14,20 @@ export async function POST(
   try {
     const { roomId } = await params;
     const body = await request.json();
-    const { userRole } = body;
+    const { userSlot } = body;
 
-    if (!roomId || !userRole) {
+    if (!roomId || !userSlot) {
       return Response.json(
-        { error: "Room ID and user role are required" },
+        { error: "Room ID and user slot are required" },
+        { status: 400 }
+      );
+    }
+
+    // Validate user slot
+    const validSlots: DatabaseSlot[] = ["a", "b"];
+    if (!validSlots.includes(userSlot as DatabaseSlot)) {
+      return Response.json(
+        { error: `Invalid user slot: ${userSlot}` },
         { status: 400 }
       );
     }
@@ -24,11 +38,11 @@ export async function POST(
       return Response.json({ error: "Room not found" }, { status: 404 });
     }
 
-    // Check if both users are ready
-    const girlfriendReady = roomData.girlfriend_ready === true;
-    const boyfriendReady = roomData.boyfriend_ready === true;
+    // Check if both users are ready using new schema
+    const aReady = roomData.a_ready === true;
+    const bReady = roomData.b_ready === true;
 
-    if (!girlfriendReady || !boyfriendReady) {
+    if (!aReady || !bReady) {
       return Response.json(
         { error: "Both users must be ready before revealing" },
         { status: 400 }
@@ -39,9 +53,9 @@ export async function POST(
       success: true,
       message: "Both users are ready. Proceeding to reveal...",
       roomId,
-      userRole,
-      girlfriendReady,
-      boyfriendReady,
+      userSlot,
+      aReady,
+      bReady,
     });
   } catch (error) {
     console.error("Error in reveal process:", error);

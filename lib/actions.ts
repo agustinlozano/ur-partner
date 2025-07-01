@@ -47,6 +47,9 @@ export interface UploadImagesResult {
   success: boolean;
   message?: string;
   error?: string;
+  rateLimitInfo?: {
+    retryAfter: number; // Seconds to wait before retry
+  };
 }
 
 export async function joinRoom(input: JoinRoomInput): Promise<JoinRoomResult> {
@@ -58,9 +61,10 @@ export async function setActiveRoomData(
   roomId: string,
   role: "girlfriend" | "boyfriend",
   name: string,
-  emoji: string
+  emoji: string,
+  slot: "a" | "b" = "a"
 ) {
-  return await setActiveRoomDataDynamoDB(roomId, role, name, emoji);
+  return await setActiveRoomDataDynamoDB(roomId, role, name, emoji, slot);
 }
 
 export async function createRoomAndRedirect(formData: FormData) {

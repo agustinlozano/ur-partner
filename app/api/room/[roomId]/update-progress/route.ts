@@ -1,5 +1,10 @@
 import { NextRequest } from "next/server";
 import { findRoomByRoomId, updateRoom, type Room } from "@/lib/dynamodb";
+import {
+  PERSONALITY_CATEGORIES,
+  type PersonalityCategory,
+  type DatabaseSlot,
+} from "@/lib/role-utils";
 
 export async function POST(
   request: NextRequest,
@@ -9,11 +14,11 @@ export async function POST(
     const { roomId } = await params;
     const body = await request.json();
 
-    const { category, hasData, userRole } = body;
+    const { category, hasData, userSlot } = body;
 
-    if (!roomId || !category || !userRole) {
+    if (!roomId || !category || !userSlot) {
       return Response.json(
-        { error: "Room ID, category, and user role are required" },
+        { error: "Room ID, category, and user slot are required" },
         { status: 400 }
       );
     }
@@ -24,36 +29,25 @@ export async function POST(
       return Response.json({ error: "Room not found" }, { status: 404 });
     }
 
-    // Validate category and userRole combination
-    const validCategories = [
-      "animal",
-      "place",
-      "plant",
-      "character",
-      "season",
-      "hobby",
-      "food",
-      "colour",
-      "drink",
-    ];
-    const validRoles = ["girlfriend", "boyfriend"];
+    // Validate category and userSlot combination using constants
+    const validSlots: DatabaseSlot[] = ["a", "b"];
 
-    if (!validCategories.includes(category)) {
+    if (!PERSONALITY_CATEGORIES.includes(category as PersonalityCategory)) {
       return Response.json(
         { error: `Invalid category: ${category}` },
         { status: 400 }
       );
     }
 
-    if (!validRoles.includes(userRole)) {
+    if (!validSlots.includes(userSlot as DatabaseSlot)) {
       return Response.json(
-        { error: `Invalid user role: ${userRole}` },
+        { error: `Invalid user slot: ${userSlot}` },
         { status: 400 }
       );
     }
 
-    // Create the field name for the specific category + role combination
-    const fieldName = `${category}_${userRole}` as keyof Room;
+    // Create the field name for the specific category + role combination using new schema
+    const fieldName = `${category}_${userSlot}` as keyof Room;
 
     // Create the progress indicator value
     const progressValue = hasData ? new Date().toISOString() : "";
@@ -75,10 +69,11 @@ export async function POST(
 
     return Response.json({
       success: true,
-      message: `Updated ${category} progress for ${userRole}`,
+      message: `Updated ${category} progress for slot ${userSlot}`,
       roomId,
       category,
       hasData,
+      userSlot,
       fieldName,
       progressValue,
     });

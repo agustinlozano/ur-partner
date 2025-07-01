@@ -27,6 +27,7 @@ export default function Home() {
 
         <div className="mx-auto space-y-6">
           <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+            {/* TODO: fix hitbox hover effect */}
             <Link
               href="/room"
               className={cn(

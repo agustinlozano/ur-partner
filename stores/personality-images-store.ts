@@ -3,17 +3,17 @@ import { persist } from "zustand/middleware";
 import type { UploadedImages } from "@/lib/personality-form-constants";
 
 interface PersonalityImagesState {
-  // Images stored by roomId and userRole: roomId_userRole -> UploadedImages
+  // Images stored by roomId and userSlot: roomId_userSlot -> UploadedImages
   imagesByRoom: Record<string, UploadedImages>;
 
   // Actions
   setImagesForRoom: (
     roomId: string,
-    userRole: string,
+    userSlot: string,
     images: UploadedImages
   ) => void;
-  getImagesForRoom: (roomId: string, userRole: string) => UploadedImages;
-  clearImagesForRoom: (roomId: string, userRole: string) => void;
+  getImagesForRoom: (roomId: string, userSlot: string) => UploadedImages;
+  clearImagesForRoom: (roomId: string, userSlot: string) => void;
   clearAllImages: () => void;
 }
 
@@ -74,10 +74,10 @@ export const usePersonalityImagesStore = create<PersonalityImagesState>()(
 
       setImagesForRoom: (
         roomId: string,
-        userRole: string,
+        userSlot: string,
         images: UploadedImages
       ) => {
-        const key = `${roomId}_${userRole}`;
+        const key = `${roomId}_${userSlot}`;
         set((state) => ({
           imagesByRoom: {
             ...state.imagesByRoom,
@@ -86,13 +86,13 @@ export const usePersonalityImagesStore = create<PersonalityImagesState>()(
         }));
       },
 
-      getImagesForRoom: (roomId: string, userRole: string) => {
-        const key = `${roomId}_${userRole}`;
+      getImagesForRoom: (roomId: string, userSlot: string) => {
+        const key = `${roomId}_${userSlot}`;
         return get().imagesByRoom[key] || {};
       },
 
-      clearImagesForRoom: (roomId: string, userRole: string) => {
-        const key = `${roomId}_${userRole}`;
+      clearImagesForRoom: (roomId: string, userSlot: string) => {
+        const key = `${roomId}_${userSlot}`;
         set((state) => {
           const newImagesByRoom = { ...state.imagesByRoom };
           delete newImagesByRoom[key];

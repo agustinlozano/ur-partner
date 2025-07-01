@@ -9,19 +9,19 @@ export async function POST(
     const { roomId } = await params;
     const body = await request.json();
 
-    const { userRole } = body;
+    const { userSlot } = body;
 
-    if (!roomId || !userRole) {
+    if (!roomId || !userSlot) {
       return Response.json(
-        { error: "Room ID and user role are required" },
+        { error: "Room ID and user slot are required" },
         { status: 400 }
       );
     }
 
-    // Validate user role
-    if (!["girlfriend", "boyfriend"].includes(userRole)) {
+    // Validate user slot
+    if (!["a", "b"].includes(userSlot)) {
       return Response.json(
-        { error: "Invalid user role. Must be 'girlfriend' or 'boyfriend'" },
+        { error: "Invalid user slot. Must be 'a' or 'b'" },
         { status: 400 }
       );
     }
@@ -29,7 +29,7 @@ export async function POST(
     // Leave the room using DynamoDB
     const result = await leaveRoomDynamoDB({
       roomId,
-      userRole,
+      userSlot,
     });
 
     if (!result.success) {
@@ -43,7 +43,7 @@ export async function POST(
       success: true,
       message: `Successfully left room ${roomId}`,
       roomId,
-      userRole,
+      userSlot,
     });
   } catch (error) {
     console.error("Error leaving room:", error);

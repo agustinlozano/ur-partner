@@ -15,12 +15,7 @@ import {
   USE_LAMBDA_UPLOAD,
 } from "@/lib/env";
 import { useIsMobile } from "@/hooks/use-is-mobile";
-import {
-  PartnerImagesResult,
-  // checkPartnerImages as checkPartnerImagesAPI,
-  UploadImagesResult,
-  // uploadImages as uploadImagesAPI,
-} from "@/lib/actions";
+import { PartnerImagesResult, UploadImagesResult } from "@/lib/actions";
 
 interface RevealContentProps {
   roomId: string;
@@ -73,7 +68,7 @@ export default function RevealContent({ roomId }: RevealContentProps) {
     currentStep: "Initializing...",
   });
 
-  const [userRole, setUserRole] = useState<string>("");
+  const [userSlot, setUserSlot] = useState<string>("");
   const [uploadedImages, setUploadedImages] = useState<any>({});
   const [partnerImages, setPartnerImages] = useState<PartnerImagesState>({
     isReady: false,
@@ -115,11 +110,13 @@ export default function RevealContent({ roomId }: RevealContentProps) {
 
     if (userData) {
       const user = JSON.parse(userData);
-      const role = user.role || "girlfriend";
-      setUserRole(role);
+      setUserSlot(user.slot || "");
 
       // Get uploaded images from Zustand store
-      const images = getImagesForRoom(roomId, role);
+      const images = getImagesForRoom(
+        roomId,
+        userSlot || (user.slot || "").toLowerCase()
+      );
 
       if (Object.keys(images).length > 0) {
         setUploadedImages(images);
@@ -127,14 +124,14 @@ export default function RevealContent({ roomId }: RevealContentProps) {
         console.warn("No images found in Zustand store for reveal");
       }
     }
-  }, [roomId, getImagesForRoom]);
+  }, [roomId, getImagesForRoom, userSlot]);
 
   // Add state to track when to start upload
   const [shouldStartUpload, setShouldStartUpload] = useState(false);
 
   // Real upload and processing stages
   useEffect(() => {
-    if (!userRole || Object.keys(uploadedImages).length === 0) return;
+    if (!userSlot || Object.keys(uploadedImages).length === 0) return;
 
     let currentMessageIndex = 0;
 
@@ -167,7 +164,7 @@ export default function RevealContent({ roomId }: RevealContentProps) {
     }, 300);
 
     return () => clearInterval(loadingInterval);
-  }, [userRole, uploadedImages]);
+  }, [userSlot, uploadedImages]);
 
   // Separate effect to handle upload start
   useEffect(() => {
@@ -179,10 +176,10 @@ export default function RevealContent({ roomId }: RevealContentProps) {
 
   // Check partner images when ready state is reached
   useEffect(() => {
-    if (revealState.stage === "ready" && userRole && !showReveal) {
+    if (revealState.stage === "ready" && userSlot && !showReveal) {
       checkPartnerImages();
     }
-  }, [revealState.stage, userRole, showReveal]);
+  }, [revealState.stage, userSlot, showReveal]);
 
   // Cleanup blob URLs when component unmounts to prevent memory leaks
   useEffect(() => {
@@ -204,11 +201,11 @@ export default function RevealContent({ roomId }: RevealContentProps) {
   }, [partnerImages.cachedImages]);
 
   const checkPartnerImages = async () => {
-    if (!userRole) return;
+    if (!userSlot) return;
 
     setPartnerImages((prev) => ({ ...prev, loading: true, error: null }));
 
-    const result = await checkPartnerImagesAPI(roomId, userRole);
+    const result = await checkPartnerImagesAPI(roomId, userSlot);
 
     if (result.success) {
       setPartnerImages({
@@ -348,7 +345,7 @@ export default function RevealContent({ roomId }: RevealContentProps) {
         });
       }, 400);
 
-      const result = await uploadImagesAPI(roomId, userRole, uploadedImages);
+      const result = await uploadImagesAPI(roomId, userSlot, uploadedImages);
 
       // Clear the progress interval
       clearInterval(uploadProgressInterval);
@@ -365,12 +362,38 @@ export default function RevealContent({ roomId }: RevealContentProps) {
         // Check if it's a rate limit error and provide specific feedback
         let errorMessage = "Upload failed";
 
-        if (result.error === "Rate limit exceeded") {
-          errorMessage =
-            result.message ||
-            "You've reached the upload limit. Please wait before trying again.";
+        // Multiple ways to detect rate limit error
+        const isRateLimit =
+          result.error === "Rate limit exceeded" ||
+          result.rateLimitInfo ||
+          (result.message &&
+            (result.message.includes("upload limit") ||
+              result.message.includes("wait") ||
+              result.message.includes("rate limit")));
+
+        if (isRateLimit) {
+          // Use more precise timing if available
+          if (result.rateLimitInfo?.retryAfter) {
+            const waitTime = result.rateLimitInfo.retryAfter;
+            const waitMinutes = Math.ceil(waitTime / 60);
+
+            if (waitTime <= 60) {
+              errorMessage = `You've reached the upload limit. Please wait ${waitTime} seconds before trying again.`;
+            } else if (waitMinutes <= 60) {
+              errorMessage = `You've reached the upload limit. Please wait ${waitMinutes} minutes before trying again.`;
+            } else {
+              errorMessage =
+                "You've reached the upload limit. Please try again later.";
+            }
+          } else {
+            errorMessage =
+              result.message ||
+              "You've reached the upload limit. Please wait before trying again.";
+          }
         } else if (result.message) {
           errorMessage = result.message;
+        } else if (result.error) {
+          errorMessage = result.error;
         }
 
         setRevealState((prev) => ({
@@ -392,7 +415,10 @@ export default function RevealContent({ roomId }: RevealContentProps) {
   if (revealState.stage === "error") {
     const isRateLimit =
       revealState.message.includes("upload limit") ||
-      revealState.message.includes("wait");
+      revealState.message.includes("wait") ||
+      revealState.message.includes("rate limit") ||
+      revealState.message.includes("reached the upload limit") ||
+      revealState.message.includes("You've reached");
 
     return (
       <div className="max-w-2xl mx-auto p-6 text-center">
@@ -774,7 +800,7 @@ export default function RevealContent({ roomId }: RevealContentProps) {
 
 export async function uploadImagesAPI(
   roomId: string,
-  userRole: string,
+  userSlot: string,
   images: Record<string, any>
 ): Promise<UploadImagesResult> {
   try {
@@ -788,7 +814,7 @@ export async function uploadImagesAPI(
         },
         body: JSON.stringify({
           roomId,
-          userRole,
+          userSlot,
           images,
         }),
       });
@@ -799,39 +825,47 @@ export async function uploadImagesAPI(
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userRole,
+          userSlot,
           images,
         }),
       });
     }
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
     const data = await response.json();
 
-    return {
-      success: data.success || false,
-      message: data.message,
-      error: data.error,
-    };
+    // Handle both successful and error responses
+    if (response.ok && data.success) {
+      return {
+        success: true,
+        message: data.message,
+        error: undefined,
+      };
+    } else {
+      // Handle error responses - including rate limit
+      return {
+        success: false,
+        message: data.message || "Upload failed",
+        error: data.error || `HTTP error! status: ${response.status}`,
+        rateLimitInfo: data.rateLimitInfo, // Pass through rate limit info
+      };
+    }
   } catch (error) {
     console.error("Error uploading images:", error);
     return {
       success: false,
       error: "Failed to connect to server",
+      message: "Failed to connect to server",
     };
   }
 }
 
 export async function checkPartnerImagesAPI(
   roomId: string,
-  userRole: string
+  userSlot: string
 ): Promise<PartnerImagesResult> {
   try {
     const response = await fetch(
-      `/api/room/${roomId}/partner-images?userRole=${userRole}`,
+      `/api/room/${roomId}/partner-images?userSlot=${userSlot}`,
       {
         method: "GET",
         headers: {

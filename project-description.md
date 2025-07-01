@@ -199,8 +199,6 @@ interface Room {
 ### Development Features
 
 - **Demo Images**: Predefined images for testing (development mode only)
-- **Audio System**: Configurable audio feedback (currently commented out)
-- **Diagnostics**: Built-in debugging and monitoring tools
 - **Testing Suite**: Comprehensive tests with Vitest and Playwright
 - **Error Handling**: Graceful error states and user feedback
 

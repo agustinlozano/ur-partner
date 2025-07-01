@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "@/components/toaster";
 import FloatingRoomMenu from "@/components/floating-room-menu";
 import ThemeToggleButton from "@/components/theme-toggle-button";
 // import AudioToggleButton from "@/components/audio-toggle-button";
@@ -77,6 +78,7 @@ export default function RootLayout({
           {/* <AudioToggleButton /> */}
           {/* </AudioProvider> */}
         </ThemeProvider>
+        <Toaster />
         <Analytics />
       </body>
     </html>

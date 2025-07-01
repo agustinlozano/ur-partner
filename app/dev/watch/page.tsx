@@ -27,6 +27,9 @@ export default async function DevWatchPage() {
   const activeRooms = await getAllRooms();
   const allRooms = await getAllRoomsIncludingExpired();
 
+  // console.log("activeRooms", activeRooms);
+  // console.log("allRooms", allRooms);
+
   const formatTimestamp = (timestamp: string) => {
     const d = new Date(timestamp);
     return (
@@ -74,12 +77,12 @@ export default async function DevWatchPage() {
           <TableHeader className="bg-muted">
             <TableRow>
               <TableHead>Room ID</TableHead>
-              <TableHead>GF Name</TableHead>
-              <TableHead>BF Name</TableHead>
-              <TableHead>GF Emoji</TableHead>
-              <TableHead>BF Emoji</TableHead>
-              <TableHead>GF Ready</TableHead>
-              <TableHead>BF Ready</TableHead>
+              <TableHead>A Name</TableHead>
+              <TableHead>B Name</TableHead>
+              <TableHead>A Emoji</TableHead>
+              <TableHead>B Emoji</TableHead>
+              <TableHead>A Ready</TableHead>
+              <TableHead>B Ready</TableHead>
               <TableHead>Animal</TableHead>
               <TableHead>Place</TableHead>
               <TableHead>Plant</TableHead>
@@ -108,97 +111,97 @@ export default async function DevWatchPage() {
                   <TableCell className="font-mono font-medium">
                     {room.room_id}
                   </TableCell>
-                  <TableCell>{truncateText(room.girlfriend_name)}</TableCell>
-                  <TableCell>{truncateText(room.boyfriend_name)}</TableCell>
+                  <TableCell>{truncateText(room.a_name)}</TableCell>
+                  <TableCell>{truncateText(room.b_name)}</TableCell>
                   <TableCell className="text-center text-lg">
-                    {room.girlfriend_emoji || "-"}
+                    {room.a_emoji || "-"}
                   </TableCell>
                   <TableCell className="text-center text-lg">
-                    {room.boyfriend_emoji || "-"}
+                    {room.b_emoji || "-"}
                   </TableCell>
                   <TableCell className="text-center">
-                    {formatBoolean(room.girlfriend_ready)}
+                    {formatBoolean(room.a_ready)}
                   </TableCell>
                   <TableCell className="text-center">
-                    {formatBoolean(room.boyfriend_ready)}
+                    {formatBoolean(room.b_ready)}
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
                       <div className="text-xs text-muted-foreground">
-                        GF: {truncateText(room.animal_girlfriend, 10)}
+                        A: {truncateText(room.animal_a, 10)}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        BF: {truncateText(room.animal_boyfriend, 10)}
+                        B: {truncateText(room.animal_b, 10)}
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
                       <div className="text-xs text-muted-foreground">
-                        GF: {truncateText(room.place_girlfriend, 10)}
+                        A: {truncateText(room.place_a, 10)}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        BF: {truncateText(room.place_boyfriend, 10)}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="text-xs text-muted-foreground">
-                        GF: {truncateText(room.plant_girlfriend, 10)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        BF: {truncateText(room.plant_boyfriend, 10)}
+                        B: {truncateText(room.place_b, 10)}
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
                       <div className="text-xs text-muted-foreground">
-                        GF: {truncateText(room.season_girlfriend, 10)}
+                        A: {truncateText(room.plant_a, 10)}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        BF: {truncateText(room.season_boyfriend, 10)}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="text-xs text-muted-foreground">
-                        GF: {truncateText(room.hobby_girlfriend, 10)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        BF: {truncateText(room.hobby_boyfriend, 10)}
+                        B: {truncateText(room.plant_b, 10)}
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
                       <div className="text-xs text-muted-foreground">
-                        GF: {truncateText(room.food_girlfriend, 10)}
+                        A: {truncateText(room.season_a, 10)}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        BF: {truncateText(room.food_boyfriend, 10)}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="text-xs text-muted-foreground">
-                        GF: {truncateText(room.colour_girlfriend, 10)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        BF: {truncateText(room.colour_boyfriend, 10)}
+                        B: {truncateText(room.season_b, 10)}
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
                       <div className="text-xs text-muted-foreground">
-                        GF: {truncateText(room.drink_girlfriend, 10)}
+                        A: {truncateText(room.hobby_a, 10)}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        BF: {truncateText(room.drink_boyfriend, 10)}
+                        B: {truncateText(room.hobby_b, 10)}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <div className="text-xs text-muted-foreground">
+                        A: {truncateText(room.food_a, 10)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        B: {truncateText(room.food_b, 10)}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <div className="text-xs text-muted-foreground">
+                        A: {truncateText(room.colour_a, 10)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        B: {truncateText(room.colour_b, 10)}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <div className="text-xs text-muted-foreground">
+                        A: {truncateText(room.drink_a, 10)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        B: {truncateText(room.drink_b, 10)}
                       </div>
                     </div>
                   </TableCell>
@@ -231,12 +234,12 @@ export default async function DevWatchPage() {
             <TableRow>
               <TableHead>Status</TableHead>
               <TableHead>Room ID</TableHead>
-              <TableHead>GF Name</TableHead>
-              <TableHead>BF Name</TableHead>
-              <TableHead>GF Emoji</TableHead>
-              <TableHead>BF Emoji</TableHead>
-              <TableHead>GF Ready</TableHead>
-              <TableHead>BF Ready</TableHead>
+              <TableHead>A Name</TableHead>
+              <TableHead>B Name</TableHead>
+              <TableHead>A Emoji</TableHead>
+              <TableHead>B Emoji</TableHead>
+              <TableHead>A Ready</TableHead>
+              <TableHead>B Ready</TableHead>
               <TableHead>Animal</TableHead>
               <TableHead>Place</TableHead>
               <TableHead>Plant</TableHead>
@@ -261,110 +264,110 @@ export default async function DevWatchPage() {
                 const expired = isRoomExpired(room.created_at);
                 return (
                   <TableRow
-                    key={`all-${room.room_id}`}
-                    className={`font-mono ${
+                    key={room.room_id}
+                    className={`${
                       expired
-                        ? "bg-red-50/75 dark:bg-red-950/25"
+                        ? "bg-red-50 dark:bg-red-950/20"
                         : "bg-background/75"
-                    }`}
+                    } font-mono`}
                   >
                     <TableCell className="text-center">
-                      {expired ? "🔴" : "🟢"}
+                      {expired ? "🔴" : "✅"}
                     </TableCell>
                     <TableCell className="font-mono font-medium">
                       {room.room_id}
                     </TableCell>
-                    <TableCell>{truncateText(room.girlfriend_name)}</TableCell>
-                    <TableCell>{truncateText(room.boyfriend_name)}</TableCell>
+                    <TableCell>{truncateText(room.a_name)}</TableCell>
+                    <TableCell>{truncateText(room.b_name)}</TableCell>
                     <TableCell className="text-center text-lg">
-                      {room.girlfriend_emoji || "-"}
+                      {room.a_emoji || "-"}
                     </TableCell>
                     <TableCell className="text-center text-lg">
-                      {room.boyfriend_emoji || "-"}
+                      {room.b_emoji || "-"}
                     </TableCell>
                     <TableCell className="text-center">
-                      {formatBoolean(room.girlfriend_ready)}
+                      {formatBoolean(room.a_ready)}
                     </TableCell>
                     <TableCell className="text-center">
-                      {formatBoolean(room.boyfriend_ready)}
+                      {formatBoolean(room.b_ready)}
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         <div className="text-xs text-muted-foreground">
-                          GF: {truncateText(room.animal_girlfriend, 10)}
+                          A: {truncateText(room.animal_a, 10)}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          BF: {truncateText(room.animal_boyfriend, 10)}
+                          B: {truncateText(room.animal_b, 10)}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         <div className="text-xs text-muted-foreground">
-                          GF: {truncateText(room.place_girlfriend, 10)}
+                          A: {truncateText(room.place_a, 10)}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          BF: {truncateText(room.place_boyfriend, 10)}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="text-xs text-muted-foreground">
-                          GF: {truncateText(room.plant_girlfriend, 10)}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          BF: {truncateText(room.plant_boyfriend, 10)}
+                          B: {truncateText(room.place_b, 10)}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         <div className="text-xs text-muted-foreground">
-                          GF: {truncateText(room.season_girlfriend, 10)}
+                          A: {truncateText(room.plant_a, 10)}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          BF: {truncateText(room.season_boyfriend, 10)}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="text-xs text-muted-foreground">
-                          GF: {truncateText(room.hobby_girlfriend, 10)}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          BF: {truncateText(room.hobby_boyfriend, 10)}
+                          B: {truncateText(room.plant_b, 10)}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         <div className="text-xs text-muted-foreground">
-                          GF: {truncateText(room.food_girlfriend, 10)}
+                          A: {truncateText(room.season_a, 10)}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          BF: {truncateText(room.food_boyfriend, 10)}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="text-xs text-muted-foreground">
-                          GF: {truncateText(room.colour_girlfriend, 10)}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          BF: {truncateText(room.colour_boyfriend, 10)}
+                          B: {truncateText(room.season_b, 10)}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         <div className="text-xs text-muted-foreground">
-                          GF: {truncateText(room.drink_girlfriend, 10)}
+                          A: {truncateText(room.hobby_a, 10)}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          BF: {truncateText(room.drink_boyfriend, 10)}
+                          B: {truncateText(room.hobby_b, 10)}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-xs text-muted-foreground">
+                          A: {truncateText(room.food_a, 10)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          B: {truncateText(room.food_b, 10)}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-xs text-muted-foreground">
+                          A: {truncateText(room.colour_a, 10)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          B: {truncateText(room.colour_b, 10)}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-xs text-muted-foreground">
+                          A: {truncateText(room.drink_a, 10)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          B: {truncateText(room.drink_b, 10)}
                         </div>
                       </div>
                     </TableCell>

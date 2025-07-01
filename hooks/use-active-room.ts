@@ -4,7 +4,9 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 
 interface ActiveRoom {
   room_id: string;
-  role: "girlfriend" | "boyfriend";
+  // TODO: keep on this direction (u know what i mean ;))
+  role: "girlfriend" | "boyfriend" | "partner A" | "partner B";
+  slot: "a" | "b";
   name: string;
   emoji: string;
   created_at: string;
@@ -40,7 +42,7 @@ export function useActiveRoom() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            userRole: currentRoom.role,
+            userSlot: currentRoom.slot,
           }),
         });
 

@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { findRoomByRoomId } from "@/lib/dynamodb";
+import { type DatabaseSlot } from "@/lib/role-utils";
 
 // Helper function to check if a string is a date
 function isDateString(str: string): boolean {
@@ -47,23 +48,34 @@ export async function GET(
   try {
     const { roomId } = await params;
     const { searchParams } = new URL(request.url);
-    const userRole = searchParams.get("userRole");
+    const userSlot = searchParams.get("userSlot");
 
-    if (!roomId || !userRole) {
+    if (!roomId || !userSlot) {
       return Response.json(
-        { error: "Room ID and user role are required" },
+        { error: "Room ID and user slot are required" },
         { status: 400 }
       );
     }
 
-    // Determine partner role
-    const partnerRole = userRole === "girlfriend" ? "boyfriend" : "girlfriend";
+    // Validate user slot
+    const validSlots: DatabaseSlot[] = ["a", "b"];
+    if (!validSlots.includes(userSlot as DatabaseSlot)) {
+      return Response.json(
+        { error: `Invalid user slot: ${userSlot}` },
+        { status: 400 }
+      );
+    }
 
     // Find room data to get the stored image URLs
     const room = await findRoomByRoomId(roomId);
     if (!room) {
       return Response.json({ error: "Room not found" }, { status: 404 });
     }
+
+    const partnerSlot = userSlot === "a" ? "b" : "a";
+
+    // now, find partner role from room data
+    // const partnerRole = room[`role_${partnerSlot}`]; // TODO: add `role_a` and `role_b` to room data
 
     // Extract partner's image URLs from the room data
     const categories = [
@@ -82,7 +94,7 @@ export async function GET(
     let totalImagesFound = 0;
 
     for (const category of categories) {
-      const columnKey = `${category}_${partnerRole}` as keyof typeof room;
+      const columnKey = `${category}_${partnerSlot}` as keyof typeof room;
       const imageData = room[columnKey];
 
       if (imageData && typeof imageData === "string" && imageData.trim()) {
@@ -120,7 +132,8 @@ export async function GET(
     return Response.json({
       success: true,
       isReady,
-      partnerRole,
+      userSlot,
+      partnerRole: "partner",
       images: partnerImages,
       totalImages: totalImagesFound,
       categoriesCompleted: Object.keys(partnerImages).length,

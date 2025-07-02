@@ -6,7 +6,11 @@ import {
   UpdateCommand,
   ScanCommand,
 } from "@aws-sdk/lib-dynamodb";
-import { PERSONALITY_CATEGORIES, type DatabaseSlot } from "./role-utils";
+import {
+  PERSONALITY_CATEGORIES,
+  type DatabaseSlot,
+  type AnyRole,
+} from "./role-utils";
 
 // Configuración del cliente DynamoDB
 const client = new DynamoDBClient({
@@ -35,6 +39,8 @@ export interface Room {
   b_name?: string;
   a_emoji?: string;
   b_emoji?: string;
+  a_role?: AnyRole; // Store the relationship role for slot A
+  b_role?: AnyRole; // Store the relationship role for slot B
 
   animal_a?: string;
   animal_b?: string;
@@ -216,10 +222,12 @@ export const leaveRoomBySlot = async (
     // Clear basic fields using direct template strings
     const nameField = `${userSlot}_name` as keyof Room;
     const emojiField = `${userSlot}_emoji` as keyof Room;
+    const roleField = `${userSlot}_role` as keyof Room;
     const readyField = `${userSlot}_ready` as keyof Room;
 
     updates[nameField] = "" as any;
     updates[emojiField] = "" as any;
+    updates[roleField] = "" as any;
     updates[readyField] = false as any;
 
     // Clear all image category fields using direct template strings

@@ -1,7 +1,6 @@
 "use server";
 
 import {
-  joinRoomDynamoDB,
   createRoomAndRedirect as createRoomAndRedirectDynamoDB,
   joinRoomAndRedirect as joinRoomAndRedirectDynamoDB,
   getRoomDataDynamoDB,
@@ -50,10 +49,6 @@ export interface UploadImagesResult {
   rateLimitInfo?: {
     retryAfter: number; // Seconds to wait before retry
   };
-}
-
-export async function joinRoom(input: JoinRoomInput): Promise<JoinRoomResult> {
-  return await joinRoomDynamoDB(input);
 }
 
 // New function to save active room data to localStorage via client-side

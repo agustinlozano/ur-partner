@@ -402,6 +402,8 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
               <div className="grid grid-cols-2 gap-2">
                 {(
                   [
+                    "girlfriend",
+                    "boyfriend",
                     "friend",
                     "roommate",
                     "workmate",

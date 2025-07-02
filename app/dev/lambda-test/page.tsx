@@ -7,6 +7,7 @@ import { Upload, Send, Trash2, CheckCircle, XCircle } from "lucide-react";
 import Image from "next/image";
 import { predefinedImages } from "@/lib/personality-form-constants";
 import { toast } from "sonner";
+import { PERSONALITY_CATEGORIES, PersonalityCategory } from "@/lib/role-utils";
 
 interface TestResponse {
   success: boolean;
@@ -19,19 +20,6 @@ interface TestResponse {
   error?: string;
   timestamp: string;
 }
-
-// Valid categories matching the Lambda and route.ts
-const VALID_CATEGORIES = [
-  "animal",
-  "place",
-  "plant",
-  "character",
-  "season",
-  "hobby",
-  "food",
-  "colour",
-  "drink",
-];
 
 export default function LambdaTestPage() {
   const [roomId, setRoomId] = useState("test-room-" + Date.now());
@@ -47,7 +35,7 @@ export default function LambdaTestPage() {
     const images: { [categoryId: string]: string | string[] } = {};
 
     // Map predefined images to valid categories
-    const categoryMapping: { [key: string]: string } = {
+    const categoryMapping: { [key: string]: PersonalityCategory } = {
       animals: "animal",
       places: "place",
       plants: "plant",
@@ -61,7 +49,7 @@ export default function LambdaTestPage() {
 
     Object.entries(predefinedImages).forEach(([key, categoryImages]) => {
       const mappedCategory = categoryMapping[key];
-      if (mappedCategory && VALID_CATEGORIES.includes(mappedCategory)) {
+      if (mappedCategory && PERSONALITY_CATEGORIES.includes(mappedCategory)) {
         if (Array.isArray(categoryImages)) {
           // For character category, always use as array
           if (mappedCategory === "character") {
@@ -299,7 +287,7 @@ export default function LambdaTestPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              {VALID_CATEGORIES.map((category) => (
+              {PERSONALITY_CATEGORIES.map((category) => (
                 <Button
                   key={category}
                   onClick={() => addCategory(category)}
@@ -634,7 +622,8 @@ export default function LambdaTestPage() {
                 {`{ userSlot: string, images: { [categoryId]: string | string[] } }`}
               </p>
               <p>
-                <strong>Valid Categories:</strong> {VALID_CATEGORIES.join(", ")}
+                <strong>Valid Categories:</strong>{" "}
+                {PERSONALITY_CATEGORIES.join(", ")}
               </p>
               <p>
                 <strong>Rate Limiting:</strong> Configured per IP + service

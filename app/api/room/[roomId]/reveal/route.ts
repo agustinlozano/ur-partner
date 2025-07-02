@@ -1,11 +1,6 @@
 import { NextRequest } from "next/server";
-// import { findRoomByRoomId } from "@/lib/sheets";
 import { findRoomByRoomId } from "@/lib/dynamodb";
-import {
-  slotToRole,
-  type LogicalRole,
-  type DatabaseSlot,
-} from "@/lib/role-utils";
+import { type DatabaseSlot } from "@/lib/role-utils";
 
 export async function POST(
   request: NextRequest,

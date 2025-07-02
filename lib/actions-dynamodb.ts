@@ -7,7 +7,11 @@ import {
   generateUniqueRoomId,
   type Room,
 } from "./dynamodb";
-import { type DatabaseSlot, type AnyRole } from "./role-utils";
+import {
+  type DatabaseSlot,
+  type AnyRole,
+  RelationshipRole,
+} from "./role-utils";
 
 export interface CreateRoomInput {
   userSlot: DatabaseSlot;
@@ -253,7 +257,7 @@ export async function leaveRoomDynamoDB(
 
 // Functions for backward compatibility with existing API
 export async function createRoomAndRedirect(formData: FormData) {
-  const role = formData.get("role") as "girlfriend" | "boyfriend";
+  const role = formData.get("role") as RelationshipRole;
   const name = formData.get("name") as string;
   const emoji = formData.get("emoji") as string;
 

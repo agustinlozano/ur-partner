@@ -5,9 +5,10 @@ import {
   joinRoomAndRedirect as joinRoomAndRedirectDynamoDB,
   getRoomDataDynamoDB,
 } from "./actions-dynamodb";
+import { RelationshipRole } from "./role-utils";
 
 export interface CreateRoomInput {
-  role: "girlfriend" | "boyfriend";
+  role: RelationshipRole;
   name: string;
   emoji: string;
 }
@@ -27,7 +28,7 @@ export interface JoinRoomInput {
 export interface JoinRoomResult {
   success: boolean;
   room_id?: string;
-  role?: "girlfriend" | "boyfriend";
+  role?: RelationshipRole;
   error?: string;
 }
 

@@ -4,7 +4,6 @@ import {
   createRoomAndRedirect as createRoomAndRedirectDynamoDB,
   joinRoomAndRedirect as joinRoomAndRedirectDynamoDB,
   getRoomDataDynamoDB,
-  setActiveRoomData as setActiveRoomDataDynamoDB,
 } from "./actions-dynamodb";
 
 export interface CreateRoomInput {
@@ -49,17 +48,6 @@ export interface UploadImagesResult {
   rateLimitInfo?: {
     retryAfter: number; // Seconds to wait before retry
   };
-}
-
-// New function to save active room data to localStorage via client-side
-export async function setActiveRoomData(
-  roomId: string,
-  role: "girlfriend" | "boyfriend",
-  name: string,
-  emoji: string,
-  slot: "a" | "b" = "a"
-) {
-  return await setActiveRoomDataDynamoDB(roomId, role, name, emoji, slot);
 }
 
 export async function createRoomAndRedirect(formData: FormData) {

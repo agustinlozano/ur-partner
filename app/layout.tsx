@@ -7,6 +7,7 @@ import ThemeToggleButton from "@/components/theme-toggle-button";
 // import AudioToggleButton from "@/components/audio-toggle-button";
 import { ThemeProvider } from "@/components/theme-provider";
 // import { AudioProvider } from "@/components/audio-provider";
+import { DevKeyTracker } from "@/components/dev-key-tracker";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
@@ -79,6 +80,7 @@ export default function RootLayout({
           {/* </AudioProvider> */}
         </ThemeProvider>
         <Toaster />
+        <DevKeyTracker />
         <Analytics />
       </body>
     </html>

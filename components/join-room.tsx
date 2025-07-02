@@ -215,9 +215,7 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
                 </p>
                 <p>
                   <strong>Your Role:</strong>{" "}
-                  {activeRoom.role === "girlfriend"
-                    ? "Girlfriend"
-                    : "Boyfriend"}
+                  <span className="capitalize">{activeRoom.role}</span>
                 </p>
                 <p>
                   <strong>Your Name:</strong> {activeRoom.name}
@@ -461,12 +459,10 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
 
             {selectedRole && (
               <EmojiSelector
-                role="girlfriend" // This is just for emoji categories, doesn't affect functionality
                 selectedEmoji={selectedEmoji}
                 onEmojiSelect={setSelectedEmoji}
                 name="emoji"
                 disabled={isPending}
-                onRoleChange={() => {}}
               />
             )}
           </>

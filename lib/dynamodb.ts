@@ -5,8 +5,8 @@ import {
   GetCommand,
   UpdateCommand,
   ScanCommand,
-  QueryCommand,
 } from "@aws-sdk/lib-dynamodb";
+import { PERSONALITY_CATEGORIES, type DatabaseSlot } from "./role-utils";
 
 // Configuración del cliente DynamoDB
 const client = new DynamoDBClient({
@@ -21,37 +21,42 @@ export const dynamoDb = DynamoDBDocumentClient.from(client);
 
 // Nombres de las tablas
 export const TABLES = {
-  ROOMS: process.env.DYNAMODB_ROOMS_TABLE || "Rooms",
+  ROOMS:
+    process.env.AWS_DYNAMODB_TABLE_NAME ||
+    process.env.DYNAMODB_ROOMS_TABLE ||
+    "Rooms",
 } as const;
 
 export interface Room {
   room_id: string; // Partition Key
-  girlfriend_name?: string;
-  boyfriend_name?: string;
-  girlfriend_emoji?: string;
-  boyfriend_emoji?: string;
 
-  animal_girlfriend?: string;
-  animal_boyfriend?: string;
-  place_girlfriend?: string;
-  place_boyfriend?: string;
-  plant_girlfriend?: string;
-  plant_boyfriend?: string;
-  character_girlfriend?: string; // JSON string para arrays
-  character_boyfriend?: string;
-  season_girlfriend?: string;
-  season_boyfriend?: string;
-  hobby_girlfriend?: string;
-  hobby_boyfriend?: string;
-  food_girlfriend?: string;
-  food_boyfriend?: string;
-  colour_girlfriend?: string;
-  colour_boyfriend?: string;
-  drink_girlfriend?: string;
-  drink_boyfriend?: string;
+  // NEW SCHEMA - Neutral role fields
+  a_name?: string;
+  b_name?: string;
+  a_emoji?: string;
+  b_emoji?: string;
 
-  girlfriend_ready?: boolean;
-  boyfriend_ready?: boolean;
+  animal_a?: string;
+  animal_b?: string;
+  place_a?: string;
+  place_b?: string;
+  plant_a?: string;
+  plant_b?: string;
+  character_a?: string; // JSON string para arrays
+  character_b?: string;
+  season_a?: string;
+  season_b?: string;
+  hobby_a?: string;
+  hobby_b?: string;
+  food_a?: string;
+  food_b?: string;
+  colour_a?: string;
+  colour_b?: string;
+  drink_a?: string;
+  drink_b?: string;
+
+  a_ready?: boolean;
+  b_ready?: boolean;
   created_at: string;
   updated_at: string;
 
@@ -97,6 +102,7 @@ export const createRoom = async (
   return roomWithTimestamps;
 };
 
+// This is DEF. used in many places.
 export const findRoomByRoomId = async (
   roomId: string
 ): Promise<Room | null> => {
@@ -126,6 +132,7 @@ export const findRoomByRoomId = async (
   }
 };
 
+// TODO: check if this is still used
 export const updateRoom = async (
   roomId: string,
   updates: Partial<Omit<Room, "room_id" | "created_at">>
@@ -173,6 +180,7 @@ export const updateRoom = async (
   }
 };
 
+// TODO: check if this is still used
 // Function to check if a room ID already exists
 export const roomExists = async (roomId: string): Promise<boolean> => {
   try {
@@ -197,81 +205,33 @@ export const generateUniqueRoomId = async (
   throw new Error("Unable to generate unique room ID");
 };
 
-// Function to update the image URLs
-export const updateRoomImages = async (
+// Function to remove a user from a room by slot (clear their data)
+export const leaveRoomBySlot = async (
   roomId: string,
-  userRole: "girlfriend" | "boyfriend",
-  uploadedUrls: { [categoryId: string]: string | string[] }
-): Promise<boolean> => {
-  try {
-    const updates: Partial<Room> = {};
-
-    // Map the URLs to the corresponding fields
-    Object.entries(uploadedUrls).forEach(([categoryId, urls]) => {
-      const fieldName = `${categoryId}_${userRole}` as keyof Room;
-
-      // Si es un array (como character), convertir a JSON string
-      if (Array.isArray(urls)) {
-        updates[fieldName] = JSON.stringify(urls) as any;
-      } else {
-        updates[fieldName] = urls as any;
-      }
-    });
-
-    await updateRoom(roomId, updates);
-    return true;
-  } catch (error) {
-    console.error("Error updating room images:", error);
-    return false;
-  }
-};
-
-// Function to remove a user from a room (clear their data)
-export const leaveRoom = async (
-  roomId: string,
-  userRole: "girlfriend" | "boyfriend"
+  userSlot: DatabaseSlot
 ): Promise<Room | null> => {
   try {
     const updates: Partial<Room> = {};
 
-    if (userRole === "girlfriend") {
-      // Clear girlfriend data
-      updates.girlfriend_name = "";
-      updates.girlfriend_emoji = "";
-      updates.girlfriend_ready = false;
+    // Clear basic fields using direct template strings
+    const nameField = `${userSlot}_name` as keyof Room;
+    const emojiField = `${userSlot}_emoji` as keyof Room;
+    const readyField = `${userSlot}_ready` as keyof Room;
 
-      // Clear all girlfriend image categories
-      updates.animal_girlfriend = "";
-      updates.place_girlfriend = "";
-      updates.plant_girlfriend = "";
-      updates.character_girlfriend = "";
-      updates.season_girlfriend = "";
-      updates.hobby_girlfriend = "";
-      updates.food_girlfriend = "";
-      updates.colour_girlfriend = "";
-      updates.drink_girlfriend = "";
-    } else {
-      // Clear boyfriend data
-      updates.boyfriend_name = "";
-      updates.boyfriend_emoji = "";
-      updates.boyfriend_ready = false;
+    updates[nameField] = "" as any;
+    updates[emojiField] = "" as any;
+    updates[readyField] = false as any;
 
-      // Clear all boyfriend image categories
-      updates.animal_boyfriend = "";
-      updates.place_boyfriend = "";
-      updates.plant_boyfriend = "";
-      updates.character_boyfriend = "";
-      updates.season_boyfriend = "";
-      updates.hobby_boyfriend = "";
-      updates.food_boyfriend = "";
-      updates.colour_boyfriend = "";
-      updates.drink_boyfriend = "";
-    }
+    // Clear all image category fields using direct template strings
+    PERSONALITY_CATEGORIES.forEach((category) => {
+      const fieldName = `${category}_${userSlot}` as keyof Room;
+      updates[fieldName] = "" as any;
+    });
 
     const updatedRoom = await updateRoom(roomId, updates);
     return updatedRoom;
   } catch (error) {
-    console.error("Error leaving room:", error);
+    console.error("Error leaving room by slot:", error);
     throw new Error("Failed to leave room");
   }
 };

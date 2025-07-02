@@ -11,12 +11,15 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
 import { checkRevealReady } from "@/lib/check-reveal-ready";
 import { sleep } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { Room } from "@/lib/dynamodb";
+import { RelationshipRole } from "@/lib/role-utils";
 
 interface PageProps {
   params: Promise<{ roomId: string }>;
   searchParams?: Promise<{
     new?: string;
-    role?: "girlfriend" | "boyfriend";
+    role?: RelationshipRole;
     slot?: "a" | "b";
     name?: string;
     emoji?: string;
@@ -28,8 +31,10 @@ interface RoomData {
   created_at: string;
   a_name?: string;
   a_emoji?: string;
+  a_role?: string;
   b_name?: string;
   b_emoji?: string;
+  b_role?: string;
 }
 
 export default function RoomDetailPage({ params, searchParams }: PageProps) {
@@ -37,13 +42,13 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [roomId, setRoomId] = useState<string>("");
   const [currentUser, setCurrentUser] = useState<{
-    role?: "girlfriend" | "boyfriend";
+    role?: RelationshipRole;
     name?: string;
     slot?: string;
   } | null>(null);
   const [searchParamsData, setSearchParamsData] = useState<{
     new?: string;
-    role?: "girlfriend" | "boyfriend";
+    role?: RelationshipRole;
     slot?: "a" | "b";
     name?: string;
     emoji?: string;
@@ -57,6 +62,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
     categoriesCompleted: number;
   } | null>(null);
   const [checkingReveal, setCheckingReveal] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     async function loadData() {
@@ -66,8 +72,16 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
       setRoomId(id);
       setSearchParamsData(searchParams_);
 
+      const room = await getRoomData(id);
+
+      if (!room) {
+        router.push("/");
+        return;
+      }
+
       // Load current user from localStorage
       const userData = localStorage.getItem("activeRoom");
+
       if (userData) {
         const user = JSON.parse(userData);
         setCurrentUser({
@@ -75,9 +89,31 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
           name: user.name,
           slot: (user.slot || "").toLowerCase(),
         });
+      } else {
+        const slot = searchParams_.slot;
+
+        if (!slot) {
+          router.push("/");
+          return;
+        }
+
+        // slot must be "a" or "b" check this out before contitue
+        if (slot !== "a" && slot !== "b") {
+          router.push("/");
+          return;
+        }
+
+        // find user from room data by slot
+        const name = room[`${slot}_name` as keyof Room];
+        const role = room[`${slot}_role` as keyof Room];
+
+        setCurrentUser({
+          role: role as RelationshipRole,
+          name: name as string,
+          slot: slot,
+        });
       }
 
-      const room = await getRoomData(id);
       setRoomData(room);
       setLoading(false);
     }
@@ -131,7 +167,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
     pollRoomStatus();
 
     // Poll every 5 seconds
-    intervalRef.current = setInterval(pollRoomStatus, 5000);
+    intervalRef.current = setInterval(pollRoomStatus, 8000);
 
     return () => {
       console.log("🛑 Cleanup: Clearing polling interval");
@@ -220,11 +256,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
 
   const isSlotAMissing = !roomData.a_name;
   const isSlotBMissing = !roomData.b_name;
-  const missingPartner = isSlotAMissing
-    ? "girlfriend"
-    : isSlotBMissing
-    ? "boyfriend"
-    : null;
+  const missingPartner = isSlotAMissing || isSlotBMissing;
 
   return (
     <GradientBackground className="py-12 px-4">
@@ -252,7 +284,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
           <div className="flex flex-col items-center justify-center gap-2">
             <p className="text-lg text-primary/85 font-mono">
               {missingPartner
-                ? `Waiting for ${missingPartner} to join`
+                ? `Waiting for your partner to join`
                 : "Both partners are in the room!"}
             </p>
             <div className="min-h-[24px]">
@@ -267,16 +299,16 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {/* Girlfriend Card */}
+          {/* Slot A Card */}
           <div
-            data-testid="girlfriend-card"
+            data-testid="slot-a-card"
             className={cn(
               "bg-card/60 rounded-xl shadow-lg p-6 border relative select-none",
               "bg-amber-100/50 dark:bg-amber-900/25 backdrop-blur-sm",
               "border-amber-400 dark:border-amber-800"
             )}
           >
-            {currentUser?.role === "girlfriend" && (
+            {currentUser?.slot === "a" && (
               <div className="absolute top-3 right-3">
                 <span className="bg-purple-200 border border-purple-400 text-purple-800 dark:bg-purple-900 dark:text-purple-200 dark:border-purple-700 text-xs font-bold px-2 py-1 rounded-full">
                   You
@@ -285,7 +317,9 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
             )}
             <div className="text-center">
               <div className="text-4xl mb-3">{roomData.a_emoji || "💕"}</div>
-              <h2 className="text-xl font-semibold mb-2">Girlfriend</h2>
+              <h2 className="text-xl font-semibold mb-2 capitalize">
+                {roomData.a_role || "Partner A"}
+              </h2>
               {roomData.a_name ? (
                 <div>
                   <p className="text-lg text-amber-600 font-medium mb-2">
@@ -306,25 +340,27 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
             </div>
           </div>
 
-          {/* Boyfriend Card */}
+          {/* Slot B Card */}
           <div
-            data-testid="boyfriend-card"
+            data-testid="slot-b-card"
             className={cn(
               "bg-card/60 rounded-xl shadow-lg p-6 border relative select-none",
               "bg-blue-100/50 dark:bg-blue-900/25 backdrop-blur-sm",
               "border-blue-400 dark:border-blue-800"
             )}
           >
-            {currentUser?.role === "boyfriend" && (
+            {currentUser?.slot === "b" && (
               <div className="absolute top-3 right-3">
-                <span className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 text-xs font-bold px-2 py-1 rounded-full">
+                <span className="bg-purple-200 border border-purple-400 text-purple-800 dark:bg-purple-900 dark:text-purple-200 dark:border-purple-700 text-xs font-bold px-2 py-1 rounded-full">
                   You
                 </span>
               </div>
             )}
             <div className="text-center">
               <div className="text-4xl mb-3">{roomData.b_emoji || "💙"}</div>
-              <h2 className="text-xl font-semibold mb-2">Boyfriend</h2>
+              <h2 className="text-xl font-semibold mb-2 capitalize">
+                {roomData.b_role || "Partner B"}
+              </h2>
               {roomData.b_name ? (
                 <div>
                   <p className="text-lg text-blue-600 font-medium mb-2">

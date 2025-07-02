@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { RelationshipRole } from "@/lib/role-utils";
 
 interface ActiveRoom {
   room_id: string;
   // TODO: keep on this direction (u know what i mean ;))
-  role: "girlfriend" | "boyfriend" | "partner A" | "partner B";
+  role: RelationshipRole;
   slot: "a" | "b";
   name: string;
   emoji: string;

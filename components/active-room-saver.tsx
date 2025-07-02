@@ -2,10 +2,11 @@
 
 import { useEffect } from "react";
 import { useActiveRoom } from "@/hooks/use-active-room";
+import { RelationshipRole } from "@/lib/role-utils";
 
 interface ActiveRoomSaverProps {
   roomId: string;
-  role: "girlfriend" | "boyfriend";
+  role: RelationshipRole;
   slot: "a" | "b";
   name: string;
   emoji: string;

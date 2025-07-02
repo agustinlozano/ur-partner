@@ -1,15 +1,14 @@
 "use server";
 
 import {
-  joinRoomDynamoDB,
   createRoomAndRedirect as createRoomAndRedirectDynamoDB,
   joinRoomAndRedirect as joinRoomAndRedirectDynamoDB,
   getRoomDataDynamoDB,
-  setActiveRoomData as setActiveRoomDataDynamoDB,
 } from "./actions-dynamodb";
+import { RelationshipRole } from "./role-utils";
 
 export interface CreateRoomInput {
-  role: "girlfriend" | "boyfriend";
+  role: RelationshipRole;
   name: string;
   emoji: string;
 }
@@ -29,7 +28,7 @@ export interface JoinRoomInput {
 export interface JoinRoomResult {
   success: boolean;
   room_id?: string;
-  role?: "girlfriend" | "boyfriend";
+  role?: RelationshipRole;
   error?: string;
 }
 
@@ -47,20 +46,9 @@ export interface UploadImagesResult {
   success: boolean;
   message?: string;
   error?: string;
-}
-
-export async function joinRoom(input: JoinRoomInput): Promise<JoinRoomResult> {
-  return await joinRoomDynamoDB(input);
-}
-
-// New function to save active room data to localStorage via client-side
-export async function setActiveRoomData(
-  roomId: string,
-  role: "girlfriend" | "boyfriend",
-  name: string,
-  emoji: string
-) {
-  return await setActiveRoomDataDynamoDB(roomId, role, name, emoji);
+  rateLimitInfo?: {
+    retryAfter: number; // Seconds to wait before retry
+  };
 }
 
 export async function createRoomAndRedirect(formData: FormData) {

@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { findRoomByRoomId } from "@/lib/dynamodb";
+import { PERSONALITY_CATEGORIES, type DatabaseSlot } from "@/lib/role-utils";
 
 export async function GET(
   request: NextRequest,
@@ -12,9 +13,18 @@ export async function GET(
       return Response.json({ error: "Room ID required" }, { status: 400 });
     }
 
-    // Get current user from request headers or query params
+    // Get current user slot from request headers or query params
     const url = new URL(request.url);
-    const currentUserRole = url.searchParams.get("role") || "girlfriend"; // Default fallback
+    const currentUserSlot = url.searchParams.get("slot") || "a";
+
+    // Validate user slot
+    const validSlots: DatabaseSlot[] = ["a", "b"];
+    if (!validSlots.includes(currentUserSlot as DatabaseSlot)) {
+      return Response.json(
+        { error: `Invalid user slot: ${currentUserSlot}` },
+        { status: 400 }
+      );
+    }
 
     // Get room data from DynamoDB
     const roomData = await findRoomByRoomId(roomId);
@@ -23,56 +33,18 @@ export async function GET(
       return Response.json({ error: "Room not found" }, { status: 404 });
     }
 
-    // Determine partner role and info
-    const partnerRole =
-      currentUserRole === "girlfriend" ? "boyfriend" : "girlfriend";
-    const partnerName =
-      partnerRole === "girlfriend"
-        ? roomData.girlfriend_name
-        : roomData.boyfriend_name;
+    const partnerSlot = currentUserSlot === "a" ? "b" : "a";
 
     // Check which categories the partner has completed
     const partnerCompletedCategories: string[] = [];
 
-    // Map DynamoDB columns to category IDs based on partner role
-    const categoryMapping = {
-      animal:
-        partnerRole === "girlfriend"
-          ? roomData.animal_girlfriend
-          : roomData.animal_boyfriend,
-      place:
-        partnerRole === "girlfriend"
-          ? roomData.place_girlfriend
-          : roomData.place_boyfriend,
-      plant:
-        partnerRole === "girlfriend"
-          ? roomData.plant_girlfriend
-          : roomData.plant_boyfriend,
-      character:
-        partnerRole === "girlfriend"
-          ? roomData.character_girlfriend
-          : roomData.character_boyfriend,
-      season:
-        partnerRole === "girlfriend"
-          ? roomData.season_girlfriend
-          : roomData.season_boyfriend,
-      hobby:
-        partnerRole === "girlfriend"
-          ? roomData.hobby_girlfriend
-          : roomData.hobby_boyfriend,
-      food:
-        partnerRole === "girlfriend"
-          ? roomData.food_girlfriend
-          : roomData.food_boyfriend,
-      colour:
-        partnerRole === "girlfriend"
-          ? roomData.colour_girlfriend
-          : roomData.colour_boyfriend,
-      drink:
-        partnerRole === "girlfriend"
-          ? roomData.drink_girlfriend
-          : roomData.drink_boyfriend,
-    };
+    // Map DynamoDB columns to category IDs based on partner role using new schema
+    const categoryMapping: Record<string, string | undefined> = {};
+
+    PERSONALITY_CATEGORIES.forEach((category) => {
+      const fieldName = `${category}_${partnerSlot}` as keyof typeof roomData;
+      categoryMapping[category] = roomData[fieldName] as string | undefined;
+    });
 
     // Check which categories have data for the partner
     Object.entries(categoryMapping).forEach(([categoryId, value]) => {
@@ -82,24 +54,21 @@ export async function GET(
       }
     });
 
-    // Check if partner is ready
-    const partnerReady =
-      partnerRole === "girlfriend"
-        ? roomData.girlfriend_ready === true
-        : roomData.boyfriend_ready === true;
+    // Check if partner is ready using new schema
+    const partnerReadyField = `ready_${partnerSlot}` as keyof typeof roomData;
+    const partnerReady = roomData[partnerReadyField] === true;
 
     const progress = {
       completed: partnerCompletedCategories,
       total: 9,
       isReady: partnerReady,
-      name: partnerName,
     };
 
     return Response.json({
       success: true,
       progress,
       roomId,
-      partnerRole,
+      currentUserSlot,
     });
   } catch (error) {
     console.error("Error fetching partner status:", error);

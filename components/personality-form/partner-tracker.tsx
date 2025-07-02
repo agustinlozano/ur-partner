@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
+import { toast } from "sonner";
 import {
   categories,
   type PartnerTrackerProps,
@@ -28,28 +29,28 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [userRole, setUserRole] = useState<string>("");
+  const [userSlot, setUserSlot] = useState<string>("");
   const [isRevealing, setIsRevealing] = useState(false);
 
-  // Get user role
+  // Get user role and slot
   useEffect(() => {
     const userData = localStorage.getItem("activeRoom");
     if (userData) {
       const user = JSON.parse(userData);
-      setUserRole(user.role || "girlfriend");
+      setUserSlot((user.slot || "").toLowerCase());
     }
   }, [roomId]);
 
   // Polling hook - only active when drawer is open
   useEffect(() => {
-    if (!isOpen || !userRole) return;
+    if (!isOpen || !userSlot) return;
 
     const pollStatus = async () => {
       setIsLoading(true);
       try {
         // Get partner status
         const partnerResponse = await fetch(
-          `/api/room/${roomId}/partner-status?role=${userRole}`
+          `/api/room/${roomId}/partner-status?slot=${userSlot}`
         );
         const partnerData = await partnerResponse.json();
 
@@ -57,11 +58,10 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
           setPartnerProgress(partnerData.progress);
         }
 
-        // Get current user status (by requesting the opposite role)
+        // Get current user status (by requesting the opposite slot)
+        const oppositeSlot = userSlot === "a" ? "b" : "a";
         const currentUserResponse = await fetch(
-          `/api/room/${roomId}/partner-status?role=${
-            userRole === "girlfriend" ? "boyfriend" : "girlfriend"
-          }`
+          `/api/room/${roomId}/partner-status?slot=${oppositeSlot}`
         );
         const currentUserData = await currentUserResponse.json();
 
@@ -88,7 +88,7 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
     const interval = setInterval(pollStatus, 5000);
 
     return () => clearInterval(interval);
-  }, [isOpen, roomId, userRole]);
+  }, [isOpen, roomId, userSlot]);
 
   const progressPercentage = Math.round(
     (partnerProgress.completed.length / partnerProgress.total) * 100
@@ -120,7 +120,7 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userRole,
+          userSlot,
         }),
       });
 
@@ -131,11 +131,16 @@ export function PartnerTracker({ roomId, isOpen }: PartnerTrackerProps) {
         router.push(`/room/${roomId}/reveal`);
       } else {
         console.error("Reveal failed:", data.error);
-        alert("Error starting reveal. Please try again.");
+        toast.error("Error starting reveal", {
+          description:
+            "Please try again. If the problem persists, refresh the page.",
+        });
       }
     } catch (error) {
       console.error("Failed to start reveal:", error);
-      alert("Error starting reveal. Please try again.");
+      toast.error("Failed to start reveal", {
+        description: "Check your connection and try again.",
+      });
     } finally {
       setIsRevealing(false);
     }

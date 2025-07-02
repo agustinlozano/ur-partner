@@ -11,12 +11,16 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
 import { checkRevealReady } from "@/lib/check-reveal-ready";
 import { sleep } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { Room } from "@/lib/dynamodb";
+import { RelationshipRole } from "@/lib/role-utils";
 
 interface PageProps {
   params: Promise<{ roomId: string }>;
   searchParams?: Promise<{
     new?: string;
-    role?: "girlfriend" | "boyfriend";
+    role?: RelationshipRole;
+    slot?: "a" | "b";
     name?: string;
     emoji?: string;
   }>;
@@ -25,10 +29,12 @@ interface PageProps {
 interface RoomData {
   room_id: string;
   created_at: string;
-  girlfriend_name?: string;
-  girlfriend_emoji?: string;
-  boyfriend_name?: string;
-  boyfriend_emoji?: string;
+  a_name?: string;
+  a_emoji?: string;
+  a_role?: string;
+  b_name?: string;
+  b_emoji?: string;
+  b_role?: string;
 }
 
 export default function RoomDetailPage({ params, searchParams }: PageProps) {
@@ -36,12 +42,14 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [roomId, setRoomId] = useState<string>("");
   const [currentUser, setCurrentUser] = useState<{
-    role?: "girlfriend" | "boyfriend";
+    role?: RelationshipRole;
     name?: string;
+    slot?: string;
   } | null>(null);
   const [searchParamsData, setSearchParamsData] = useState<{
     new?: string;
-    role?: "girlfriend" | "boyfriend";
+    role?: RelationshipRole;
+    slot?: "a" | "b";
     name?: string;
     emoji?: string;
   }>({});
@@ -54,6 +62,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
     categoriesCompleted: number;
   } | null>(null);
   const [checkingReveal, setCheckingReveal] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     async function loadData() {
@@ -63,17 +72,48 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
       setRoomId(id);
       setSearchParamsData(searchParams_);
 
+      const room = await getRoomData(id);
+
+      if (!room) {
+        router.push("/");
+        return;
+      }
+
       // Load current user from localStorage
       const userData = localStorage.getItem("activeRoom");
+
       if (userData) {
         const user = JSON.parse(userData);
         setCurrentUser({
           role: user.role,
           name: user.name,
+          slot: (user.slot || "").toLowerCase(),
+        });
+      } else {
+        const slot = searchParams_.slot;
+
+        if (!slot) {
+          router.push("/");
+          return;
+        }
+
+        // slot must be "a" or "b" check this out before contitue
+        if (slot !== "a" && slot !== "b") {
+          router.push("/");
+          return;
+        }
+
+        // find user from room data by slot
+        const name = room[`${slot}_name` as keyof Room];
+        const role = room[`${slot}_role` as keyof Room];
+
+        setCurrentUser({
+          role: role as RelationshipRole,
+          name: name as string,
+          slot: slot,
         });
       }
 
-      const room = await getRoomData(id);
       setRoomData(room);
       setLoading(false);
     }
@@ -101,8 +141,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
           setRoomData(updatedRoom);
 
           // Check if room is now complete
-          const nowComplete =
-            updatedRoom.girlfriend_name && updatedRoom.boyfriend_name;
+          const nowComplete = updatedRoom.a_name && updatedRoom.b_name;
 
           if (nowComplete) {
             console.log("✅ Room complete, stopping polling");
@@ -128,7 +167,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
     pollRoomStatus();
 
     // Poll every 5 seconds
-    intervalRef.current = setInterval(pollRoomStatus, 5000);
+    intervalRef.current = setInterval(pollRoomStatus, 8000);
 
     return () => {
       console.log("🛑 Cleanup: Clearing polling interval");
@@ -144,19 +183,19 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
   useEffect(() => {
     async function checkReveal() {
       await sleep(2000);
-      const isGirlfriendMissing = !roomData?.girlfriend_name;
-      const isBoyfriendMissing = !roomData?.boyfriend_name;
-      const hasMissingPartner = isGirlfriendMissing || isBoyfriendMissing;
+      const isSlotAMissing = !roomData?.a_name;
+      const isSlotBMissing = !roomData?.b_name;
+      const hasMissingPartner = isSlotAMissing || isSlotBMissing;
 
-      if (!roomData || !currentUser?.role || hasMissingPartner) {
-        console.log("No room data or current user role or missing partner");
+      if (!roomData || !currentUser?.slot || hasMissingPartner) {
+        console.log("No room data or user slot or missing partner");
         setRevealReady(null);
         return;
       }
 
       setCheckingReveal(true);
       try {
-        const result = await checkRevealReady(roomId, currentUser.role);
+        const result = await checkRevealReady(roomId, currentUser.slot);
         if (!result.error) {
           setRevealReady({
             isReady: result.isReady,
@@ -176,11 +215,10 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
     }
 
     // Only check if both partners are present
-    // TODO: this doesn't work bc role might not be available in query params
-    if (roomData && currentUser?.role) {
+    if (roomData && currentUser?.slot) {
       checkReveal();
     }
-  }, [roomData, currentUser?.role, roomId]);
+  }, [roomData, currentUser?.slot, roomId]);
 
   if (loading) {
     return (
@@ -216,24 +254,22 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
     );
   }
 
-  const isGirlfriendMissing = !roomData.girlfriend_name;
-  const isBoyfriendMissing = !roomData.boyfriend_name;
-  const missingPartner = isGirlfriendMissing
-    ? "girlfriend"
-    : isBoyfriendMissing
-    ? "boyfriend"
-    : null;
+  const isSlotAMissing = !roomData.a_name;
+  const isSlotBMissing = !roomData.b_name;
+  const missingPartner = isSlotAMissing || isSlotBMissing;
 
   return (
     <GradientBackground className="py-12 px-4">
       {/* Save active room data if coming from new room creation/join */}
       {searchParamsData.new === "true" &&
         searchParamsData.role &&
+        searchParamsData.slot &&
         searchParamsData.name &&
         searchParamsData.emoji && (
           <ActiveRoomSaver
             roomId={roomId}
             role={searchParamsData.role}
+            slot={searchParamsData.slot}
             name={decodeURIComponent(searchParamsData.name)}
             emoji={decodeURIComponent(searchParamsData.emoji)}
           />
@@ -248,7 +284,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
           <div className="flex flex-col items-center justify-center gap-2">
             <p className="text-lg text-primary/85 font-mono">
               {missingPartner
-                ? `Waiting for ${missingPartner} to join`
+                ? `Waiting for your partner to join`
                 : "Both partners are in the room!"}
             </p>
             <div className="min-h-[24px]">
@@ -263,16 +299,16 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {/* Girlfriend Card */}
+          {/* Slot A Card */}
           <div
-            data-testid="girlfriend-card"
+            data-testid="slot-a-card"
             className={cn(
               "bg-card/60 rounded-xl shadow-lg p-6 border relative select-none",
               "bg-amber-100/50 dark:bg-amber-900/25 backdrop-blur-sm",
               "border-amber-400 dark:border-amber-800"
             )}
           >
-            {currentUser?.role === "girlfriend" && (
+            {currentUser?.slot === "a" && (
               <div className="absolute top-3 right-3">
                 <span className="bg-purple-200 border border-purple-400 text-purple-800 dark:bg-purple-900 dark:text-purple-200 dark:border-purple-700 text-xs font-bold px-2 py-1 rounded-full">
                   You
@@ -280,14 +316,14 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
               </div>
             )}
             <div className="text-center">
-              <div className="text-4xl mb-3">
-                {roomData.girlfriend_emoji || "💕"}
-              </div>
-              <h2 className="text-xl font-semibold mb-2">Girlfriend</h2>
-              {roomData.girlfriend_name ? (
+              <div className="text-4xl mb-3">{roomData.a_emoji || "💕"}</div>
+              <h2 className="text-xl font-semibold mb-2 capitalize">
+                {roomData.a_role || "Partner A"}
+              </h2>
+              {roomData.a_name ? (
                 <div>
                   <p className="text-lg text-amber-600 font-medium mb-2">
-                    {roomData.girlfriend_name}
+                    {roomData.a_name}
                   </p>
                   <span className="inline-block bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 text-sm px-3 py-1 rounded-full">
                     ✅ Joined
@@ -304,31 +340,31 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
             </div>
           </div>
 
-          {/* Boyfriend Card */}
+          {/* Slot B Card */}
           <div
-            data-testid="boyfriend-card"
+            data-testid="slot-b-card"
             className={cn(
               "bg-card/60 rounded-xl shadow-lg p-6 border relative select-none",
               "bg-blue-100/50 dark:bg-blue-900/25 backdrop-blur-sm",
               "border-blue-400 dark:border-blue-800"
             )}
           >
-            {currentUser?.role === "boyfriend" && (
+            {currentUser?.slot === "b" && (
               <div className="absolute top-3 right-3">
-                <span className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 text-xs font-bold px-2 py-1 rounded-full">
+                <span className="bg-purple-200 border border-purple-400 text-purple-800 dark:bg-purple-900 dark:text-purple-200 dark:border-purple-700 text-xs font-bold px-2 py-1 rounded-full">
                   You
                 </span>
               </div>
             )}
             <div className="text-center">
-              <div className="text-4xl mb-3">
-                {roomData.boyfriend_emoji || "💙"}
-              </div>
-              <h2 className="text-xl font-semibold mb-2">Boyfriend</h2>
-              {roomData.boyfriend_name ? (
+              <div className="text-4xl mb-3">{roomData.b_emoji || "💙"}</div>
+              <h2 className="text-xl font-semibold mb-2 capitalize">
+                {roomData.b_role || "Partner B"}
+              </h2>
+              {roomData.b_name ? (
                 <div>
                   <p className="text-lg text-blue-600 font-medium mb-2">
-                    {roomData.boyfriend_name}
+                    {roomData.b_name}
                   </p>
                   <span className="inline-block bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 text-sm px-3 py-1 rounded-full">
                     ✅ Joined

@@ -7,9 +7,15 @@ import {
   generateUniqueRoomId,
   type Room,
 } from "./dynamodb";
+import {
+  type DatabaseSlot,
+  type AnyRole,
+  RelationshipRole,
+} from "./role-utils";
 
 export interface CreateRoomInput {
-  role: "girlfriend" | "boyfriend";
+  userSlot: DatabaseSlot;
+  userRole: AnyRole;
   name: string;
   emoji: string;
 }
@@ -22,6 +28,7 @@ export interface CreateRoomResult {
 
 export interface JoinRoomInput {
   roomId: string;
+  userRole: AnyRole;
   name: string;
   emoji: string;
 }
@@ -29,7 +36,7 @@ export interface JoinRoomInput {
 export interface JoinRoomResult {
   success: boolean;
   room_id?: string;
-  role?: "girlfriend" | "boyfriend";
+  assignedSlot?: DatabaseSlot;
   error?: string;
 }
 
@@ -51,25 +58,30 @@ export async function createRoomDynamoDB(
       };
     }
 
-    if (!input.role || !["girlfriend", "boyfriend"].includes(input.role)) {
+    if (!input.userSlot || !["a", "b"].includes(input.userSlot)) {
       return {
         success: false,
-        error: "Valid role is required (girlfriend or boyfriend)",
+        error: "Valid user slot is required (a or b)",
       };
     }
 
-    // Generar room ID único
+    if (!input.userRole || !input.userRole.trim()) {
+      return {
+        success: false,
+        error: "User role is required",
+      };
+    }
+
+    // Generate unique room ID
     const roomId = await generateUniqueRoomId();
 
-    // Crear el room en DynamoDB
+    // Create room in DynamoDB using direct templates
     const roomData: Omit<Room, "created_at" | "updated_at" | "ttl"> = {
       room_id: roomId,
-      girlfriend_name: input.role === "girlfriend" ? input.name : undefined,
-      boyfriend_name: input.role === "boyfriend" ? input.name : undefined,
-      girlfriend_emoji: input.role === "girlfriend" ? input.emoji : undefined,
-      boyfriend_emoji: input.role === "boyfriend" ? input.emoji : undefined,
-      girlfriend_ready: false,
-      boyfriend_ready: false,
+      [`${input.userSlot}_name`]: input.name,
+      [`${input.userSlot}_emoji`]: input.emoji,
+      [`${input.userSlot}_role`]: input.userRole,
+      [`${input.userSlot}_ready`]: false,
     };
 
     await createRoom(roomData);
@@ -112,7 +124,14 @@ export async function joinRoomDynamoDB(
       };
     }
 
-    // Buscar el room existente
+    if (!input.userRole || !input.userRole.trim()) {
+      return {
+        success: false,
+        error: "User role is required",
+      };
+    }
+
+    // Find existing room
     const existingRoom = await findRoomByRoomId(input.roomId);
 
     if (!existingRoom) {
@@ -123,37 +142,34 @@ export async function joinRoomDynamoDB(
       };
     }
 
-    // Determinar qué rol está disponible
-    const isGirlfriendMissing = !existingRoom.girlfriend_name;
-    const isBoyfriendMissing = !existingRoom.boyfriend_name;
+    // Determine which slot is available
+    const isSlotAAvailable = !existingRoom.a_name;
+    const isSlotBAvailable = !existingRoom.b_name;
 
-    if (!isGirlfriendMissing && !isBoyfriendMissing) {
+    if (!isSlotAAvailable && !isSlotBAvailable) {
       return {
         success: false,
         error: "This room is already full. Both partners have joined.",
       };
     }
 
-    // Asignar el rol disponible
-    const assignedRole = isGirlfriendMissing ? "girlfriend" : "boyfriend";
+    // Assign the first available slot: should be always "b"
+    const assignedSlot: DatabaseSlot = isSlotAAvailable ? "a" : "b";
 
-    // Preparar las actualizaciones
-    const updates: Partial<Room> = {};
-    if (assignedRole === "girlfriend") {
-      updates.girlfriend_name = input.name;
-      updates.girlfriend_emoji = input.emoji;
-    } else {
-      updates.boyfriend_name = input.name;
-      updates.boyfriend_emoji = input.emoji;
-    }
+    // Prepare updates using direct templates
+    const updates: Partial<Room> = {
+      [`${assignedSlot}_name`]: input.name,
+      [`${assignedSlot}_emoji`]: input.emoji,
+      [`${assignedSlot}_role`]: input.userRole,
+    };
 
-    // Actualizar el room
+    // Update the room
     await updateRoom(input.roomId, updates);
 
     return {
       success: true,
       room_id: input.roomId,
-      role: assignedRole,
+      assignedSlot,
     };
   } catch (error) {
     console.error("Error joining room:", error);
@@ -175,60 +191,9 @@ export async function getRoomDataDynamoDB(
   }
 }
 
-// Función para actualizar las URLs de imágenes
-export async function updateRoomImages(
-  roomId: string,
-  userRole: "girlfriend" | "boyfriend",
-  uploadedUrls: { [categoryId: string]: string | string[] }
-): Promise<boolean> {
-  try {
-    const updates: Partial<Room> = {};
-
-    // Mapear las URLs a los campos correspondientes
-    Object.entries(uploadedUrls).forEach(([categoryId, urls]) => {
-      const fieldName = `${categoryId}_${userRole}` as keyof Room;
-
-      // Si es un array (como character), convertir a JSON string
-      if (Array.isArray(urls)) {
-        updates[fieldName] = JSON.stringify(urls) as any;
-      } else {
-        updates[fieldName] = urls as any;
-      }
-    });
-
-    await updateRoom(roomId, updates);
-    return true;
-  } catch (error) {
-    console.error("Error updating room images:", error);
-    return false;
-  }
-}
-
-// Función para marcar un usuario como ready
-export async function markUserReady(
-  roomId: string,
-  userRole: "girlfriend" | "boyfriend"
-): Promise<boolean> {
-  try {
-    const updates: Partial<Room> = {};
-
-    if (userRole === "girlfriend") {
-      updates.girlfriend_ready = true;
-    } else {
-      updates.boyfriend_ready = true;
-    }
-
-    await updateRoom(roomId, updates);
-    return true;
-  } catch (error) {
-    console.error("Error marking user ready:", error);
-    return false;
-  }
-}
-
 export interface LeaveRoomInput {
   roomId: string;
-  userRole: "girlfriend" | "boyfriend";
+  userSlot: DatabaseSlot;
 }
 
 export interface LeaveRoomResult {
@@ -236,7 +201,6 @@ export interface LeaveRoomResult {
   error?: string;
 }
 
-// Función para que un usuario abandone la sala
 export async function leaveRoomDynamoDB(
   input: LeaveRoomInput
 ): Promise<LeaveRoomResult> {
@@ -248,17 +212,14 @@ export async function leaveRoomDynamoDB(
       };
     }
 
-    if (
-      !input.userRole ||
-      !["girlfriend", "boyfriend"].includes(input.userRole)
-    ) {
+    if (!input.userSlot || !["a", "b"].includes(input.userSlot)) {
       return {
         success: false,
-        error: "Valid user role is required (girlfriend or boyfriend)",
+        error: "Valid user slot is required (a or b)",
       };
     }
 
-    // Verificar que el room existe
+    // Verify that the room exists
     const existingRoom = await findRoomByRoomId(input.roomId);
     if (!existingRoom) {
       return {
@@ -267,11 +228,9 @@ export async function leaveRoomDynamoDB(
       };
     }
 
-    // Verificar que el usuario está en el room
+    // Verify that the user is in the room using slot
     const userName =
-      input.userRole === "girlfriend"
-        ? existingRoom.girlfriend_name
-        : existingRoom.boyfriend_name;
+      input.userSlot === "a" ? existingRoom.a_name : existingRoom.b_name;
 
     if (!userName) {
       return {
@@ -280,9 +239,9 @@ export async function leaveRoomDynamoDB(
       };
     }
 
-    // Usar la función leaveRoom de dynamodb.ts
-    const { leaveRoom } = await import("./dynamodb");
-    await leaveRoom(input.roomId, input.userRole);
+    // Use the leaveRoomBySlot function from dynamodb.ts
+    const { leaveRoomBySlot } = await import("./dynamodb");
+    await leaveRoomBySlot(input.roomId, input.userSlot);
 
     return {
       success: true,
@@ -296,20 +255,28 @@ export async function leaveRoomDynamoDB(
   }
 }
 
-// Funciones de compatibilidad con la API existente
+// Functions for backward compatibility with existing API
 export async function createRoomAndRedirect(formData: FormData) {
-  const role = formData.get("role") as "girlfriend" | "boyfriend";
+  const role = formData.get("role") as RelationshipRole;
   const name = formData.get("name") as string;
   const emoji = formData.get("emoji") as string;
 
-  const result = await createRoomDynamoDB({ role, name, emoji });
+  // The user that creates the room is always in slot A
+  const userSlot: DatabaseSlot = "a";
+
+  const result = await createRoomDynamoDB({
+    userSlot,
+    userRole: role,
+    name,
+    emoji,
+  });
 
   if (result.success && result.room_id) {
     const encodedName = encodeURIComponent(name);
     const encodedEmoji = encodeURIComponent(emoji);
     return {
       success: true,
-      redirectUrl: `/room/${result.room_id}?new=true&role=${role}&name=${encodedName}&emoji=${encodedEmoji}`,
+      redirectUrl: `/room/${result.room_id}?new=true&role=${role}&slot=${userSlot}&name=${encodedName}&emoji=${encodedEmoji}`,
     };
   } else {
     return {
@@ -323,14 +290,20 @@ export async function joinRoomAndRedirect(formData: FormData) {
   const roomId = formData.get("roomId") as string;
   const name = formData.get("name") as string;
   const emoji = formData.get("emoji") as string;
+  const role = formData.get("role") as AnyRole;
 
-  const result = await joinRoomDynamoDB({ roomId, name, emoji });
+  const result = await joinRoomDynamoDB({
+    roomId,
+    userRole: role,
+    name,
+    emoji,
+  });
 
-  if (result.success && result.room_id && result.role) {
+  if (result.success && result.room_id && result.assignedSlot) {
     return {
       success: true,
-      redirectUrl: `/room/${result.room_id}?new=true&role=${
-        result.role
+      redirectUrl: `/room/${result.room_id}?new=true&role=${role}&slot=${
+        result.assignedSlot
       }&name=${encodeURIComponent(name)}&emoji=${encodeURIComponent(emoji)}`,
     };
   } else {
@@ -339,29 +312,4 @@ export async function joinRoomAndRedirect(formData: FormData) {
       error: result.error || "Failed to join room",
     };
   }
-}
-
-export async function getRoomData(roomId: string) {
-  try {
-    return await getRoomDataDynamoDB(roomId);
-  } catch (error) {
-    console.error("Error getting room data:", error);
-    return null;
-  }
-}
-
-// Función para setear datos activos del room (mantener compatibilidad)
-export async function setActiveRoomData(
-  roomId: string,
-  role: "girlfriend" | "boyfriend",
-  name: string,
-  emoji: string
-) {
-  return {
-    room_id: roomId,
-    role,
-    name,
-    emoji,
-    created_at: new Date().toISOString(),
-  };
 }

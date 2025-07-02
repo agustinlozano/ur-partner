@@ -2,10 +2,12 @@
 
 import { useEffect } from "react";
 import { useActiveRoom } from "@/hooks/use-active-room";
+import { RelationshipRole } from "@/lib/role-utils";
 
 interface ActiveRoomSaverProps {
   roomId: string;
-  role: "girlfriend" | "boyfriend";
+  role: RelationshipRole;
+  slot: "a" | "b";
   name: string;
   emoji: string;
 }
@@ -13,6 +15,7 @@ interface ActiveRoomSaverProps {
 export default function ActiveRoomSaver({
   roomId,
   role,
+  slot,
   name,
   emoji,
 }: ActiveRoomSaverProps) {
@@ -23,6 +26,7 @@ export default function ActiveRoomSaver({
     setActive({
       room_id: roomId,
       role,
+      slot,
       name,
       emoji,
       created_at: new Date().toISOString(),
@@ -30,7 +34,7 @@ export default function ActiveRoomSaver({
 
     // Dispatch custom event to notify other components about the change
     window.dispatchEvent(new Event("activeRoomChanged"));
-  }, [roomId, role, name, emoji, setActive]);
+  }, [roomId, role, slot, name, emoji, setActive]);
 
   // This component doesn't render anything
   return null;

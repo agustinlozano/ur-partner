@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, Send, Trash2, CheckCircle, XCircle } from "lucide-react";
 import Image from "next/image";
 import { predefinedImages } from "@/lib/personality-form-constants";
+import { toast } from "sonner";
+import { PERSONALITY_CATEGORIES, PersonalityCategory } from "@/lib/role-utils";
 
 interface TestResponse {
   success: boolean;
   message: string;
   roomId?: string;
-  userRole?: string;
+  userSlot?: string;
   uploadCount?: number;
   totalImages?: number;
   uploadedUrls?: { [categoryId: string]: string | string[] };
@@ -19,22 +21,9 @@ interface TestResponse {
   timestamp: string;
 }
 
-// Valid categories matching the Lambda and route.ts
-const VALID_CATEGORIES = [
-  "animal",
-  "place",
-  "plant",
-  "character",
-  "season",
-  "hobby",
-  "food",
-  "colour",
-  "drink",
-];
-
 export default function LambdaTestPage() {
   const [roomId, setRoomId] = useState("test-room-" + Date.now());
-  const [userRole, setUserRole] = useState("player1");
+  const [userSlot, setUserSlot] = useState("a");
   const [selectedImages, setSelectedImages] = useState<{
     [categoryId: string]: string | string[];
   }>({});
@@ -46,7 +35,7 @@ export default function LambdaTestPage() {
     const images: { [categoryId: string]: string | string[] } = {};
 
     // Map predefined images to valid categories
-    const categoryMapping: { [key: string]: string } = {
+    const categoryMapping: { [key: string]: PersonalityCategory } = {
       animals: "animal",
       places: "place",
       plants: "plant",
@@ -60,7 +49,7 @@ export default function LambdaTestPage() {
 
     Object.entries(predefinedImages).forEach(([key, categoryImages]) => {
       const mappedCategory = categoryMapping[key];
-      if (mappedCategory && VALID_CATEGORIES.includes(mappedCategory)) {
+      if (mappedCategory && PERSONALITY_CATEGORIES.includes(mappedCategory)) {
         if (Array.isArray(categoryImages)) {
           // For character category, always use as array
           if (mappedCategory === "character") {
@@ -112,9 +101,9 @@ export default function LambdaTestPage() {
   };
 
   const sendToLambda = async () => {
-    // Filter out empty categories
+    // Filter out empty images
     const filteredImages = Object.fromEntries(
-      Object.entries(selectedImages).filter(([_, imageData]) => {
+      Object.entries(selectedImages).filter(([_category, imageData]) => {
         if (Array.isArray(imageData)) {
           return (
             imageData.length > 0 && imageData.some((img) => img.trim() !== "")
@@ -125,7 +114,9 @@ export default function LambdaTestPage() {
     );
 
     if (Object.keys(filteredImages).length === 0) {
-      alert("Please select some images first!");
+      toast.warning("No images selected", {
+        description: "Please select some images first!",
+      });
       return;
     }
 
@@ -134,7 +125,7 @@ export default function LambdaTestPage() {
     try {
       const payload = {
         roomId: roomId,
-        userRole: userRole,
+        userSlot: userSlot,
         images: filteredImages,
       };
 
@@ -154,7 +145,7 @@ export default function LambdaTestPage() {
         success: response.ok && data.success,
         message: data.message || data.error || "Unknown response",
         roomId: data.roomId,
-        userRole: data.userRole,
+        userSlot: data.userSlot,
         uploadCount: data.uploadCount,
         totalImages: data.totalImages,
         uploadedUrls: data.uploadedUrls,
@@ -166,11 +157,20 @@ export default function LambdaTestPage() {
 
       if (response.ok && data.success) {
         console.log("✅ Success:", data);
+        toast.success("Images uploaded successfully!", {
+          description: `Uploaded ${data.uploadCount} images to room ${data.roomId}`,
+        });
       } else {
         console.error("❌ Error:", data);
+        toast.error("Upload failed", {
+          description: data.error || "Unknown error occurred",
+        });
       }
     } catch (error) {
       console.error("❌ Network error:", error);
+      toast.error("Network error", {
+        description: "Please check your connection and try again",
+      });
       const testResponse: TestResponse = {
         success: false,
         message: "Network error",
@@ -250,15 +250,15 @@ export default function LambdaTestPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  User Role
+                  User Slot
                 </label>
                 <select
-                  value={userRole}
-                  onChange={(e) => setUserRole(e.target.value)}
+                  value={userSlot}
+                  onChange={(e) => setUserSlot(e.target.value)}
                   className="w-full px-3 py-2 border border-border rounded-md bg-background"
                 >
-                  <option value="player1">player1</option>
-                  <option value="player2">player2</option>
+                  <option value="a">a</option>
+                  <option value="b">b</option>
                 </select>
               </div>
             </div>
@@ -287,7 +287,7 @@ export default function LambdaTestPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              {VALID_CATEGORIES.map((category) => (
+              {PERSONALITY_CATEGORIES.map((category) => (
                 <Button
                   key={category}
                   onClick={() => addCategory(category)}
@@ -539,7 +539,7 @@ export default function LambdaTestPage() {
                             <strong>Room:</strong> {response.roomId}
                           </p>
                           <p>
-                            <strong>User:</strong> {response.userRole}
+                            <strong>User:</strong> {response.userSlot}
                           </p>
                           <p>
                             <strong>Uploaded:</strong> {response.uploadCount}/
@@ -619,10 +619,11 @@ export default function LambdaTestPage() {
               </p>
               <p>
                 <strong>Payload:</strong>{" "}
-                {`{ userRole: string, images: { [categoryId]: string | string[] } }`}
+                {`{ userSlot: string, images: { [categoryId]: string | string[] } }`}
               </p>
               <p>
-                <strong>Valid Categories:</strong> {VALID_CATEGORIES.join(", ")}
+                <strong>Valid Categories:</strong>{" "}
+                {PERSONALITY_CATEGORIES.join(", ")}
               </p>
               <p>
                 <strong>Rate Limiting:</strong> Configured per IP + service

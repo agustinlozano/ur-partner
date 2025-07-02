@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "@/components/toaster";
 import FloatingRoomMenu from "@/components/floating-room-menu";
 import ThemeToggleButton from "@/components/theme-toggle-button";
 // import AudioToggleButton from "@/components/audio-toggle-button";
 import { ThemeProvider } from "@/components/theme-provider";
 // import { AudioProvider } from "@/components/audio-provider";
+import { DevKeyTracker } from "@/components/dev-key-tracker";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
@@ -77,6 +79,8 @@ export default function RootLayout({
           {/* <AudioToggleButton /> */}
           {/* </AudioProvider> */}
         </ThemeProvider>
+        <Toaster />
+        <DevKeyTracker />
         <Analytics />
       </body>
     </html>

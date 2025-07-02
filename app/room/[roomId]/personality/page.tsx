@@ -15,10 +15,10 @@ interface PageProps {
 interface RoomData {
   room_id: string;
   created_at: string;
-  girlfriend_name?: string;
-  girlfriend_emoji?: string;
-  boyfriend_name?: string;
-  boyfriend_emoji?: string;
+  a_name?: string;
+  a_emoji?: string;
+  b_name?: string;
+  b_emoji?: string;
 }
 
 export default function PersonalityPage({ params }: PageProps) {
@@ -44,7 +44,7 @@ export default function PersonalityPage({ params }: PageProps) {
         }
 
         // Check if both partners have joined
-        if (!room.girlfriend_name || !room.boyfriend_name) {
+        if (!room.a_name || !room.b_name) {
           setError(
             "Both partners must join the room before starting the personality quiz"
           );
@@ -67,10 +67,10 @@ export default function PersonalityPage({ params }: PageProps) {
           return;
         }
 
-        // Validate user role matches room data
+        // Validate user slot matches room data
         const isValidUser =
-          (user.role === "girlfriend" && room.girlfriend_name === user.name) ||
-          (user.role === "boyfriend" && room.boyfriend_name === user.name);
+          (user.slot === "a" && room.a_name === user.name) ||
+          (user.slot === "b" && room.b_name === user.name);
 
         if (!isValidUser) {
           setError("Invalid user credentials for this room");

@@ -42,11 +42,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!body.role || !["girlfriend", "boyfriend"].includes(body.role)) {
+    if (!body.userSlot || !["a", "b"].includes(body.userSlot)) {
       return NextResponse.json(
         {
           success: false,
-          error: "Valid role is required (girlfriend or boyfriend)",
+          error: "Valid user slot is required (a or b)",
         },
         { status: 400 }
       );

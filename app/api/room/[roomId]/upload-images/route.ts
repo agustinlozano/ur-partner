@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LAMBDA_UPLOAD_ENDPOINT, RATE_LIMIT_ENDPOINT } from "@/lib/env";
+import { type DatabaseSlot } from "@/lib/role-utils";
 
 // Rate limit response interface
 interface RateLimitResponse {
@@ -43,12 +44,12 @@ async function checkRateLimit(clientIp: string): Promise<{
     };
 
     console.log("🚀 Rate Limit Request:", {
-      endpoint: `${RATE_LIMIT_ENDPOINT}/check`,
+      endpoint: `${RATE_LIMIT_ENDPOINT}`,
       payload: requestPayload,
       clientIp,
     });
 
-    const rateLimitResponse = await fetch(`${RATE_LIMIT_ENDPOINT}/check`, {
+    const rateLimitResponse = await fetch(`${RATE_LIMIT_ENDPOINT}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -170,12 +171,21 @@ export async function POST(
 
     // Get the request body
     const body = await request.json();
-    const { userRole, images } = body;
+    const { userSlot, images } = body;
 
     // Validate required fields
-    if (!userRole || !images) {
+    if (!userSlot || !images) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Validate user slot
+    const validSlots: DatabaseSlot[] = ["a", "b"];
+    if (!validSlots.includes(userSlot as DatabaseSlot)) {
+      return NextResponse.json(
+        { success: false, error: `Invalid user slot: ${userSlot}` },
         { status: 400 }
       );
     }
@@ -197,13 +207,13 @@ export async function POST(
           rateLimitCheck.userFriendlyMessage || "Please try again later.",
       };
 
-      // Include rate limit details if available
-      if (rateLimitCheck.rateLimitInfo) {
+      // Include minimal rate limit info needed for UX
+      if (
+        rateLimitCheck.rateLimitInfo &&
+        rateLimitCheck.rateLimitInfo.retryAfter
+      ) {
         responseData.rateLimitInfo = {
-          remaining: rateLimitCheck.rateLimitInfo.remaining,
-          resetTime: rateLimitCheck.rateLimitInfo.resetTime,
           retryAfter: rateLimitCheck.rateLimitInfo.retryAfter,
-          maxRequests: rateLimitCheck.rateLimitInfo.metadata.maxRequests,
         };
       }
 
@@ -226,9 +236,20 @@ export async function POST(
     // Prepare payload for lambda (no need to include IP since it's only used for rate limiting)
     const lambdaPayload = {
       roomId,
-      userRole,
+      userSlot,
       images,
     };
+
+    console.log("🚀 Calling Lambda for image upload:", {
+      roomId,
+      userSlot,
+      endpoint: LAMBDA_UPLOAD_ENDPOINT,
+      imageCategories: Object.keys(images),
+      totalImages: Object.values(images).flat().length,
+      clientIp,
+    });
+
+    const lambdaStartTime = Date.now();
 
     // Make request to lambda
     const lambdaResponse = await fetch(LAMBDA_UPLOAD_ENDPOINT, {
@@ -239,13 +260,76 @@ export async function POST(
       body: JSON.stringify(lambdaPayload),
     });
 
+    const lambdaResponseTime = Date.now() - lambdaStartTime;
+
+    console.log("📡 Lambda Response Info:", {
+      roomId,
+      userSlot,
+      status: lambdaResponse.status,
+      statusText: lambdaResponse.statusText,
+      ok: lambdaResponse.ok,
+      responseTimeMs: lambdaResponseTime,
+      headers: Object.fromEntries(lambdaResponse.headers.entries()),
+    });
+
     // Get lambda response
-    const lambdaResult = await lambdaResponse.json();
+    let lambdaResult;
+    try {
+      const responseText = await lambdaResponse.text();
+      console.log("📄 Lambda Response Body (raw):", {
+        roomId,
+        userSlot,
+        bodyLength: responseText.length,
+        bodyPreview: responseText.substring(0, 500), // First 500 chars
+      });
+
+      lambdaResult = JSON.parse(responseText);
+      console.log("✅ Lambda Response Body (parsed):", {
+        roomId,
+        userSlot,
+        success: lambdaResult.success,
+        uploadCount: lambdaResult.uploadCount,
+        totalImages: lambdaResult.totalImages,
+        hasUploadedUrls: !!lambdaResult.uploadedUrls,
+        uploadedCategories: lambdaResult.uploadedUrls
+          ? Object.keys(lambdaResult.uploadedUrls)
+          : [],
+      });
+    } catch (parseError) {
+      console.error("❌ Failed to parse Lambda response:", {
+        roomId,
+        userSlot,
+        parseError:
+          parseError instanceof Error ? parseError.message : parseError,
+        responseStatus: lambdaResponse.status,
+        responseTime: lambdaResponseTime,
+      });
+      return NextResponse.json(
+        { success: false, error: "Invalid response from upload service" },
+        { status: 500 }
+      );
+    }
 
     // Return lambda response with appropriate status
     if (lambdaResponse.ok) {
+      console.log("✅ Upload successful:", {
+        roomId,
+        userSlot,
+        uploadCount: lambdaResult.uploadCount,
+        totalImages: lambdaResult.totalImages,
+        responseTime: lambdaResponseTime,
+      });
       return NextResponse.json(lambdaResult);
     } else {
+      console.error("❌ Lambda request failed:", {
+        roomId,
+        userSlot,
+        status: lambdaResponse.status,
+        statusText: lambdaResponse.statusText,
+        error: lambdaResult.error,
+        message: lambdaResult.message,
+        responseTime: lambdaResponseTime,
+      });
       return NextResponse.json(lambdaResult, { status: lambdaResponse.status });
     }
   } catch (error) {

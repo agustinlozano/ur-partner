@@ -14,6 +14,7 @@ import { Button } from "./ui/button";
 import { capitalize } from "@/lib/utils";
 import EmojiSelector, { type EmojiSelectorRef } from "./emoji-selector";
 import { useActiveRoom } from "@/hooks/use-active-room";
+import { type RelationshipRole } from "@/lib/role-utils";
 
 // Componente moderno para el botón usando useFormStatus
 function SubmitButton({
@@ -22,7 +23,7 @@ function SubmitButton({
   disabled,
   submitButtonRef,
 }: {
-  selectedRole: "girlfriend" | "boyfriend" | null;
+  selectedRole: RelationshipRole | null;
   selectedEmoji: string;
   disabled: boolean;
   submitButtonRef?: React.RefObject<HTMLButtonElement | null>;
@@ -64,9 +65,9 @@ export default function CreateRoom() {
   const { activeRoom, clearActive } = useActiveRoom();
   const [isPending, startTransition] = useTransition();
 
-  const [selectedRole, setSelectedRole] = useState<
-    "girlfriend" | "boyfriend" | null
-  >(null);
+  const [selectedRole, setSelectedRole] = useState<RelationshipRole | null>(
+    null
+  );
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
   const [name, setName] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
@@ -133,7 +134,7 @@ export default function CreateRoom() {
     { success: false, error: null }
   );
 
-  const handleRoleChange = (role: "girlfriend" | "boyfriend") => {
+  const handleRoleChange = (role: RelationshipRole) => {
     setSelectedRole(role);
     setSelectedEmoji(""); // Reset emoji when role changes
   };
@@ -173,9 +174,7 @@ export default function CreateRoom() {
                 </p>
                 <p>
                   <strong>Your Role:</strong>{" "}
-                  {activeRoom.role === "girlfriend"
-                    ? "Girlfriend"
-                    : "Boyfriend"}
+                  <span className="capitalize">{activeRoom.role}</span>
                 </p>
                 <p>
                   <strong>Your Name:</strong> {activeRoom.name}
@@ -281,44 +280,42 @@ export default function CreateRoom() {
 
         <div>
           <label className="block text-sm font-medium text-primary/60 mb-3">
-            Your Role in the Relationship
+            Your Role in this Relationship
           </label>
-          <div className="space-y-2">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="role"
-                value="girlfriend"
-                required
-                disabled={isPending}
-                checked={selectedRole === "girlfriend"}
-                onChange={() => handleRoleChange("girlfriend")}
-                className="size-5 text-pink-600 focus:ring-pink-500 disabled:cursor-not-allowed"
-              />
-              <span className="ml-2 text-sm">Girlfriend 💛</span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="role"
-                value="boyfriend"
-                required
-                disabled={isPending}
-                checked={selectedRole === "boyfriend"}
-                onChange={() => handleRoleChange("boyfriend")}
-                className="size-5 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed"
-              />
-              <span className="ml-2 text-sm">Boyfriend 🩶</span>
-            </label>
+          <div className="grid grid-cols-2 gap-2">
+            {(
+              [
+                "girlfriend",
+                "boyfriend",
+                "friend",
+                "roommate",
+                "workmate",
+                "gym bro",
+                "sister",
+                "gym girl",
+              ] as RelationshipRole[]
+            ).map((role) => (
+              <label key={role} className="flex items-center">
+                <input
+                  type="radio"
+                  name="role"
+                  value={role}
+                  required
+                  disabled={isPending}
+                  checked={selectedRole === role}
+                  onChange={() => handleRoleChange(role)}
+                  className="size-4 text-purple-600 focus:ring-purple-500 disabled:cursor-not-allowed"
+                />
+                <span className="ml-2 text-sm capitalize">{role}</span>
+              </label>
+            ))}
           </div>
         </div>
 
         {selectedRole && (
           <EmojiSelector
-            role={selectedRole}
             selectedEmoji={selectedEmoji}
             onEmojiSelect={handleEmojiSelect}
-            onRoleChange={handleRoleChange}
             name="emoji"
             disabled={isPending}
             ref={emojiSelectorRef}

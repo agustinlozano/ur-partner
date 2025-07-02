@@ -12,24 +12,24 @@ export function usePersonalityForm({ roomId }: UsePersonalityFormProps) {
   const [focusedCard, setFocusedCard] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [currentUser, setCurrentUser] = useState<string>("");
-  const [userRole, setUserRole] = useState<string>("");
+  const [userSlot, setUserSlot] = useState<string>("");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Zustand store for images
   const { getImagesForRoom, setImagesForRoom, clearImagesForRoom } =
     usePersonalityImagesStore();
 
-  // Get images from store based on current room and user role
-  const uploadedImages = userRole ? getImagesForRoom(roomId, userRole) : {};
+  // Get images from store based on current room and user slot
+  const uploadedImages = userSlot ? getImagesForRoom(roomId, userSlot) : {};
 
   // Helper function to update images in store
   const updateUploadedImages = (
     updater: (prev: UploadedImages) => UploadedImages
   ) => {
-    if (!userRole) return;
-    const currentImages = getImagesForRoom(roomId, userRole);
+    if (!userSlot) return;
+    const currentImages = getImagesForRoom(roomId, userSlot);
     const newImages = updater(currentImages);
-    setImagesForRoom(roomId, userRole, newImages);
+    setImagesForRoom(roomId, userSlot, newImages);
   };
 
   // Load current user info from localStorage
@@ -38,7 +38,7 @@ export function usePersonalityForm({ roomId }: UsePersonalityFormProps) {
     if (userData) {
       const user = JSON.parse(userData);
       setCurrentUser(user.name || "You");
-      setUserRole(user.role || "girlfriend");
+      setUserSlot((user.slot || "").toLowerCase());
     }
   }, [roomId]);
 
@@ -47,7 +47,7 @@ export function usePersonalityForm({ roomId }: UsePersonalityFormProps) {
     categoryId: string,
     hasData: boolean
   ) => {
-    if (!userRole) return;
+    if (!userSlot) return;
 
     try {
       await fetch(`/api/room/${roomId}/update-progress`, {
@@ -58,7 +58,7 @@ export function usePersonalityForm({ roomId }: UsePersonalityFormProps) {
         body: JSON.stringify({
           category: categoryId,
           hasData,
-          userRole,
+          userSlot,
         }),
       });
     } catch (error) {
@@ -205,8 +205,8 @@ export function usePersonalityForm({ roomId }: UsePersonalityFormProps) {
   };
 
   const handleReady = async () => {
-    // Save ready state to localStorage
-    localStorage.setItem(`room_${roomId}_ready_${currentUser}`, "true");
+    // [not needed anymore]
+    // localStorage.setItem(`room_${roomId}_ready_${currentUser}`, "true");
     setIsReady(true);
 
     // Images are already saved in Zustand store with persistence
@@ -220,7 +220,7 @@ export function usePersonalityForm({ roomId }: UsePersonalityFormProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userRole,
+          userSlot,
           isReady: true,
         }),
       });
@@ -231,8 +231,8 @@ export function usePersonalityForm({ roomId }: UsePersonalityFormProps) {
   };
 
   const fillWithPredefinedImages = () => {
-    if (!userRole) return;
-    setImagesForRoom(roomId, userRole, predefinedImages);
+    if (!userSlot) return;
+    setImagesForRoom(roomId, userSlot, predefinedImages);
 
     // Update progress for all categories
     Object.keys(predefinedImages).forEach((categoryId) => {
@@ -241,8 +241,8 @@ export function usePersonalityForm({ roomId }: UsePersonalityFormProps) {
   };
 
   const clearAllImages = () => {
-    if (!userRole) return;
-    clearImagesForRoom(roomId, userRole);
+    if (!userSlot) return;
+    clearImagesForRoom(roomId, userSlot);
   };
 
   const uploadedCount = Object.keys(uploadedImages).length;
@@ -255,7 +255,7 @@ export function usePersonalityForm({ roomId }: UsePersonalityFormProps) {
     focusedCard,
     isReady,
     currentUser,
-    userRole,
+    userSlot,
     drawerOpen,
     uploadedCount,
     isComplete,

@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { findRoomByRoomId, updateRoom, type Room } from "@/lib/dynamodb";
+import { type DatabaseSlot } from "@/lib/role-utils";
 
 export async function POST(
   request: NextRequest,
@@ -9,11 +10,11 @@ export async function POST(
     const { roomId } = await params;
     const body = await request.json();
 
-    const { userRole, isReady } = body;
+    const { userSlot, isReady } = body;
 
-    if (!roomId || !userRole || typeof isReady !== "boolean") {
+    if (!roomId || !userSlot || typeof isReady !== "boolean") {
       return Response.json(
-        { error: "Room ID, user role, and ready state are required" },
+        { error: "Room ID, user slot, and ready state are required" },
         { status: 400 }
       );
     }
@@ -24,18 +25,17 @@ export async function POST(
       return Response.json({ error: "Room not found" }, { status: 404 });
     }
 
-    // Validate user role
-    const validRoles = ["girlfriend", "boyfriend"];
-    if (!validRoles.includes(userRole)) {
+    // Validate user slot
+    const validSlots: DatabaseSlot[] = ["a", "b"];
+    if (!validSlots.includes(userSlot as DatabaseSlot)) {
       return Response.json(
-        { error: `Invalid user role: ${userRole}` },
+        { error: `Invalid user slot: ${userSlot}` },
         { status: 400 }
       );
     }
 
-    // Determine which field to update based on user role
-    const readyField =
-      userRole === "girlfriend" ? "girlfriend_ready" : "boyfriend_ready";
+    // Determine which field to update based on user role using new schema
+    const readyField = `${userSlot}_ready`;
 
     // Prepare the update
     const updates: Partial<Room> = {
@@ -54,9 +54,9 @@ export async function POST(
 
     return Response.json({
       success: true,
-      message: `Updated ready state for ${userRole}`,
+      message: `Updated ready state for slot ${userSlot}`,
       roomId,
-      userRole,
+      userSlot,
       isReady,
       fieldName: readyField,
     });

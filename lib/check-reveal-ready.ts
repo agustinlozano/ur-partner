@@ -8,11 +8,11 @@ interface RevealReadyResponse {
 
 export async function checkRevealReady(
   roomId: string,
-  userRole: string
+  userSlot: string
 ): Promise<RevealReadyResponse> {
   try {
     const response = await fetch(
-      `/api/room/${roomId}/partner-images?userRole=${userRole}`,
+      `/api/room/${roomId}/partner-images?userSlot=${userSlot}`,
       {
         method: "GET",
         headers: {

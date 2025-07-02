@@ -149,7 +149,7 @@ describe("RevealContent - Working Tests", () => {
             Promise.resolve({
               success: true,
               isReady: false,
-              partnerRole: "boyfriend",
+              partnerRole: "roommate",
               totalImages: 0,
               categoriesCompleted: 0,
             }),
@@ -189,7 +189,7 @@ describe("RevealContent - Working Tests", () => {
 
   describe("User with Data", () => {
     it("shows initial loading when user is logged in", () => {
-      mockLocalStorageWithUser(createMockUserData({ role: "girlfriend" }));
+      mockLocalStorageWithUser(createMockUserData({ slot: "a" }));
       render(<RevealContent roomId="test-room-123" />);
 
       expect(screen.getByText(/preparing your reveal/i)).toBeInTheDocument();
@@ -199,7 +199,7 @@ describe("RevealContent - Working Tests", () => {
     });
 
     it("stays in loading when user has no images", () => {
-      mockLocalStorageWithUser(createMockUserData({ role: "girlfriend" }));
+      mockLocalStorageWithUser(createMockUserData({ slot: "b" }));
       mockZustandWithImages({});
 
       render(<RevealContent roomId="test-room-123" />);
@@ -212,7 +212,7 @@ describe("RevealContent - Working Tests", () => {
     });
 
     it("completes upload flow and reaches partner checking when user has images", async () => {
-      mockLocalStorageWithUser(createMockUserData({ role: "girlfriend" }));
+      mockLocalStorageWithUser(createMockUserData({ slot: "a" }));
       mockZustandWithImages(createMockImages());
 
       render(<RevealContent roomId="test-room-123" />);
@@ -227,10 +227,7 @@ describe("RevealContent - Working Tests", () => {
       });
 
       // Verify that Zustand was called to get images
-      expect(mockGetImagesForRoom).toHaveBeenCalledWith(
-        "test-room-123",
-        "girlfriend"
-      );
+      expect(mockGetImagesForRoom).toHaveBeenCalledWith("test-room-123", "a");
 
       // Should reach the partner checking phase
       expect(
@@ -240,7 +237,7 @@ describe("RevealContent - Working Tests", () => {
     });
 
     it("calls upload API with correct parameters", async () => {
-      mockLocalStorageWithUser(createMockUserData({ role: "boyfriend" }));
+      mockLocalStorageWithUser(createMockUserData({ slot: "b" }));
       const mockImages = createMockImages();
       mockZustandWithImages(mockImages);
 
@@ -260,7 +257,7 @@ describe("RevealContent - Working Tests", () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            userRole: "boyfriend",
+            userSlot: "b",
             images: mockImages,
           }),
         })
@@ -268,7 +265,7 @@ describe("RevealContent - Working Tests", () => {
     });
 
     it("handles upload errors gracefully", async () => {
-      mockLocalStorageWithUser(createMockUserData({ role: "girlfriend" }));
+      mockLocalStorageWithUser(createMockUserData({ slot: "a" }));
       mockZustandWithImages(createMockImages());
 
       // Configure fetch to return error for upload
@@ -304,7 +301,7 @@ describe("RevealContent - Working Tests", () => {
     });
 
     it("handles rate limit errors with specific messaging", async () => {
-      mockLocalStorageWithUser(createMockUserData({ role: "girlfriend" }));
+      mockLocalStorageWithUser(createMockUserData({ slot: "a" }));
       mockZustandWithImages(createMockImages());
 
       // Configure fetch to return rate limit error
@@ -344,7 +341,7 @@ describe("RevealContent - Working Tests", () => {
     });
 
     it("navigates back to room when back button is clicked", async () => {
-      mockLocalStorageWithUser(createMockUserData({ role: "girlfriend" }));
+      mockLocalStorageWithUser(createMockUserData({ slot: "a" }));
       mockZustandWithImages(createMockImages());
 
       // Configure fetch to return network error
@@ -385,7 +382,7 @@ describe("RevealContent - Working Tests", () => {
       const intervalSpy = vi.spyOn(global, "setInterval");
       const clearIntervalSpy = vi.spyOn(global, "clearInterval");
 
-      mockLocalStorageWithUser(createMockUserData({ role: "girlfriend" }));
+      mockLocalStorageWithUser(createMockUserData({ slot: "a" }));
       mockZustandWithImages(createMockImages());
 
       const { unmount } = render(<RevealContent roomId="test-room-123" />);
@@ -407,7 +404,7 @@ describe("RevealContent - Working Tests", () => {
 
   describe("API Verification", () => {
     it("verifies upload API parameters are correct", async () => {
-      const userData = createMockUserData({ role: "boyfriend" });
+      const userData = createMockUserData({ slot: "b" });
       const images = createMockImages();
 
       mockLocalStorageWithUser(userData);
@@ -428,7 +425,7 @@ describe("RevealContent - Working Tests", () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            userRole: "boyfriend",
+            userSlot: "b",
             images: images,
           }),
         })
@@ -436,7 +433,7 @@ describe("RevealContent - Working Tests", () => {
     });
 
     it("verifies reveal check API parameters", async () => {
-      const userData = createMockUserData({ role: "girlfriend" });
+      const userData = createMockUserData({ slot: "a" });
 
       mockLocalStorageWithUser(userData);
       mockZustandWithImages(createMockImages());
@@ -456,7 +453,7 @@ describe("RevealContent - Working Tests", () => {
       );
 
       expect(mockFetch).toHaveBeenCalledWith(
-        "/api/room/test-room-123/partner-images?userRole=girlfriend",
+        "/api/room/test-room-123/partner-images?userSlot=a",
         expect.objectContaining({
           method: "GET",
         })

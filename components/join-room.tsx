@@ -14,16 +14,17 @@ import { Button } from "./ui/button";
 import EmojiSelector from "./emoji-selector";
 import { useActiveRoom } from "@/hooks/use-active-room";
 import { capitalize } from "@/lib/utils";
+import { type RelationshipRole } from "@/lib/role-utils";
 
 // Componente moderno para el botón usando useFormStatus
 function SubmitButton({
   roomInfo,
-  missingRole,
+  selectedRole,
   selectedEmoji,
   disabled,
 }: {
   roomInfo: any;
-  missingRole: string | null;
+  selectedRole: RelationshipRole | null;
   selectedEmoji: string;
   disabled: boolean;
 }) {
@@ -34,7 +35,7 @@ function SubmitButton({
       type="submit"
       variant="shadow"
       disabled={
-        pending || !roomInfo || !missingRole || !selectedEmoji || disabled
+        pending || !roomInfo || !selectedRole || !selectedEmoji || disabled
       }
       className="w-full"
     >
@@ -45,14 +46,12 @@ function SubmitButton({
         </div>
       ) : !roomInfo ? (
         "Enter Room ID"
-      ) : !missingRole ? (
-        "Room is Full"
+      ) : !selectedRole ? (
+        "Choose Your Role"
       ) : !selectedEmoji ? (
         "Choose Your Avatar"
       ) : (
-        `Join as ${
-          missingRole === "girlfriend" ? "Girlfriend" : "Boyfriend"
-        } 💫`
+        `Join as ${selectedRole} 💫`
       )}
     </Button>
   );
@@ -70,6 +69,9 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
   const [roomInfo, setRoomInfo] = useState<any>(null);
   const [checkingRoom, setCheckingRoom] = useState(false);
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
+  const [selectedRole, setSelectedRole] = useState<RelationshipRole | null>(
+    null
+  );
   const [name, setName] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
   const roomIdInputRef = useRef<HTMLInputElement>(null);
@@ -122,6 +124,7 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
       setRoomInfo(null);
       setCheckRoomError(null);
       setSelectedEmoji(""); // Reset emoji when room changes
+      setSelectedRole(null); // Reset role when room changes
       return;
     }
 
@@ -135,6 +138,7 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
         "You are already in this room! Go to your active room instead."
       );
       setSelectedEmoji("");
+      setSelectedRole(null);
       return;
     }
 
@@ -148,15 +152,18 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
         setRoomInfo(data.room);
         setCheckRoomError(null);
         setSelectedEmoji(""); // Reset emoji when new room is found
+        setSelectedRole(null); // Reset role when new room is found
       } else {
         setRoomInfo(null);
         setCheckRoomError(data.error);
         setSelectedEmoji("");
+        setSelectedRole(null);
       }
     } catch (err) {
       setRoomInfo(null);
       setCheckRoomError("Failed to check room");
       setSelectedEmoji("");
+      setSelectedRole(null);
     } finally {
       setCheckingRoom(false);
     }
@@ -174,13 +181,15 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
     return () => clearTimeout(timer);
   };
 
-  const missingRole = roomInfo
-    ? !roomInfo.a_name
-      ? "girlfriend"
-      : !roomInfo.b_name
-      ? "boyfriend"
-      : null
-    : null;
+  const handleRoleChange = (role: RelationshipRole) => {
+    setSelectedRole(role);
+    setSelectedEmoji(""); // Reset emoji when role changes
+  };
+
+  // Check if room has available slots
+  const hasAvailableSlots = roomInfo
+    ? !roomInfo.a_name || !roomInfo.b_name
+    : false;
 
   // If there's an active room, show it prominently
   if (activeRoom) {
@@ -321,7 +330,24 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
           </div>
         </div>
 
-        {roomInfo && (
+        {roomInfo && !hasAvailableSlots && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg dark:bg-red-950 dark:border-red-800">
+            <div className="flex items-start gap-3">
+              <div className="text-red-500 text-xl">❌</div>
+              <div>
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-400">
+                  Room is Full
+                </h3>
+                <p className="mt-1 text-sm text-red-700 dark:text-red-300">
+                  This room already has both partners. You cannot join this
+                  room.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {roomInfo && hasAvailableSlots && (
           <div className="p-4 bg-green-50 border border-green-200 rounded-lg dark:bg-green-950 dark:border-green-800">
             <div className="flex items-start gap-3">
               <div className="text-green-500 text-xl">✅</div>
@@ -339,7 +365,7 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
                         <span>{roomInfo.a_emoji || "💕"}</span>
                         <span>{roomInfo.a_name}</span>
                         <span className="text-xs text-green-600 dark:text-green-400">
-                          (Girlfriend)
+                          (Slot A)
                         </span>
                       </div>
                     )}
@@ -348,29 +374,61 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
                         <span>{roomInfo.b_emoji || "💙"}</span>
                         <span>{roomInfo.b_name}</span>
                         <span className="text-xs text-green-600 dark:text-green-400">
-                          (Boyfriend)
+                          (Slot B)
                         </span>
                       </div>
                     )}
                   </div>
-                  {missingRole && (
-                    <div className="mt-2 p-2 bg-blue-100 rounded border border-blue-200 dark:bg-blue-950 dark:border-blue-800">
-                      <p className="text-blue-800 text-xs dark:text-blue-300">
-                        <strong>You will join as:</strong>{" "}
-                        {missingRole === "girlfriend"
-                          ? "Girlfriend"
-                          : "Boyfriend"}
-                      </p>
-                    </div>
-                  )}
+                  <div className="mt-2 p-2 bg-blue-100 rounded border border-blue-200 dark:bg-blue-950 dark:border-blue-800">
+                    <p className="text-blue-800 text-xs dark:text-blue-300">
+                      Available slots:{" "}
+                      {!roomInfo.a_name && !roomInfo.b_name
+                        ? "A, B"
+                        : !roomInfo.a_name
+                        ? "A"
+                        : "B"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {roomInfo && missingRole && (
+        {roomInfo && hasAvailableSlots && (
           <>
+            <div>
+              <label className="block text-sm font-medium text-primary/60 mb-3">
+                Your Role in this Relationship
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {(
+                  [
+                    "friend",
+                    "roommate",
+                    "workmate",
+                    "gym bro",
+                    "sister",
+                    "gym girl",
+                  ] as RelationshipRole[]
+                ).map((role) => (
+                  <label key={role} className="flex items-center">
+                    <input
+                      type="radio"
+                      name="role"
+                      value={role}
+                      required
+                      disabled={isPending}
+                      checked={selectedRole === role}
+                      onChange={() => handleRoleChange(role)}
+                      className="size-4 text-purple-600 focus:ring-purple-500 disabled:cursor-not-allowed"
+                    />
+                    <span className="ml-2 text-sm capitalize">{role}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
             <div>
               <label
                 htmlFor="name"
@@ -401,22 +459,24 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
               </div>
             </div>
 
-            <EmojiSelector
-              role={missingRole}
-              selectedEmoji={selectedEmoji}
-              onEmojiSelect={setSelectedEmoji}
-              name="emoji"
-              disabled={isPending}
-              onRoleChange={() => {}}
-            />
+            {selectedRole && (
+              <EmojiSelector
+                role="girlfriend" // This is just for emoji categories, doesn't affect functionality
+                selectedEmoji={selectedEmoji}
+                onEmojiSelect={setSelectedEmoji}
+                name="emoji"
+                disabled={isPending}
+                onRoleChange={() => {}}
+              />
+            )}
           </>
         )}
 
         <SubmitButton
           roomInfo={roomInfo}
-          missingRole={missingRole}
+          selectedRole={selectedRole}
           selectedEmoji={selectedEmoji}
-          disabled={!!nameError || !name.trim()}
+          disabled={!!nameError || !name.trim() || !hasAvailableSlots}
         />
       </form>
 
@@ -433,8 +493,8 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
               <ul className="list-disc list-inside space-y-1">
                 <li>Ask your partner for their Room ID</li>
                 <li>Enter the 8-character Room ID above</li>
-                <li>We'll automatically assign your role</li>
-                <li>Choose your avatar and enter your name</li>
+                <li>Choose your role in the relationship</li>
+                <li>Pick your avatar and enter your name</li>
               </ul>
             </div>
           </div>

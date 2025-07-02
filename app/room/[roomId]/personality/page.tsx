@@ -67,10 +67,10 @@ export default function PersonalityPage({ params }: PageProps) {
           return;
         }
 
-        // Validate user role matches room data
+        // Validate user slot matches room data
         const isValidUser =
-          (user.role === "girlfriend" && room.a_name === user.name) ||
-          (user.role === "boyfriend" && room.b_name === user.name);
+          (user.slot === "a" && room.a_name === user.name) ||
+          (user.slot === "b" && room.b_name === user.name);
 
         if (!isValidUser) {
           setError("Invalid user credentials for this room");

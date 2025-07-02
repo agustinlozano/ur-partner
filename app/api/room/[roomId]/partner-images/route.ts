@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { findRoomByRoomId } from "@/lib/dynamodb";
-import { type DatabaseSlot } from "@/lib/role-utils";
+import { type DatabaseSlot, PERSONALITY_CATEGORIES } from "@/lib/role-utils";
 
 // Helper function to check if a string is a date
 function isDateString(str: string): boolean {
@@ -78,22 +78,11 @@ export async function GET(
     // const partnerRole = room[`role_${partnerSlot}`]; // TODO: add `role_a` and `role_b` to room data
 
     // Extract partner's image URLs from the room data
-    const categories = [
-      "animal",
-      "place",
-      "plant",
-      "character",
-      "season",
-      "hobby",
-      "food",
-      "colour",
-      "drink",
-    ];
 
     const partnerImages: { [key: string]: string | string[] } = {};
     let totalImagesFound = 0;
 
-    for (const category of categories) {
+    for (const category of PERSONALITY_CATEGORIES) {
       const columnKey = `${category}_${partnerSlot}` as keyof typeof room;
       const imageData = room[columnKey];
 

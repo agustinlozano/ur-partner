@@ -404,6 +404,7 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
                   [
                     "girlfriend",
                     "boyfriend",
+                    "partner",
                     "friend",
                     "roommate",
                     "workmate",

@@ -287,6 +287,7 @@ export default function CreateRoom() {
               [
                 "girlfriend",
                 "boyfriend",
+                "partner",
                 "friend",
                 "roommate",
                 "workmate",

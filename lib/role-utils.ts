@@ -11,6 +11,7 @@ export type DatabaseSlot = "a" | "b";
 export type RelationshipRole =
   | "girlfriend"
   | "boyfriend"
+  | "partner"
   | "friend"
   | "roommate"
   | "workmate"

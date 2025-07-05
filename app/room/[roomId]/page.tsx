@@ -14,6 +14,7 @@ import { sleep } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Room } from "@/lib/dynamodb";
 import { RelationshipRole } from "@/lib/role-utils";
+import RelativeTime from "@/components/ui/relative-time";
 
 interface PageProps {
   params: Promise<{ roomId: string }>;
@@ -290,6 +291,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
                 ? `Waiting for your partner to join`
                 : "Both partners are in the room!"}
             </p>
+
             <div className="min-h-[24px]">
               {isPolling && (
                 <div className="flex items-center gap-1 text-sm text-primary/60">
@@ -431,7 +433,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
                       asChild
                       className="border-purple-500 text-purple-700 hover:bg-purple-50 dark:text-purple-300 dark:hover:bg-purple-950"
                     >
-                      <Link href={`/room/${roomId}/reveal`}>
+                      <Link href={`/room/${roomId}/view-reveal`}>
                         ✨ View Personality Reveal
                       </Link>
                     </Button>
@@ -483,14 +485,14 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
                   )}
 
                   {/* Show loading state when checking reveal */}
-                  {checkingReveal && (
+                  {/* {checkingReveal && (
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-2 text-sm text-purple-600 dark:text-purple-400">
                         <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-purple-600"></div>
                         <span>Checking partner progress...</span>
                       </div>
                     </div>
-                  )}
+                  )} */}
                 </div>
               </div>
             </div>
@@ -502,20 +504,21 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
           <h3 className="text-lg font-semibold mb-4">Room Information</h3>
           <div className="grid md:grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="text-primary/85">Room ID:</span>
+              <span className="text-primary/85">Room ID</span>
               <span className="ml-2 font-mono">{roomData.room_id}</span>
             </div>
             <div>
-              <span className="text-primary/85">Created:</span>
+              <span className="text-primary/85">Created</span>
               <span className="ml-2">
-                {new Date(roomData.created_at).toLocaleString("en-US", {
-                  dateStyle: "long",
-                  timeStyle: "short",
-                })}
+                <RelativeTime
+                  datetime={roomData.created_at}
+                  format="relative"
+                  className="font-medium"
+                />
               </span>
             </div>
             <div>
-              <span className="text-primary/85">Status:</span>
+              <span className="text-primary/85">Status</span>
               <span className="ml-2">
                 {missingPartner
                   ? "Waiting for partner"
@@ -523,14 +526,17 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
               </span>
             </div>
             <div>
-              <span className="text-primary/85">Expires:</span>
+              <span className="text-primary/85">Expires</span>
               <span className="ml-2">
-                {new Date(
-                  new Date(roomData.created_at).getTime() + 2.5 * 60 * 60 * 1000
-                ).toLocaleString("en-US", {
-                  dateStyle: "long",
-                  timeStyle: "short",
-                })}
+                <RelativeTime
+                  datetime={new Date(
+                    new Date(roomData.created_at).getTime() +
+                      2.5 * 60 * 60 * 1000
+                  ).toISOString()}
+                  format="relative"
+                  tense="future"
+                  className="font-medium text-orange-600"
+                />
               </span>
             </div>
           </div>

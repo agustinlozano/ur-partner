@@ -21,6 +21,7 @@ import {
 } from "./ui/tooltip";
 import { useRouter, usePathname } from "next/navigation";
 import { X, Users, Clock, ChevronUp, ChevronDown } from "lucide-react";
+import RelativeTime from "./ui/relative-time";
 
 export default function FloatingRoomMenu() {
   const { activeRoom, clearActive, isRoomExpired, refreshActiveRoom } =
@@ -161,6 +162,15 @@ export default function FloatingRoomMenu() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-primary/85">Name:</span>
                   <span className="font-medium">{activeRoom.name}</span>
+                </div>
+
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-primary/85">Created:</span>
+                  <RelativeTime
+                    datetime={activeRoom.created_at}
+                    format="relative"
+                    className="font-medium"
+                  />
                 </div>
 
                 <div className="flex items-center justify-between text-sm">

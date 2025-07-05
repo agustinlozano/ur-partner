@@ -13,7 +13,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
     <GradientBackground className="py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold font-mono mb-6 text-balance text-gradient">
+          <h1 className="text-4xl font-bold font-mono mb-6 text-balance text-gradient">
             Join Your Partner&apos;s Room
           </h1>
           <p className="text-xl text-primary/75 mx-auto mb-8 max-w-lg">

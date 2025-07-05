@@ -74,7 +74,24 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
   );
   const [name, setName] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
+  const [showAllRoles, setShowAllRoles] = useState(false);
   const roomIdInputRef = useRef<HTMLInputElement>(null);
+
+  // Lista completa de roles
+  const allRoles = [
+    "girlfriend",
+    "boyfriend",
+    "partner",
+    "friend",
+    "roommate",
+    "workmate",
+    "gym bro",
+    "sister",
+    "gym girl",
+  ] as RelationshipRole[];
+
+  // Roles a mostrar (primeros 3 o todos)
+  const rolesToShow = showAllRoles ? allRoles : allRoles.slice(0, 3);
 
   // Action moderna con useActionState
   const [state, formAction] = useActionState(
@@ -125,6 +142,7 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
       setCheckRoomError(null);
       setSelectedEmoji(""); // Reset emoji when room changes
       setSelectedRole(null); // Reset role when room changes
+      setShowAllRoles(false); // Reset show all roles when room changes
       return;
     }
 
@@ -139,6 +157,7 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
       );
       setSelectedEmoji("");
       setSelectedRole(null);
+      setShowAllRoles(false);
       return;
     }
 
@@ -153,17 +172,20 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
         setCheckRoomError(null);
         setSelectedEmoji(""); // Reset emoji when new room is found
         setSelectedRole(null); // Reset role when new room is found
+        setShowAllRoles(false); // Reset show all roles when new room is found
       } else {
         setRoomInfo(null);
         setCheckRoomError(data.error);
         setSelectedEmoji("");
         setSelectedRole(null);
+        setShowAllRoles(false);
       }
     } catch (err) {
       setRoomInfo(null);
       setCheckRoomError("Failed to check room");
       setSelectedEmoji("");
       setSelectedRole(null);
+      setShowAllRoles(false);
     } finally {
       setCheckingRoom(false);
     }
@@ -184,6 +206,11 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
   const handleRoleChange = (role: RelationshipRole) => {
     setSelectedRole(role);
     setSelectedEmoji(""); // Reset emoji when role changes
+
+    // Si se selecciona un rol de los primeros 3, colapsar la lista
+    if (allRoles.slice(0, 3).includes(role)) {
+      setShowAllRoles(false);
+    }
   };
 
   // Check if room has available slots
@@ -204,7 +231,7 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
 
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-4 dark:bg-blue-950 dark:border-blue-800">
           <div className="flex items-start gap-3">
-            <div className="text-blue-500 text-xl">🎯</div>
+            <div className="hidden sm:block text-blue-500 text-xl">🎯</div>
             <div>
               <h3 className="text-sm font-medium text-blue-800 dark:text-blue-300">
                 Current Room Details
@@ -377,16 +404,6 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
                       </div>
                     )}
                   </div>
-                  <div className="mt-2 p-2 bg-blue-100 rounded border border-blue-200 dark:bg-blue-950 dark:border-blue-800">
-                    <p className="text-blue-800 text-xs dark:text-blue-300">
-                      Available slots:{" "}
-                      {!roomInfo.a_name && !roomInfo.b_name
-                        ? "A, B"
-                        : !roomInfo.a_name
-                        ? "A"
-                        : "B"}
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>
@@ -399,21 +416,27 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
               <label className="block text-sm font-medium text-primary/60 mb-3">
                 Your Role in this Relationship
               </label>
-              <div className="grid grid-cols-2 gap-2">
-                {(
-                  [
-                    "girlfriend",
-                    "boyfriend",
-                    "partner",
-                    "friend",
-                    "roommate",
-                    "workmate",
-                    "gym bro",
-                    "sister",
-                    "gym girl",
-                  ] as RelationshipRole[]
-                ).map((role) => (
-                  <label key={role} className="flex items-center">
+              <div className="flex flex-wrap gap-2">
+                {rolesToShow.map((role) => (
+                  <button
+                    key={role}
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => handleRoleChange(role)}
+                    className={`
+                      px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200
+                      ${
+                        selectedRole === role
+                          ? "bg-accent text-accent-foreground border border-border"
+                          : "bg-muted text-muted-foreground border border-border hover:bg-accent hover:text-accent-foreground"
+                      }
+                      ${
+                        isPending
+                          ? "opacity-50 cursor-not-allowed"
+                          : "cursor-pointer"
+                      }
+                    `}
+                  >
                     <input
                       type="radio"
                       name="role"
@@ -422,12 +445,21 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
                       disabled={isPending}
                       checked={selectedRole === role}
                       onChange={() => handleRoleChange(role)}
-                      className="size-4 text-purple-600 focus:ring-purple-500 disabled:cursor-not-allowed"
+                      className="sr-only"
                     />
-                    <span className="ml-2 text-sm capitalize">{role}</span>
-                  </label>
+                    <span className="capitalize">{role}</span>
+                  </button>
                 ))}
               </div>
+              {!showAllRoles && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllRoles(true)}
+                  className="mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  + more roles
+                </button>
+              )}
             </div>
 
             <div>
@@ -482,7 +514,7 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-950 dark:border-blue-800">
         <div className="flex items-start">
           <div className="flex-shrink-0">
-            <span className="text-blue-500">ℹ️</span>
+            <span className="hidden sm:block text-blue-500">ℹ️</span>
           </div>
           <div className="ml-3">
             <h3 className="text-sm font-medium text-blue-800 dark:text-blue-400">

@@ -24,10 +24,11 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.830.0",
     "@aws-sdk/lib-dynamodb": "^3.830.0",
+    "@github/relative-time-element": "^4.4.8",
     "@number-flow/react": "^0.5.10",
     "@radix-ui/react-dialog": "^1.1.14",
-    "@radix-ui/react-tabs": "^1.1.2",
     "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-tabs": "^1.1.2",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@tsparticles/react": "^3.0.0",
     "@tsparticles/slim": "^3.8.1",

@@ -14,6 +14,9 @@ importers:
       '@aws-sdk/lib-dynamodb':
         specifier: ^3.830.0
         version: 3.830.0(@aws-sdk/client-dynamodb@3.830.0)
+      '@github/relative-time-element':
+        specifier: ^4.4.8
+        version: 4.4.8
       '@number-flow/react':
         specifier: ^0.5.10
         version: 0.5.10(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -579,6 +582,9 @@ packages:
 
   '@floating-ui/utils@0.2.9':
     resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
+
+  '@github/relative-time-element@4.4.8':
+    resolution: {integrity: sha512-FSLYm6F3TSQnqHE1EMQUVVgi2XjbCvsESwwXfugHFpBnhyF1uhJOtu0Psp/BB/qqazfdkk7f5fVcu7WuXl3t8Q==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -4429,6 +4435,8 @@ snapshots:
       react-dom: 19.1.0(react@19.1.0)
 
   '@floating-ui/utils@0.2.9': {}
+
+  '@github/relative-time-element@4.4.8': {}
 
   '@humanfs/core@0.19.1': {}
 

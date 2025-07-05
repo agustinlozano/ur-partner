@@ -9,7 +9,7 @@ import CopyRoomId from "@/components/copy-room-id";
 // import AudioTrigger from "@/components/audio-trigger";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
-import { checkRevealReady } from "@/lib/check-reveal-ready";
+import { checkRevealReadyEnhanced } from "@/lib/check-reveal-ready";
 import { sleep } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Room } from "@/lib/dynamodb";
@@ -60,6 +60,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
     partnerRole: string;
     totalImages: number;
     categoriesCompleted: number;
+    categoriesWithProgress: number;
   } | null>(null);
   const [checkingReveal, setCheckingReveal] = useState(false);
   const router = useRouter();
@@ -119,7 +120,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
     }
 
     loadData();
-  }, [params, searchParams]);
+  }, [params, searchParams, router]); // added router to dependencies (problem?)
 
   // Polling effect to check for partner joining
   useEffect(() => {
@@ -195,13 +196,15 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
 
       setCheckingReveal(true);
       try {
-        const result = await checkRevealReady(roomId, currentUser.slot);
+        const result = await checkRevealReadyEnhanced(roomId, currentUser.slot);
         if (!result.error) {
           setRevealReady({
             isReady: result.isReady,
             partnerRole: result.partnerRole,
             totalImages: result.totalImages,
             categoriesCompleted: result.categoriesCompleted,
+            categoriesWithProgress:
+              result.categoriesWithProgress || result.categoriesCompleted,
           });
         } else {
           setRevealReady(null);
@@ -420,7 +423,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
                 </Button>
 
                 {/* Reveal Section - Always reserve space to prevent layout shift */}
-                <div className="min-h-[60px] flex flex-col justify-center items-center">
+                <div className="min-h-[64px] flex flex-col justify-center items-center">
                   {revealReady?.isReady && (
                     <Button
                       variant="outline"
@@ -439,10 +442,53 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
                       <p className="text-sm text-green-600 dark:text-green-400 mb-2">
                         Reveal available when both complete the quiz
                       </p>
-                      <p className="text-xs text-green-500 dark:text-green-500">
-                        Partner has {revealReady.categoriesCompleted}/9
-                        categories ready
-                      </p>
+
+                      {/* Enhanced temporal progress display */}
+                      <div className="space-y-1">
+                        {/* Show the temporal progression */}
+                        {revealReady.categoriesWithProgress >
+                        revealReady.categoriesCompleted ? (
+                          /* Partner has pre-loaded images but hasn't uploaded all yet */
+                          <div className="space-y-1">
+                            <p className="text-xs text-blue-500 dark:text-blue-400">
+                              Partner working on{" "}
+                              {revealReady.categoriesWithProgress}/9 categories
+                            </p>
+                            <p className="text-xs text-green-500 dark:text-green-500">
+                              {revealReady.categoriesCompleted}/9 categories
+                              uploaded
+                            </p>
+                            {revealReady.totalImages > 0 && (
+                              <p className="text-xs text-purple-500 dark:text-purple-400">
+                                {revealReady.totalImages} images ready
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          /* Partner has equal progress (all uploaded) or hasn't started much */
+                          <div className="space-y-1">
+                            <p className="text-xs text-green-500 dark:text-green-500">
+                              Partner has {revealReady.categoriesCompleted}/9
+                              categories ready
+                            </p>
+                            {revealReady.totalImages > 0 && (
+                              <p className="text-xs text-purple-500 dark:text-purple-400">
+                                {revealReady.totalImages} images uploaded
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Show loading state when checking reveal */}
+                  {checkingReveal && (
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-2 text-sm text-purple-600 dark:text-purple-400">
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-purple-600"></div>
+                        <span>Checking partner progress...</span>
+                      </div>
                     </div>
                   )}
                 </div>

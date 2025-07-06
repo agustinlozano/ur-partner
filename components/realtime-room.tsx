@@ -1,166 +1,91 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { useRoomSocket } from "@/hooks/use-room-socket";
+import { useGameStore } from "@/stores/realtime-store";
 import { CategoryList } from "@/components/realtime-category-list";
 import { MainPanel } from "@/components/realtime-main-panel";
 import { PartnerTracker } from "@/components/realtime-partner-tracker";
 import { ChatDrawer } from "@/components/realtime-chat-drawer";
 import { Button } from "@/components/ui/button";
 import { LogOut, Zap } from "lucide-react";
-import type { GameState, RoomEvent } from "@/components/realtime.types";
 
 export default function RealtimeRoom() {
-  const [gameState, setGameState] = useState<GameState>({
-    mySlot: "a",
-    partnerSlot: "b",
-    myFixedCategory: null,
-    partnerFixedCategory: null,
-    myCompletedCategories: [],
-    partnerCompletedCategories: ["animal", "place", "hobby"],
-    myProgress: 0,
-    partnerProgress: 75,
-    myReady: false,
-    partnerReady: true,
-    connected: false,
-    chatMessages: [
-      {
-        slot: "b",
-        message: "Hey! Ready to play?",
-        timestamp: Date.now() - 60000,
-      },
-      {
-        slot: "a",
-        message: "Yes! Let's do this 🎮",
-        timestamp: Date.now() - 30000,
-      },
-    ],
-  });
+  const {
+    mySlot,
+    partnerSlot,
+    myFixedCategory,
+    partnerFixedCategory,
+    myCompletedCategories,
+    partnerCompletedCategories,
+    myProgress,
+    partnerProgress,
+    myReady,
+    partnerReady,
+    chatMessages,
+    setMyFixedCategory,
+    setMyProgress,
+    setMyReady,
+    completeMyCategory,
+    sendMessage,
+  } = useGameStore();
 
-  const handleMessage = useCallback((event: RoomEvent) => {
-    setGameState((prev) => {
-      const newState = { ...prev };
-
-      switch (event.type) {
-        case "category_fixed":
-          if (event.slot === newState.mySlot) {
-            newState.myFixedCategory = event.category;
-          } else {
-            newState.partnerFixedCategory = event.category;
-          }
-          break;
-
-        case "category_completed":
-          if (event.slot === newState.mySlot) {
-            newState.myCompletedCategories = [
-              ...newState.myCompletedCategories,
-              event.category,
-            ];
-          } else {
-            newState.partnerCompletedCategories = [
-              ...newState.partnerCompletedCategories,
-              event.category,
-            ];
-          }
-          break;
-
-        case "progress_updated":
-          if (event.slot === newState.mySlot) {
-            newState.myProgress = event.progress;
-          } else {
-            newState.partnerProgress = event.progress;
-          }
-          break;
-
-        case "is_ready":
-          if (event.slot === newState.mySlot) {
-            newState.myReady = true;
-          } else {
-            newState.partnerReady = true;
-          }
-          break;
-
-        case "say":
-          newState.chatMessages = [
-            ...newState.chatMessages,
-            { slot: event.slot, message: event.message, timestamp: Date.now() },
-          ];
-          break;
-      }
-
-      return newState;
-    });
-  }, []);
-
-  const { connected, send } = useRoomSocket("1234ABCD", gameState.mySlot, {
-    onMessage: handleMessage,
-    onConnect: () => setGameState((prev) => ({ ...prev, connected: true })),
-    onDisconnect: () => setGameState((prev) => ({ ...prev, connected: false })),
-  });
+  const { connected } = useRoomSocket("1234ABCD", mySlot);
 
   const handleCategorySelect = useCallback(
     (category: string) => {
-      setGameState((prev) => ({ ...prev, myFixedCategory: category }));
-      send({ type: "category_fixed", slot: gameState.mySlot, category });
+      setMyFixedCategory(category);
+      sendMessage({ type: "category_fixed", slot: mySlot, category });
     },
-    [send, gameState.mySlot]
+    [setMyFixedCategory, sendMessage, mySlot]
   );
 
   const handleImageUpload = useCallback(
     (file: File) => {
-      // Simulate progress updates
       let progress = 0;
       const interval = setInterval(() => {
         progress += 10;
-        setGameState((prev) => ({ ...prev, myProgress: progress }));
-        send({ type: "progress_updated", slot: gameState.mySlot, progress });
+        setMyProgress(progress);
+        sendMessage({ type: "progress_updated", slot: mySlot, progress });
 
         if (progress >= 100) {
           clearInterval(interval);
-          if (gameState.myFixedCategory) {
-            setGameState((prev) => ({
-              ...prev,
-              myCompletedCategories: [
-                ...prev.myCompletedCategories,
-                gameState.myFixedCategory!,
-              ],
-              myFixedCategory: null,
-              myProgress: 0,
-            }));
-            send({
+          if (myFixedCategory) {
+            completeMyCategory(myFixedCategory);
+            sendMessage({
               type: "category_completed",
-              slot: gameState.mySlot,
-              category: gameState.myFixedCategory,
+              slot: mySlot,
+              category: myFixedCategory,
             });
           }
         }
       }, 200);
     },
-    [send, gameState.mySlot, gameState.myFixedCategory]
+    [setMyProgress, sendMessage, mySlot, myFixedCategory, completeMyCategory]
   );
 
   const handleToggleReady = useCallback(() => {
-    const newReady = !gameState.myReady;
-    setGameState((prev) => ({ ...prev, myReady: newReady }));
+    const newReady = !myReady;
+    setMyReady(newReady);
     if (newReady) {
-      send({ type: "is_ready", slot: gameState.mySlot });
+      sendMessage({ type: "is_ready", slot: mySlot });
     }
-  }, [send, gameState.mySlot, gameState.myReady]);
+  }, [myReady, setMyReady, sendMessage, mySlot]);
 
   const handleSendMessage = useCallback(
     (message: string) => {
-      send({ type: "say", slot: gameState.mySlot, message });
+      sendMessage({ type: "say", slot: mySlot, message });
     },
-    [send, gameState.mySlot]
+    [sendMessage, mySlot]
   );
 
   const handlePing = useCallback(() => {
-    send({ type: "ping", slot: gameState.mySlot });
-  }, [send, gameState.mySlot]);
+    sendMessage({ type: "ping", slot: mySlot });
+  }, [sendMessage, mySlot]);
 
   const handleLeave = useCallback(() => {
-    send({ type: "leave", slot: gameState.mySlot });
-  }, [send, gameState.mySlot]);
+    sendMessage({ type: "leave", slot: mySlot });
+  }, [sendMessage, mySlot]);
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -178,8 +103,8 @@ export default function RealtimeRoom() {
               Ping
             </Button>
             <ChatDrawer
-              messages={gameState.chatMessages}
-              mySlot={gameState.mySlot}
+              messages={chatMessages}
+              mySlot={mySlot}
               onSendMessage={handleSendMessage}
             />
             <Button
@@ -197,18 +122,18 @@ export default function RealtimeRoom() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-1">
             <CategoryList
-              selectedCategory={gameState.myFixedCategory}
-              completedCategories={gameState.myCompletedCategories}
+              selectedCategory={myFixedCategory}
+              completedCategories={myCompletedCategories}
               onCategorySelect={handleCategorySelect}
             />
           </div>
 
           <div className="lg:col-span-2">
             <MainPanel
-              userSlot={gameState.mySlot}
-              selectedCategory={gameState.myFixedCategory}
-              progress={gameState.myProgress}
-              isReady={gameState.myReady}
+              userSlot={mySlot}
+              selectedCategory={myFixedCategory}
+              progress={myProgress}
+              isReady={myReady}
               onImageUpload={handleImageUpload}
               onToggleReady={handleToggleReady}
               onCategoryDrop={handleCategorySelect}
@@ -217,12 +142,12 @@ export default function RealtimeRoom() {
 
           <div className="lg:col-span-1">
             <PartnerTracker
-              partnerSlot={gameState.partnerSlot}
+              partnerSlot={partnerSlot}
               connected={connected}
-              selectedCategory={gameState.partnerFixedCategory}
-              completedCategories={gameState.partnerCompletedCategories}
-              progress={gameState.partnerProgress}
-              isReady={gameState.partnerReady}
+              selectedCategory={partnerFixedCategory}
+              completedCategories={partnerCompletedCategories}
+              progress={partnerProgress}
+              isReady={partnerReady}
             />
           </div>
         </div>

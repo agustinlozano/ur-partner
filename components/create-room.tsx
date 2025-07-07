@@ -87,7 +87,6 @@ export default function CreateRoom() {
     "roommate",
     "workmate",
     "gym bro",
-    "sister",
     "gym girl",
   ] as RelationshipRole[];
 

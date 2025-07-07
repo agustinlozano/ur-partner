@@ -86,7 +86,6 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
     "roommate",
     "workmate",
     "gym bro",
-    "sister",
     "gym girl",
   ] as RelationshipRole[];
 

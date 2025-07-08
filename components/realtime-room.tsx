@@ -8,9 +8,16 @@ import { MainPanel } from "@/components/realtime-main-panel";
 import { PartnerTracker } from "@/components/realtime-partner-tracker";
 import { ChatDrawer } from "@/components/realtime-chat-drawer";
 import { Button } from "@/components/ui/button";
-import { LogOut, Zap } from "lucide-react";
+import { LogOut, SparklesIcon, Zap } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export default function RealtimeRoom() {
+export default function RealtimeRoom({
+  starfieldEnabled = true,
+  onToggleStarfield,
+}: {
+  starfieldEnabled?: boolean;
+  onToggleStarfield?: () => void;
+} = {}) {
   const {
     mySlot,
     partnerSlot,
@@ -88,10 +95,10 @@ export default function RealtimeRoom() {
   }, [sendMessage, mySlot]);
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Couple Image Game</h1>
+    <div className="min-h-screen p-4">
+      <div className="mx-auto">
+        <div className="flex items-center justify-between w-full mb-6 select-none">
+          {/* <h1 className="text-2xl font-bold">Couple Image Game</h1> */}
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -102,21 +109,29 @@ export default function RealtimeRoom() {
               <Zap className="h-4 w-4" />
               Ping
             </Button>
+            <Button
+              variant={starfieldEnabled ? "outline" : "default"}
+              size="sm"
+              onClick={onToggleStarfield}
+            >
+              {starfieldEnabled ? "Hide" : "Show"}{" "}
+              <SparklesIcon className="h-4 w-4" />
+            </Button>
             <ChatDrawer
               messages={chatMessages}
               mySlot={mySlot}
               onSendMessage={handleSendMessage}
             />
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleLeave}
-              className="gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              Leave
-            </Button>
           </div>
+          <Button
+            // variant="outline"
+            size="sm"
+            onClick={handleLeave}
+            className="gap-2 border border-orange-400 bg-orange-900 text-primary hover:bg-orange-950 hover:text-white active:bg-orange-800 disabled:opacity-50 disabled:pointer-events-none"
+          >
+            <LogOut className="h-4 w-4" />
+            Leave
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

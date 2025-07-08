@@ -206,7 +206,7 @@ export default function Starfield() {
     <div
       ref={containerRef}
       id="starfield"
-      className="absolute inset-0 h-full"
+      className="absolute inset-0 h-fit"
       aria-hidden="true"
       // Avoid mouse/pointer events on the canvas and prevent unnecessary repaints that can lower FPS
       style={{

@@ -29,7 +29,9 @@ export function PartnerTracker({
               connected ? "bg-green-500" : "bg-red-500"
             }`}
           />
-          <span className="font-medium">User {partnerSlot.toUpperCase()}</span>
+          <span className="font-medium font-mono">
+            User {partnerSlot.toUpperCase()}
+          </span>
         </div>
         {connected ? (
           <Wifi className="h-4 w-4 text-green-500" />

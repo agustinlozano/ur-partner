@@ -107,7 +107,9 @@ export function MainPanel({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-green-500 rounded-full" />
-            <span className="font-medium">User {userSlot.toUpperCase()}</span>
+            <span className="font-medium font-mono">
+              User {userSlot.toUpperCase()}
+            </span>
           </div>
           {selectedCategory ? (
             <Badge variant="secondary" className="capitalize">

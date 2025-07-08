@@ -1,15 +1,21 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 import RealtimeRoom from "@/components/realtime-room";
-
-// If RealtimeRoom requires props, provide mock/placeholder values here
-// For now, render it directly as a draft UI test
+import Starfield from "@/components/starfield";
 
 export default function RealtimeRoomTestPage() {
+  const [starfieldEnabled, setStarfieldEnabled] = useState(true);
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-background">
-      <h1 className="text-2xl font-bold mb-6">Realtime Room Draft UI Test</h1>
-      <div className="w-full max-w-3xl">
-        <RealtimeRoom />
+    <main className="relative min-h-screen flex flex-col items-center justify-center p-8 overflow-hidden">
+      {starfieldEnabled && <Starfield />}
+      <div className="relative z-10 w-full max-w-5xl">
+        <h1 className="text-2xl font-bold mb-6 font-mono px-4">
+          Realtime Room Draft UI Test
+        </h1>
+        <RealtimeRoom
+          starfieldEnabled={starfieldEnabled}
+          onToggleStarfield={() => setStarfieldEnabled((v) => !v)}
+        />
       </div>
     </main>
   );

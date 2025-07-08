@@ -52,7 +52,7 @@ export function ChatDrawer({
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button variant="shadow" size="sm" className="gap-2 bg-transparent">
+        <Button variant="outline" size="sm" className="gap-2">
           <MessageCircle className="h-4 w-4" />
           Chat
         </Button>

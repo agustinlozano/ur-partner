@@ -144,7 +144,7 @@ export function MainPanel({
       )}
 
       <div
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
+        className={`border-2 border-dashed rounded-lg p-8 text-center transition-all select-none ${
           categoryDragOver
             ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20"
             : dragOver

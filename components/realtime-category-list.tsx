@@ -46,11 +46,9 @@ export function CategoryList({
   };
 
   return (
-    <Card className="p-4 h-fit">
-      <h3 className="text-sm font-medium text-muted-foreground mb-3">
-        Categories
-      </h3>
-      <p className="text-xs text-muted-foreground mb-3">
+    <Card className="p-4 h-fit gap-4">
+      <h3 className="text-sm font-medium text-muted-foreground">Categories</h3>
+      <p className="text-xs text-muted-foreground">
         Click or drag to main panel
       </p>
       <div className="space-y-2">

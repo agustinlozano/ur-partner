@@ -38,7 +38,7 @@ export function PartnerTracker({
         )}
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3 select-none">
         <div>
           <p className="text-sm text-muted-foreground mb-2">Current Category</p>
           {selectedCategory ? (

@@ -1,5 +1,6 @@
 "use client";
 
+import { enviroment } from "@/lib/env";
 import { useEffect, useRef, useCallback } from "react";
 
 const COUNT = 800;
@@ -107,8 +108,8 @@ export default function Starfield() {
       star.z = 0;
     }
 
-    ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-    ctx.strokeStyle = "white";
+    ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
+    ctx.strokeStyle = "#adadad";
   }, []);
 
   useEffect(() => {
@@ -224,21 +225,23 @@ export default function Starfield() {
           pointerEvents: "none", // It's redundant but explicit for browsers
         }}
       />
-      <div
-        ref={fpsRef}
-        style={{
-          position: "absolute",
-          top: 8,
-          left: 8,
-          color: "#fff",
-          background: "rgba(0,0,0,0.5)",
-          padding: "2px 8px",
-          borderRadius: 4,
-          fontSize: 12,
-          pointerEvents: "none",
-          zIndex: 10,
-        }}
-      />
+      {enviroment === "development" && (
+        <div
+          ref={fpsRef}
+          style={{
+            position: "absolute",
+            top: 8,
+            left: 8,
+            color: "#fff",
+            background: "rgba(0,0,0,0.5)",
+            padding: "2px 8px",
+            borderRadius: 4,
+            fontSize: 12,
+            pointerEvents: "none",
+            zIndex: 10,
+          }}
+        />
+      )}
     </div>
   );
 }

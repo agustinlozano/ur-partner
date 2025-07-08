@@ -95,7 +95,7 @@ export default function RealtimeRoom({
   }, [sendMessage, mySlot]);
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="p-4">
       <div className="mx-auto">
         <div className="flex items-center justify-between w-full mb-6 select-none">
           {/* <h1 className="text-2xl font-bold">Couple Image Game</h1> */}

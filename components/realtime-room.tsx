@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useRoomSocket } from "@/hooks/use-room-socket";
-import { useGameStore } from "@/stores/realtime-store";
+import { useGameStore, ROOM_EVENTS } from "@/stores/realtime-store";
 import { CategoryList } from "@/components/realtime-category-list";
 import { MainPanel } from "@/components/realtime-main-panel";
 import { PartnerTracker } from "@/components/realtime-partner-tracker";
@@ -42,7 +42,7 @@ export default function RealtimeRoom({
   const handleCategorySelect = useCallback(
     (category: string) => {
       setMyFixedCategory(category);
-      sendMessage({ type: "category_fixed", slot: mySlot, category });
+      sendMessage({ type: ROOM_EVENTS.category_fixed, slot: mySlot, category });
     },
     [setMyFixedCategory, sendMessage, mySlot]
   );
@@ -53,14 +53,18 @@ export default function RealtimeRoom({
       const interval = setInterval(() => {
         progress += 10;
         setMyProgress(progress);
-        sendMessage({ type: "progress_updated", slot: mySlot, progress });
+        sendMessage({
+          type: ROOM_EVENTS.progress_updated,
+          slot: mySlot,
+          progress,
+        });
 
         if (progress >= 100) {
           clearInterval(interval);
           if (myFixedCategory) {
             completeMyCategory(myFixedCategory);
             sendMessage({
-              type: "category_completed",
+              type: ROOM_EVENTS.category_completed,
               slot: mySlot,
               category: myFixedCategory,
             });
@@ -75,23 +79,23 @@ export default function RealtimeRoom({
     const newReady = !myReady;
     setMyReady(newReady);
     if (newReady) {
-      sendMessage({ type: "is_ready", slot: mySlot });
+      sendMessage({ type: ROOM_EVENTS.is_ready, slot: mySlot });
     }
   }, [myReady, setMyReady, sendMessage, mySlot]);
 
   const handleSendMessage = useCallback(
     (message: string) => {
-      sendMessage({ type: "say", slot: mySlot, message });
+      sendMessage({ type: ROOM_EVENTS.say, slot: mySlot, message });
     },
     [sendMessage, mySlot]
   );
 
   const handlePing = useCallback(() => {
-    sendMessage({ type: "ping", slot: mySlot });
+    sendMessage({ type: ROOM_EVENTS.ping, slot: mySlot });
   }, [sendMessage, mySlot]);
 
   const handleLeave = useCallback(() => {
-    sendMessage({ type: "leave", slot: mySlot });
+    sendMessage({ type: ROOM_EVENTS.leave, slot: mySlot });
   }, [sendMessage, mySlot]);
 
   return (
@@ -100,6 +104,11 @@ export default function RealtimeRoom({
         <div className="flex items-center justify-between w-full mb-6 select-none">
           {/* <h1 className="text-2xl font-bold">Couple Image Game</h1> */}
           <div className="flex items-center gap-2">
+            <ChatDrawer
+              messages={chatMessages}
+              mySlot={mySlot}
+              onSendMessage={handleSendMessage}
+            />
             <Button
               variant="outline"
               size="sm"
@@ -110,26 +119,33 @@ export default function RealtimeRoom({
               Ping
             </Button>
             <Button
-              variant={starfieldEnabled ? "outline" : "default"}
+              // variant={starfieldEnabled ? "outline" : "ghost"}
               size="sm"
               onClick={onToggleStarfield}
+              variant={starfieldEnabled ? "default" : "outline"}
+              className={cn(
+                " disabled:opacity-50 disabled:pointer-events-none",
+                starfieldEnabled
+                  ? "min-w-13 bg-emerald-900 border border-emerald-600 text-primary hover:bg-emerald-950 active:bg-emerald-600"
+                  : ""
+              )}
             >
-              {starfieldEnabled ? "Hide" : "Show"}{" "}
-              <SparklesIcon className="h-4 w-4" />
+              {starfieldEnabled ? "On" : "Off"}{" "}
+              <SparklesIcon
+                className={cn(
+                  "size-4",
+                  starfieldEnabled ? " text-emerald-200" : "text-red-400"
+                )}
+              />
             </Button>
-            <ChatDrawer
-              messages={chatMessages}
-              mySlot={mySlot}
-              onSendMessage={handleSendMessage}
-            />
           </div>
           <Button
             // variant="outline"
             size="sm"
             onClick={handleLeave}
-            className="gap-2 border border-orange-400 bg-orange-900 text-primary hover:bg-orange-950 hover:text-white active:bg-orange-800 disabled:opacity-50 disabled:pointer-events-none"
+            className="gap-2 border border-red-400 bg-red-900 text-primary hover:bg-red-950 hover:text-white active:bg-red-800 disabled:opacity-50 disabled:pointer-events-none"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="size-4" />
             Leave
           </Button>
         </div>

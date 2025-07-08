@@ -10,6 +10,19 @@ export type RoomEvent =
   | { type: "ping"; slot: "a" | "b" }
   | { type: "leave"; slot: "a" | "b" };
 
+export const ROOM_EVENTS = {
+  category_fixed: "category_fixed",
+  category_completed: "category_completed",
+  progress_updated: "progress_updated",
+  is_ready: "is_ready",
+  say: "say",
+  ping: "ping",
+  leave: "leave",
+} as const;
+
+// Tipo para los valores posibles (útil para validaciones)
+export type RoomEventType = (typeof ROOM_EVENTS)[keyof typeof ROOM_EVENTS];
+
 export interface GameState {
   mySlot: "a" | "b";
   partnerSlot: "a" | "b";

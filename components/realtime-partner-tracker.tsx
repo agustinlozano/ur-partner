@@ -21,7 +21,7 @@ export function PartnerTracker({
   isReady,
 }: PartnerTrackerProps) {
   return (
-    <Card className="p-4 w-64">
+    <Card className="p-4 w-full sm:w-64">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div

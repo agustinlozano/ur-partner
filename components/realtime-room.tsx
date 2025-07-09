@@ -15,10 +15,12 @@ import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
 export default function RealtimeRoom({
   starfieldEnabled = true,
   onToggleStarfield,
+  roomId,
 }: {
   starfieldEnabled?: boolean;
   onToggleStarfield?: () => void;
-} = {}) {
+  roomId: string;
+}) {
   const {
     mySlot,
     partnerSlot,
@@ -40,7 +42,7 @@ export default function RealtimeRoom({
 
   const playSound = useSoundPlayer();
 
-  const { connected } = useRoomSocket("1234ABCD", mySlot);
+  const { connected } = useRoomSocket(roomId, mySlot);
 
   const handleCategorySelect = useCallback(
     (category: string) => {

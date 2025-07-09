@@ -3,7 +3,11 @@ import React, { useState } from "react";
 import RealtimeRoom from "@/components/realtime-room";
 import Starfield from "@/components/starfield";
 
-export default function RealtimeRoomTestPage() {
+export default function RealtimeRoomTestPage({
+  params,
+}: {
+  params: { roomId: string };
+}) {
   const [starfieldEnabled, setStarfieldEnabled] = useState(true);
   return (
     <main className="relative flex flex-col items-center px-2 sm:px-8 py-12">
@@ -13,6 +17,7 @@ export default function RealtimeRoomTestPage() {
           Realtime Room Draft UI
         </h1>
         <RealtimeRoom
+          roomId={params.roomId}
           starfieldEnabled={starfieldEnabled}
           onToggleStarfield={() => setStarfieldEnabled((v) => !v)}
         />

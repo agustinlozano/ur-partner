@@ -7,3 +7,6 @@ export const USE_LAMBDA_UPLOAD = false; // Now we use API route as proxy
 
 // Rate limiting configuration
 export const RATE_LIMIT_ENDPOINT = process.env.LAMBDA_RATE_LIMIT_ENDPOINT;
+
+// WebSocket gateway URL
+export const WS_GATEWAY_URL = process.env.NEXT_PUBLIC_WS_GATEWAY_URL;

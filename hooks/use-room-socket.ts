@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useGameStore } from "@/stores/realtime-store";
+import { WS_GATEWAY_URL } from "@/lib/env";
 
 export function useRoomSocket(roomId: string, slot: "a" | "b") {
   const socketRef = useRef<WebSocket | null>(null);
@@ -13,7 +14,7 @@ export function useRoomSocket(roomId: string, slot: "a" | "b") {
     if (hasInitialized.current) return;
     hasInitialized.current = true;
 
-    const wsUrl = `ws://${process.env.NEXT_PUBLIC_WS_GATEWAY_URL}?roomId=${roomId}&slot=${slot}`;
+    const wsUrl = `ws://${WS_GATEWAY_URL}?roomId=${roomId}&slot=${slot}`;
 
     const connectWebSocket = () => {
       if (socketRef.current?.readyState === WebSocket.OPEN) {

@@ -72,12 +72,7 @@ export async function GET(
       return Response.json({ error: "Room not found" }, { status: 404 });
     }
 
-    const partnerSlot = userSlot === "a" ? "b" : "a";
-
-    // now, find partner role from room data
-    // const partnerRole = room[`role_${partnerSlot}`]; // TODO: add `role_a` and `role_b` to room data
-
-    // Extract partner's image URLs from the room data
+    const partnerSlot: DatabaseSlot = userSlot === "a" ? "b" : "a";
 
     const partnerImages: { [key: string]: string | string[] } = {};
     let totalImagesFound = 0;

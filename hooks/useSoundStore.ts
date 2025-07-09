@@ -1,16 +1,17 @@
+// Zustand store for managing UI sound effects
 import { create } from "zustand";
 
-// All valid sound slugs
-export type SoundSlug = "tap" | "toggle_off" | "ui_feedback";
+// Define available sound types
+export type SoundSlug = "tap" | "toggle_off" | "ui_feedback" | "sparkles";
 
-// Sound slug constants (for autocomplete and type safety)
 export const SOUNDS = {
   tap: "tap",
   toggle_off: "toggle_off",
   ui_feedback: "ui_feedback",
+  sparkles: "sparkles",
 } as const;
 
-// Sound configuration: URL and optional volume for each sound
+// Sound configuration: URL and default volume for each sound
 const SOUND_CONFIG: Record<SoundSlug, { url: string; volume?: number }> = {
   tap: {
     url: "https://ur-partner.s3.us-east-2.amazonaws.com/assets/sounds/tap.wav",
@@ -18,32 +19,37 @@ const SOUND_CONFIG: Record<SoundSlug, { url: string; volume?: number }> = {
   },
   toggle_off: {
     url: "https://ur-partner.s3.us-east-2.amazonaws.com/assets/sounds/toggle_off.wav",
-    volume: 0.6,
+    volume: 0.8,
   },
   ui_feedback: {
     url: "https://ur-partner.s3.us-east-2.amazonaws.com/assets/sounds/ui-minimal-feedback.wav",
     volume: 0.6,
   },
+  sparkles: {
+    url: "https://ur-partner.s3.us-east-2.amazonaws.com/assets/sounds/sparkly.wav",
+    volume: 0.3,
+  },
 };
 
-// Zustand store state and actions for sound management
-interface SoundsState {
-  // State
-  selectedSound: SoundSlug; // Currently selected sound
-  isEnabled: boolean; // Whether sounds are enabled
-
-  // Audio instances (not reactive)
+// Store state interface
+type SoundsState = {
+  // Current selected sound
+  selectedSound: SoundSlug;
+  // Whether sounds are enabled
+  isEnabled: boolean;
+  // Map of sound slugs to HTMLAudioElement instances (not reactive)
   audioInstances: Map<SoundSlug, HTMLAudioElement>;
-
-  // Actions
+  // Set the selected sound
   setSelectedSound: (sound: SoundSlug) => void;
+  // Play a sound (uses selected by default or specified one)
   playSound: (sound?: SoundSlug) => void;
+  // Toggle sound enabled/disabled
   toggleSounds: () => void;
+  // Set sound enabled/disabled
   setSoundsEnabled: (enabled: boolean) => void;
-
-  // Internal action
+  // Internal: get or create audio instance for a sound
   _getAudioInstance: (slug: SoundSlug) => HTMLAudioElement;
-}
+};
 
 export const useSoundsStore = create<SoundsState>()((set, get) => ({
   // Initial state
@@ -51,7 +57,7 @@ export const useSoundsStore = create<SoundsState>()((set, get) => ({
   isEnabled: true,
   audioInstances: new Map<SoundSlug, HTMLAudioElement>(),
 
-  // Internal: create or get an audio instance for a given sound slug
+  // Internal: get or create audio instance for a sound
   _getAudioInstance: (slug) => {
     const state = get();
     let audio = state.audioInstances.get(slug);
@@ -62,7 +68,30 @@ export const useSoundsStore = create<SoundsState>()((set, get) => ({
       audio.preload = "auto";
       audio.volume = config.volume || 1;
 
-      // Add to the map of instances
+      // Fade-out effect for 'sparkles' between 1.3s and 3s
+      if (slug === "sparkles" && audio) {
+        // Listener for fade-out
+        const fadeHandler = () => {
+          if (audio && audio.currentTime >= 1.3 && audio.currentTime <= 3) {
+            // Linear volume from 0.3 to 0 between 2s and 3s
+            const fadeProgress = (audio.currentTime - 2) / 1; // 0 to 1
+            audio.volume = Math.max(0, 0.3 * (1 - fadeProgress));
+          } else if (audio && audio.currentTime > 3) {
+            audio.volume = 0;
+          } else if (audio && audio.currentTime < 2) {
+            audio.volume = 0.3;
+          }
+        };
+        // Store handler for later removal
+        (audio as any)._fadeHandler = fadeHandler;
+        audio.addEventListener("timeupdate", fadeHandler);
+        // Reset volume when ended
+        audio.addEventListener("ended", () => {
+          if (audio) audio.volume = 0.3;
+        });
+      }
+
+      // Add to instance map
       const instances = new Map(state.audioInstances);
       instances.set(slug, audio);
       set({ audioInstances: instances });
@@ -74,7 +103,7 @@ export const useSoundsStore = create<SoundsState>()((set, get) => ({
   // Set the selected sound
   setSelectedSound: (sound) => set({ selectedSound: sound }),
 
-  // Play a sound (uses selected by default, or the one specified)
+  // Play a sound (uses selected by default or specified one)
   playSound: (sound) => {
     const state = get();
 
@@ -86,9 +115,35 @@ export const useSoundsStore = create<SoundsState>()((set, get) => ({
     try {
       const audio = state._getAudioInstance(soundToPlay);
 
-      // Reset if already playing
+      // If already playing, do not overlap
       if (!audio.paused) {
+        return;
+      }
+
+      // Reset volume and fade for sparkles
+      if (soundToPlay === "sparkles") {
         audio.currentTime = 0;
+        audio.volume = 0.3;
+        // Remove previous fade handler if exists
+        if ((audio as any)._fadeHandler) {
+          audio.removeEventListener("timeupdate", (audio as any)._fadeHandler);
+        }
+        // Re-add handler
+        const fadeHandler = () => {
+          if (audio.currentTime >= 1.3 && audio.currentTime <= 3) {
+            const fadeProgress = (audio.currentTime - 2) / 1;
+            audio.volume = Math.max(0, 0.3 * (1 - fadeProgress));
+          } else if (audio.currentTime > 3) {
+            audio.volume = 0;
+          } else if (audio.currentTime < 2) {
+            audio.volume = 0.3;
+          }
+        };
+        (audio as any)._fadeHandler = fadeHandler;
+        audio.addEventListener("timeupdate", fadeHandler);
+        audio.addEventListener("ended", () => {
+          audio.volume = 0.3;
+        });
       }
 
       audio.play().catch((error) => {
@@ -102,26 +157,26 @@ export const useSoundsStore = create<SoundsState>()((set, get) => ({
   // Toggle sound enabled/disabled
   toggleSounds: () => set((state) => ({ isEnabled: !state.isEnabled })),
 
-  // Explicitly enable or disable sounds
+  // Set sound enabled/disabled
   setSoundsEnabled: (enabled) => set({ isEnabled: enabled }),
 }));
 
-// Main hook for using sounds in components
+// Main hook for components to use sound store
 export function useSounds() {
   return useSoundsStore();
 }
 
-// Selector: get selected sound and setter (for UI, avoids unnecessary rerenders)
+// Selector: get selected sound and setter (for UI optimization)
 export const useSoundSelector = () =>
   useSoundsStore((state) => ({
     selectedSound: state.selectedSound,
     setSelectedSound: state.setSelectedSound,
   }));
 
-// Selector: get only the playSound function
+// Selector: get playSound function
 export const useSoundPlayer = () => useSoundsStore((state) => state.playSound);
 
-// Selector: get sound enabled state and toggles (for UI switches)
+// Selector: get sound toggle state and actions
 export const useSoundToggle = () =>
   useSoundsStore((state) => ({
     isEnabled: state.isEnabled,
@@ -129,9 +184,10 @@ export const useSoundToggle = () =>
     setSoundsEnabled: state.setSoundsEnabled,
   }));
 
-// List of available sounds (for UI selectors, dropdowns, etc)
+// List of available sounds for UI selectors
 export const AVAILABLE_SOUNDS: { slug: SoundSlug; label: string }[] = [
   { slug: "tap", label: "Tap" },
   { slug: "toggle_off", label: "Toggle Off" },
   { slug: "ui_feedback", label: "UI Feedback" },
+  { slug: "sparkles", label: "Sparkles" },
 ];

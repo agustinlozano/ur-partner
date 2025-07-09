@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getRoomData } from "@/lib/actions";
 import { sleep } from "@/lib/utils";
+import { Room } from "@/lib/dynamodb";
 // import { useRouter } from "next/navigation";
 
 export default function RealtimeRoomTestPage({
@@ -16,7 +17,7 @@ export default function RealtimeRoomTestPage({
   params: Promise<{ roomId: string }>;
 }) {
   const [starfieldEnabled, setStarfieldEnabled] = useState(true);
-  const [roomData, setRoomData] = useState<any>(null);
+  const [roomData, setRoomData] = useState<Room | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // const router = useRouter();
@@ -129,6 +130,7 @@ export default function RealtimeRoomTestPage({
         </h1>
         <RealtimeRoom
           roomId={roomData.room_id}
+          roomData={roomData}
           starfieldEnabled={starfieldEnabled}
           onToggleStarfield={() => setStarfieldEnabled((v) => !v)}
         />

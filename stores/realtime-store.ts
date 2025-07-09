@@ -8,7 +8,8 @@ export type RoomEvent =
   | { type: "is_ready"; slot: "a" | "b" }
   | { type: "say"; slot: "a" | "b"; message: string }
   | { type: "ping"; slot: "a" | "b" }
-  | { type: "leave"; slot: "a" | "b" };
+  | { type: "leave"; slot: "a" | "b" }
+  | { type: "get_in"; slot: "a" | "b" };
 
 export const ROOM_EVENTS = {
   category_fixed: "category_fixed",
@@ -18,6 +19,7 @@ export const ROOM_EVENTS = {
   say: "say",
   ping: "ping",
   leave: "leave",
+  get_in: "get_in",
 } as const;
 
 // Tipo para los valores posibles (útil para validaciones)
@@ -33,6 +35,7 @@ export interface GameState {
   myProgress: number;
   partnerProgress: number;
   myReady: boolean;
+  partnerIn: boolean;
   partnerReady: boolean;
   connected: boolean;
   chatMessages: Array<{
@@ -71,6 +74,7 @@ export const useGameStore = create<GameStore>()(
     myProgress: 0,
     partnerProgress: 75,
     myReady: false,
+    partnerIn: false,
     partnerReady: true,
     connected: false,
     chatMessages: [
@@ -175,6 +179,10 @@ export const useGameStore = create<GameStore>()(
               },
             ],
           });
+          break;
+
+        case "get_in":
+          set({ partnerIn: true });
           break;
       }
     },

@@ -27,7 +27,7 @@ export default function SoundToggleButton() {
             playSound(SOUNDS.tap);
           }
         }}
-        className="w-10 h-10 rounded-md bg-background/80 backdrop-blur-sm border-border/50 hover:bg-background/90"
+        className="w-10 h-10 bg-background/80 backdrop-blur-sm border-border/50 hover:bg-background/90"
         title={isEnabled ? "Mute UI sounds" : "Unmute UI sounds"}
       >
         {isEnabled ? (

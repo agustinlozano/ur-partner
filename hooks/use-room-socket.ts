@@ -33,6 +33,7 @@ export function useRoomSocket(roomId: string, slot: "a" | "b") {
       socket.onmessage = (event) => {
         try {
           const parsed = JSON.parse(event.data);
+          console.log("Received message:", parsed);
           handleMessage(parsed);
         } catch (err) {
           console.error("Invalid WS message", event.data);

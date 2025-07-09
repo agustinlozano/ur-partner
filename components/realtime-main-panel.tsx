@@ -102,7 +102,7 @@ export function MainPanel({
   const isDragActive = dragOver || categoryDragOver;
 
   return (
-    <Card className="p-6 flex-1">
+    <Card className="p-2 sm:p-6 flex-1">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">

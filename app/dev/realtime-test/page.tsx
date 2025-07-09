@@ -6,11 +6,11 @@ import Starfield from "@/components/starfield";
 export default function RealtimeRoomTestPage() {
   const [starfieldEnabled, setStarfieldEnabled] = useState(true);
   return (
-    <main className="relative flex flex-col items-center px-8 py-12">
+    <main className="relative flex flex-col items-center px-2 sm:px-8 py-12">
       {starfieldEnabled && <Starfield />}
       <div className="relative z-10 w-full max-w-5xl">
-        <h1 className="text-2xl font-bold mb-6 font-mono px-4">
-          Realtime Room Draft UI Test
+        <h1 className="text-2xl text-gradient font-bold mb-6 font-mono px-4">
+          Realtime Room Draft UI
         </h1>
         <RealtimeRoom
           starfieldEnabled={starfieldEnabled}

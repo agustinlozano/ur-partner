@@ -166,28 +166,19 @@ export function useSounds() {
   return useSoundsStore();
 }
 
-// Selector: get selected sound and setter (for UI optimization)
-export const useSoundSelector = () =>
-  useSoundsStore((state) => ({
-    selectedSound: state.selectedSound,
-    setSelectedSound: state.setSelectedSound,
-  }));
+// SOLUCIÓN: Usar selectores individuales en lugar de objetos
+export const useSelectedSound = () =>
+  useSoundsStore((state) => state.selectedSound);
+export const useSetSelectedSound = () =>
+  useSoundsStore((state) => state.setSelectedSound);
 
 // Selector: get playSound function
 export const useSoundPlayer = () => useSoundsStore((state) => state.playSound);
 
-// Selector: get sound toggle state and actions
-export const useSoundToggle = () =>
-  useSoundsStore((state) => ({
-    isEnabled: state.isEnabled,
-    toggleSounds: state.toggleSounds,
-    setSoundsEnabled: state.setSoundsEnabled,
-  }));
-
-// List of available sounds for UI selectors
-export const AVAILABLE_SOUNDS: { slug: SoundSlug; label: string }[] = [
-  { slug: "tap", label: "Tap" },
-  { slug: "toggle_off", label: "Toggle Off" },
-  { slug: "ui_feedback", label: "UI Feedback" },
-  { slug: "sparkles", label: "Sparkles" },
-];
+// SOLUCIÓN: Usar selectores individuales en lugar de objetos
+export const useIsSoundEnabled = () =>
+  useSoundsStore((state) => state.isEnabled);
+export const useToggleSounds = () =>
+  useSoundsStore((state) => state.toggleSounds);
+export const useSetSoundsEnabled = () =>
+  useSoundsStore((state) => state.setSoundsEnabled);

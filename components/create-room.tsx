@@ -73,12 +73,11 @@ export default function CreateRoom() {
   const [nameError, setNameError] = useState<string | null>(null);
   const [showAllRoles, setShowAllRoles] = useState(false);
 
-  // Refs para manejar el focus
+  // Refs we use to handle focus
   const nameInputRef = useRef<HTMLInputElement>(null);
   const submitButtonRef = useRef<HTMLButtonElement>(null);
   const emojiSelectorRef = useRef<EmojiSelectorRef>(null);
 
-  // Lista completa de roles
   const allRoles = [
     "girlfriend",
     "boyfriend",
@@ -90,17 +89,17 @@ export default function CreateRoom() {
     "gym girl",
   ] as RelationshipRole[];
 
-  // Roles a mostrar (primeros 3 o todos)
+  // Roles to show (first 3 or all)
   const rolesToShow = showAllRoles ? allRoles : allRoles.slice(0, 3);
 
-  // Auto-focus en el input de nombre al cargar el componente
+  // Auto-focus on name input when component loads
   useEffect(() => {
     if (!activeRoom && nameInputRef.current) {
       nameInputRef.current.focus();
     }
   }, [activeRoom]);
 
-  // Validación de nombre
+  // Name validation
   function validateName(value: string): string | null {
     const trimmed = value.trim();
     if (!trimmed) return "Name is required";
@@ -119,7 +118,7 @@ export default function CreateRoom() {
     setNameError(validateName(value));
   };
 
-  // Action moderna con useActionState
+  // Modern action with useActionState
   const [state, formAction] = useActionState(
     async (prevState: any, formData: FormData) => {
       try {
@@ -154,16 +153,16 @@ export default function CreateRoom() {
     setSelectedRole(role);
     setSelectedEmoji(""); // Reset emoji when role changes
 
-    // Si se selecciona un rol de los primeros 3, colapsar la lista
+    // If a role from the first 3 is selected, collapse the list
     if (allRoles.slice(0, 3).includes(role)) {
       setShowAllRoles(false);
     }
   };
 
-  // Función para manejar la selección de emoji y el focus
+  // Function to handle emoji selection and focus
   const handleEmojiSelect = (emoji: string) => {
     setSelectedEmoji(emoji);
-    // Mover el focus al botón de submit después de seleccionar emoji
+    // Move focus to submit button after selecting emoji
     setTimeout(() => {
       if (submitButtonRef.current) {
         submitButtonRef.current.focus();

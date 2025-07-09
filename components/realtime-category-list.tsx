@@ -15,6 +15,7 @@ import {
   Coffee,
   Check,
 } from "lucide-react";
+import { useSoundPlayer, SOUNDS } from "@/hooks/useSoundStore";
 
 const CATEGORIES = [
   { id: "animal", label: "animal", icon: Heart },
@@ -40,15 +41,17 @@ export function CategoryList({
   onCategorySelect,
   disabled = false,
 }: CategoryListProps) {
+  const playSound = useSoundPlayer();
+
   const handleDragStart = (e: React.DragEvent, categoryId: string) => {
     e.dataTransfer.setData("text/plain", categoryId);
     e.dataTransfer.effectAllowed = "move";
   };
 
   return (
-    <Card className="p-4 h-fit gap-4">
+    <Card className="p-2 sm:p-4 h-fit gap-4">
       <h3 className="text-sm font-medium text-muted-foreground">Categories</h3>
-      <p className="text-xs text-muted-foreground">
+      <p className="text-xs text-muted-foreground hidden sm:block">
         Click or drag to main panel
       </p>
       <div className="space-y-2">
@@ -69,7 +72,12 @@ export function CategoryList({
                   ? "cursor-grab active:cursor-grabbing hover:scale-[1.02]"
                   : ""
               }`}
-              onClick={() => !isDisabled && onCategorySelect(category.id)}
+              onClick={() => {
+                if (!isDisabled) {
+                  onCategorySelect(category.id);
+                  playSound(SOUNDS.tap);
+                }
+              }}
               disabled={isDisabled}
               draggable={!isDisabled}
               onDragStart={(e) => handleDragStart(e, category.id)}

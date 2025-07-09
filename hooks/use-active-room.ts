@@ -5,7 +5,6 @@ import { RelationshipRole } from "@/lib/role-utils";
 
 interface ActiveRoom {
   room_id: string;
-  // TODO: keep on this direction (u know what i mean ;))
   role: RelationshipRole;
   slot: "a" | "b";
   name: string;

@@ -22,7 +22,7 @@ import {
 import { useRouter, usePathname } from "next/navigation";
 import { X, Users, Clock, ChevronUp, ChevronDown } from "lucide-react";
 import RelativeTime from "./ui/relative-time";
-import { useSoundPlayer, SOUNDS } from "@/hooks/useSoundStore";
+import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
 
 export default function FloatingRoomMenu() {
   const { activeRoom, clearActive, isRoomExpired, refreshActiveRoom } =

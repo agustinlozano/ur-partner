@@ -15,7 +15,7 @@ import {
   Coffee,
   Check,
 } from "lucide-react";
-import { useSoundPlayer, SOUNDS } from "@/hooks/useSoundStore";
+import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
 
 const CATEGORIES = [
   { id: "animal", label: "animal", icon: Heart },

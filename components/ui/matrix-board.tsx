@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { XIcon } from "./icons";
 import styles from "./matrix-board.module.css";
-import { useSoundPlayer, SOUNDS } from "@/hooks/useSoundStore";
+import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
 
 interface MatrixBoardProps {
   text?: string;

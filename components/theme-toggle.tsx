@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useSoundPlayer, SOUNDS } from "@/hooks/useSoundStore";
+import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
 
 export function ThemeToggle({ forceDark = false }: { forceDark?: boolean }) {
   const { setTheme, theme } = useTheme();

@@ -10,7 +10,7 @@ import { ChatDrawer } from "@/components/realtime-chat-drawer";
 import { Button } from "@/components/ui/button";
 import { LogOut, SparklesIcon, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSoundPlayer, SOUNDS } from "@/hooks/useSoundStore";
+import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
 
 export default function RealtimeRoom({
   starfieldEnabled = true,

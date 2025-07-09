@@ -6,7 +6,7 @@ import {
   useIsSoundEnabled,
   SOUNDS,
   useSoundPlayer,
-} from "@/hooks/useSoundStore";
+} from "@/hooks/use-sound-store";
 
 // SoundToggleButton toggles UI sounds on/off using the useSoundStore state
 export default function SoundToggleButton() {

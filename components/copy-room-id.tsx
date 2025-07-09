@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Copy, Check } from "lucide-react";
-import { useSoundPlayer, SOUNDS } from "@/hooks/useSoundStore";
+import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
 
 interface CopyRoomIdProps {
   roomId: string;

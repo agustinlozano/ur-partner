@@ -15,7 +15,7 @@ import { capitalize } from "@/lib/utils";
 import EmojiSelector, { type EmojiSelectorRef } from "./emoji-selector";
 import { useActiveRoom } from "@/hooks/use-active-room";
 import { type RelationshipRole } from "@/lib/role-utils";
-import { useSoundPlayer, SOUNDS } from "@/hooks/useSoundStore";
+import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
 
 // Componente moderno para el botón usando useFormStatus
 function SubmitButton({

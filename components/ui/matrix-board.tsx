@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { XIcon } from "./icons";
 import styles from "./matrix-board.module.css";
+import { useSoundPlayer, SOUNDS } from "@/hooks/useSoundStore";
 
 interface MatrixBoardProps {
   text?: string;
@@ -46,6 +47,7 @@ export function MatrixBoard({
   containerShadow = "0 1px 0 0 hsl(0 0% 100% / 0.5) inset",
 }: MatrixBoardProps) {
   const [hovered, setHovered] = useState(false);
+  const playSound = useSoundPlayer();
 
   const cssVars = {
     "--blur": blur,
@@ -70,10 +72,17 @@ export function MatrixBoard({
       className={cn(styles.container, className)}
       style={containerStyle}
       tabIndex={0}
-      onMouseEnter={() => setHovered(true)}
+      onMouseEnter={() => {
+        setHovered(true);
+        playSound(SOUNDS.sparkles);
+      }}
       onMouseLeave={() => setHovered(false)}
-      onFocus={() => setHovered(true)}
-      onBlur={() => setHovered(false)}
+      onFocus={() => {
+        setHovered(true);
+      }}
+      onBlur={() => {
+        setHovered(false);
+      }}
     >
       <div className={styles.board}>
         <div className={styles.textWrap}>

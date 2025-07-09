@@ -6,9 +6,11 @@ import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useSoundPlayer, SOUNDS } from "@/hooks/useSoundStore";
 
 export function ThemeToggle({ forceDark = false }: { forceDark?: boolean }) {
   const { setTheme, theme } = useTheme();
+  const playSound = useSoundPlayer();
 
   React.useEffect(() => {
     if (forceDark) setTheme("dark");
@@ -19,8 +21,10 @@ export function ThemeToggle({ forceDark = false }: { forceDark?: boolean }) {
       variant="outline"
       size="icon"
       onClick={() => {
-        if (!forceDark) setTheme(theme === "light" ? "dark" : "light");
-        else toast.warning("This is a dark-only mode page :)");
+        if (!forceDark) {
+          setTheme(theme === "light" ? "dark" : "light");
+          playSound(SOUNDS.tap);
+        } else toast.warning("This is a dark-only mode page :)");
       }}
       className="relative"
       // disabled={forceDark}

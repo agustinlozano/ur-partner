@@ -15,6 +15,7 @@ import { capitalize } from "@/lib/utils";
 import EmojiSelector, { type EmojiSelectorRef } from "./emoji-selector";
 import { useActiveRoom } from "@/hooks/use-active-room";
 import { type RelationshipRole } from "@/lib/role-utils";
+import { useSoundPlayer, SOUNDS } from "@/hooks/useSoundStore";
 
 // Componente moderno para el botón usando useFormStatus
 function SubmitButton({
@@ -29,6 +30,7 @@ function SubmitButton({
   submitButtonRef?: React.RefObject<HTMLButtonElement | null>;
 }) {
   const { pending } = useFormStatus();
+  const playSound = useSoundPlayer();
 
   // Determinar si el botón está listo para submit
   const isReadyForSubmit =
@@ -41,6 +43,7 @@ function SubmitButton({
       variant="shadow"
       disabled={pending || disabled}
       className="w-full"
+      onClick={() => playSound(SOUNDS.tap)}
     >
       {pending ? (
         <div className="flex items-center justify-center gap-2">

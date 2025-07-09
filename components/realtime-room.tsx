@@ -10,6 +10,7 @@ import { ChatDrawer } from "@/components/realtime-chat-drawer";
 import { Button } from "@/components/ui/button";
 import { LogOut, SparklesIcon, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSoundPlayer, SOUNDS } from "@/hooks/useSoundStore";
 
 export default function RealtimeRoom({
   starfieldEnabled = true,
@@ -36,6 +37,8 @@ export default function RealtimeRoom({
     completeMyCategory,
     sendMessage,
   } = useGameStore();
+
+  const playSound = useSoundPlayer();
 
   const { connected } = useRoomSocket("1234ABCD", mySlot);
 
@@ -121,7 +124,14 @@ export default function RealtimeRoom({
             <Button
               // variant={starfieldEnabled ? "outline" : "ghost"}
               size="sm"
-              onClick={onToggleStarfield}
+              onClick={() => {
+                if (starfieldEnabled) {
+                  playSound(SOUNDS.toggle_off);
+                } else {
+                  playSound(SOUNDS.tap);
+                }
+                onToggleStarfield?.();
+              }}
               variant={starfieldEnabled ? "default" : "outline"}
               className={cn(
                 " disabled:opacity-50 disabled:pointer-events-none",

@@ -187,7 +187,10 @@ export default function FloatingRoomMenu() {
 
                 <div className="flex gap-2 pt-2">
                   <Button
-                    onClick={goToRoom}
+                    onClick={() => {
+                      playSound(SOUNDS.tap);
+                      goToRoom();
+                    }}
                     variant="default"
                     size="sm"
                     className="flex-1"

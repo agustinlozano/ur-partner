@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
+import { Room } from "@/lib/dynamodb";
 
 export type RoomEvent =
   | { type: "category_fixed"; slot: "a" | "b"; category: string }
@@ -22,103 +23,213 @@ export const ROOM_EVENTS = {
   get_in: "get_in",
 } as const;
 
-// Tipo para los valores posibles (útil para validaciones)
 export type RoomEventType = (typeof ROOM_EVENTS)[keyof typeof ROOM_EVENTS];
 
 export interface GameState {
+  // User identification
   mySlot: "a" | "b";
   partnerSlot: "a" | "b";
+
+  // My state
   myFixedCategory: string | null;
-  partnerFixedCategory: string | null;
   myCompletedCategories: string[];
-  partnerCompletedCategories: string[];
   myProgress: number;
-  partnerProgress: number;
   myReady: boolean;
-  partnerIn: boolean;
+
+  // Partner state
+  partnerFixedCategory: string | null;
+  partnerCompletedCategories: string[];
+  partnerProgress: number;
   partnerReady: boolean;
-  connected: boolean;
+  partnerConnected: boolean; // Si mi partner está en la sala realtime
+
+  // Room state
+  roomInitialized: boolean;
   chatMessages: Array<{
     slot: "a" | "b";
     message: string;
     timestamp: number;
   }>;
+
+  // WebSocket state
+  socket: WebSocket | null;
+  socketConnected: boolean;
 }
 
 interface GameStore extends GameState {
-  // Actions
-  setConnected: (connected: boolean) => void;
-  handleMessage: (event: RoomEvent) => void;
+  // Initialization
+  initializeFromRoomData: (roomData: Room, mySlot: "a" | "b") => void;
+  resetState: () => void;
+
+  // My actions
   setMyFixedCategory: (category: string | null) => void;
   setMyProgress: (progress: number) => void;
   setMyReady: (ready: boolean) => void;
   completeMyCategory: (category: string) => void;
-  addChatMessage: (slot: "a" | "b", message: string) => void;
   resetMyProgress: () => void;
 
+  // Partner actions (only updated via WebSocket)
+  setPartnerConnected: (connected: boolean) => void;
+
+  // Chat
+  addChatMessage: (slot: "a" | "b", message: string) => void;
+
   // WebSocket
-  socket: WebSocket | null;
   setSocket: (socket: WebSocket | null) => void;
-  sendMessage: (event: RoomEvent) => void;
+  setSocketConnected: (connected: boolean) => void;
+  sendMessage: (event: RoomEvent, roomId: string) => void;
+  handleMessage: (event: RoomEvent) => void;
+
+  // Room actions
+  leaveRoom: (roomId: string, onLeave?: () => void) => void;
 }
+
+const initialState: GameState = {
+  mySlot: "a",
+  partnerSlot: "b",
+  myFixedCategory: null,
+  myCompletedCategories: [],
+  myProgress: 0,
+  myReady: false,
+  partnerFixedCategory: null,
+  partnerCompletedCategories: [],
+  partnerProgress: 0,
+  partnerReady: false,
+  partnerConnected: false,
+  roomInitialized: false,
+  chatMessages: [],
+  socket: null,
+  socketConnected: false,
+};
 
 export const useGameStore = create<GameStore>()(
   subscribeWithSelector((set, get) => ({
-    // Initial state
-    mySlot: "a",
-    partnerSlot: "b",
-    myFixedCategory: null,
-    partnerFixedCategory: null,
-    myCompletedCategories: [],
-    partnerCompletedCategories: ["animal", "place", "hobby"],
-    myProgress: 0,
-    partnerProgress: 75,
-    myReady: false,
-    partnerIn: false,
-    partnerReady: true,
-    connected: false,
-    chatMessages: [
-      {
-        slot: "b",
-        message: "Hey! Ready to play?",
-        timestamp: Date.now() - 60000,
-      },
-      {
-        slot: "a",
-        message: "Yes! Let's do this 🎮",
-        timestamp: Date.now() - 30000,
-      },
-    ],
-    socket: null,
+    ...initialState,
 
-    // Actions
-    setConnected: (connected) => set({ connected }),
+    // Initialize state from room data
+    initializeFromRoomData: (roomData: Room, mySlot: "a" | "b") => {
+      const partnerSlot = mySlot === "a" ? "b" : "a";
 
+      console.log("🔄 Initializing store from roomData:", {
+        roomData,
+        mySlot,
+        partnerSlot,
+      });
+
+      set({
+        mySlot,
+        partnerSlot,
+
+        // Initialize my state from roomData
+        myFixedCategory: roomData[`realtime_${mySlot}_fixed_category`] || null,
+        myCompletedCategories:
+          roomData[`realtime_${mySlot}_completed_categories`] || [],
+        myProgress: roomData[`realtime_${mySlot}_progress`] || 0,
+        myReady: !!roomData[`realtime_${mySlot}_ready`],
+
+        // Initialize partner state from roomData
+        partnerFixedCategory:
+          roomData[`realtime_${partnerSlot}_fixed_category`] || null,
+        partnerCompletedCategories:
+          roomData[`realtime_${partnerSlot}_completed_categories`] || [],
+        partnerProgress: roomData[`realtime_${partnerSlot}_progress`] || 0,
+        partnerReady: !!roomData[`realtime_${partnerSlot}_ready`],
+        partnerConnected: !!roomData[`realtime_in_room_${partnerSlot}`],
+
+        // Initialize chat messages
+        chatMessages: roomData.realtime_chat_messages
+          ? JSON.parse(roomData.realtime_chat_messages as any)
+          : [],
+
+        roomInitialized: true,
+      });
+    },
+
+    resetState: () => {
+      set(initialState);
+    },
+
+    // My actions
+    setMyFixedCategory: (category) => set({ myFixedCategory: category }),
+    setMyProgress: (progress) => set({ myProgress: progress }),
+    setMyReady: (ready) => set({ myReady: ready }),
+    resetMyProgress: () => set({ myProgress: 0 }),
+
+    completeMyCategory: (category) => {
+      const state = get();
+      set({
+        myCompletedCategories: [...state.myCompletedCategories, category],
+        myFixedCategory: null,
+        myProgress: 0,
+      });
+    },
+
+    // Partner actions
+    setPartnerConnected: (connected) => set({ partnerConnected: connected }),
+
+    // Chat
+    addChatMessage: (slot, message) => {
+      const state = get();
+      set({
+        chatMessages: [
+          ...state.chatMessages,
+          { slot, message, timestamp: Date.now() },
+        ],
+      });
+    },
+
+    // WebSocket
     setSocket: (socket) => set({ socket }),
+    setSocketConnected: (connected) => set({ socketConnected: connected }),
 
-    sendMessage: (event) => {
-      const { socket, connected } = get();
-      if (connected && socket?.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ ...event, roomId: "1234ABCD" }));
+    sendMessage: (event, roomId) => {
+      const { socket, socketConnected } = get();
+      console.log("📤 Sending message:", event, roomId);
+
+      if (socket?.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ ...event, roomId }));
+      } else if (
+        socketConnected &&
+        socket?.readyState === WebSocket.CONNECTING
+      ) {
+        // Wait a bit for connection to be ready
+        setTimeout(() => {
+          const { socket: currentSocket } = get();
+          if (currentSocket?.readyState === WebSocket.OPEN) {
+            currentSocket.send(JSON.stringify({ ...event, roomId }));
+          } else {
+            console.warn("⚠️ Cannot send message: WebSocket connection failed");
+          }
+        }, 200);
       } else {
-        console.warn("Cannot send WS message: socket not ready");
+        console.warn("⚠️ Cannot send message: WebSocket not connected");
       }
     },
 
     handleMessage: (event) => {
-      console.log("[WS BROADCAST]", event);
+      console.log("📥 Handling message:", event);
       const state = get();
 
       switch (event.type) {
+        case "get_in":
+          // Partner joined the room
+          if (event.slot !== state.mySlot) {
+            set({ partnerConnected: true });
+          }
+          break;
+
+        case "leave":
+          // Partner left the room
+          if (event.slot !== state.mySlot) {
+            set({ partnerConnected: false });
+          }
+          break;
+
         case "category_fixed":
           if (event.slot === state.mySlot) {
-            if (state.myFixedCategory !== event.category) {
-              set({ myFixedCategory: event.category });
-            }
+            set({ myFixedCategory: event.category });
           } else {
-            if (state.partnerFixedCategory !== event.category) {
-              set({ partnerFixedCategory: event.category });
-            }
+            set({ partnerFixedCategory: event.category });
           }
           break;
 
@@ -146,73 +257,53 @@ export const useGameStore = create<GameStore>()(
 
         case "progress_updated":
           if (event.slot === state.mySlot) {
-            if (state.myProgress !== event.progress) {
-              set({ myProgress: event.progress });
-            }
+            set({ myProgress: event.progress });
           } else {
-            if (state.partnerProgress !== event.progress) {
-              set({ partnerProgress: event.progress });
-            }
+            set({ partnerProgress: event.progress });
           }
           break;
 
         case "is_ready":
           if (event.slot === state.mySlot) {
-            if (!state.myReady) {
-              set({ myReady: true });
-            }
+            set({ myReady: true });
           } else {
-            if (!state.partnerReady) {
-              set({ partnerReady: true });
-            }
+            set({ partnerReady: true });
           }
           break;
 
         case "say":
-          set({
-            chatMessages: [
-              ...state.chatMessages,
-              {
-                slot: event.slot,
-                message: event.message,
-                timestamp: Date.now(),
-              },
-            ],
-          });
+          get().addChatMessage(event.slot, event.message);
           break;
 
-        case "get_in":
-          set({ partnerIn: true });
+        case "ping":
+          // Handle ping if needed
           break;
       }
     },
 
-    setMyFixedCategory: (category) => set({ myFixedCategory: category }),
-    setMyProgress: (progress) => set({ myProgress: progress }),
-    setMyReady: (ready) => set({ myReady: ready }),
-    resetMyProgress: () => set({ myProgress: 0 }),
+    // Room actions
+    leaveRoom: async (roomId: string, onLeave?: () => void) => {
+      const { socket, mySlot, sendMessage } = get();
 
-    completeMyCategory: (category) => {
-      const state = get();
-      set({
-        myCompletedCategories: [...state.myCompletedCategories, category],
-        myFixedCategory: null,
-        myProgress: 0,
-      });
-    },
+      console.log("🚪 Leaving room:", roomId);
 
-    addChatMessage: (slot, message) => {
-      const state = get();
-      set({
-        chatMessages: [
-          ...state.chatMessages,
-          {
-            slot,
-            message,
-            timestamp: Date.now(),
-          },
-        ],
-      });
+      // Send leave message via WebSocket
+      if (socket?.readyState === WebSocket.OPEN) {
+        sendMessage({ type: ROOM_EVENTS.leave, slot: mySlot }, roomId);
+      }
+
+      // Close WebSocket connection
+      if (socket) {
+        socket.close(1000, "User leaving room");
+      }
+
+      // Reset state
+      get().resetState();
+
+      // Execute callback (usually redirect to home)
+      if (onLeave) {
+        onLeave();
+      }
     },
   }))
 );

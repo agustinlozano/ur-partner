@@ -58,11 +58,11 @@ export function ChatDrawer({
         </Button>
       </SheetTrigger>
       <SheetContent side="bottom" className="h-[400px]">
-        <SheetHeader className="max-w-xl w-full mx-auto">
+        <SheetHeader className="max-w-xl w-full mx-auto bg-amber-600">
           <SheetTitle>Chat</SheetTitle>
         </SheetHeader>
-        <div className="flex flex-col h-full py-4 max-w-xl w-full mx-auto">
-          <ScrollArea className="flex-1 pr-4">
+        <div className="flex flex-col h-full max-w-xl w-full mx-auto">
+          <ScrollArea className="flex-1 pr-4 h-[250px] bg-amber-400">
             <div className="space-y-3">
               {messages.map((msg, index) => (
                 <div

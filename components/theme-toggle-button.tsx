@@ -1,11 +1,14 @@
 "use client";
 
 import { ThemeToggle } from "@/components/theme-toggle";
+import { usePathname } from "next/navigation";
 
 export default function ThemeToggleButton() {
+  const pathname = usePathname();
+  const forceDark = pathname === "/dev/realtime-test" || pathname === "/realtime";
   return (
     <div className="fixed top-4 right-6 z-50">
-      <ThemeToggle />
+      <ThemeToggle forceDark={forceDark} />
     </div>
   );
 }

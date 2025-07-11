@@ -29,6 +29,8 @@ export interface GameState {
   // User identification
   mySlot: "a" | "b";
   partnerSlot: "a" | "b";
+  me: { name: string; avatar: string };
+  partner: { name: string; avatar: string };
 
   // My state
   myFixedCategory: string | null;
@@ -87,6 +89,8 @@ interface GameStore extends GameState {
 const initialState: GameState = {
   mySlot: "a",
   partnerSlot: "b",
+  me: { name: "me", avatar: "me" },
+  partner: { name: "partner", avatar: "partner" },
   myFixedCategory: null,
   myCompletedCategories: [],
   myProgress: 0,
@@ -116,10 +120,21 @@ export const useGameStore = create<GameStore>()(
         partnerSlot,
       });
 
+      const me = {
+        name: roomData[`${mySlot}_name`] || "me",
+        avatar: roomData[`${mySlot}_emoji`] || "me",
+      };
+
+      const partner = {
+        name: roomData[`${partnerSlot}_name`] || "partner",
+        avatar: roomData[`${partnerSlot}_emoji`] || "partner",
+      };
+
       set({
         mySlot,
         partnerSlot,
-
+        me,
+        partner,
         // Initialize my state from roomData
         myFixedCategory: roomData[`realtime_${mySlot}_fixed_category`] || null,
         myCompletedCategories:

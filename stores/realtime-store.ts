@@ -56,6 +56,9 @@ export interface GameState {
   // WebSocket state
   socket: WebSocket | null;
   socketConnected: boolean;
+
+  // Flag para controlar reconexión del WebSocket
+  shouldReconnect: boolean;
 }
 
 interface GameStore extends GameState {
@@ -84,6 +87,9 @@ interface GameStore extends GameState {
 
   // Room actions
   leaveRoom: (roomId: string, onLeave?: () => void) => void;
+
+  // Flag para controlar reconexión del WebSocket
+  setShouldReconnect: (value: boolean) => void;
 }
 
 const initialState: GameState = {
@@ -104,6 +110,7 @@ const initialState: GameState = {
   chatMessages: [],
   socket: null,
   socketConnected: false,
+  shouldReconnect: true,
 };
 
 export const useGameStore = create<GameStore>()(
@@ -298,9 +305,12 @@ export const useGameStore = create<GameStore>()(
 
     // Room actions
     leaveRoom: async (roomId: string, onLeave?: () => void) => {
-      const { socket, mySlot, sendMessage } = get();
+      const { socket, mySlot, sendMessage, setShouldReconnect } = get();
 
       console.log("🚪 Leaving room:", roomId);
+
+      // Evitar reconexión automática
+      setShouldReconnect(false);
 
       // Send leave message via WebSocket
       if (socket?.readyState === WebSocket.OPEN) {
@@ -320,5 +330,8 @@ export const useGameStore = create<GameStore>()(
         onLeave();
       }
     },
+
+    // Flag para controlar reconexión del WebSocket
+    setShouldReconnect: (value: boolean) => set({ shouldReconnect: value }),
   }))
 );

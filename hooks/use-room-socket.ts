@@ -14,9 +14,12 @@ export function useRoomSocket(roomId: string, slot: "a" | "b") {
     handleMessage,
     sendMessage,
     roomInitialized,
+    shouldReconnect,
+    setShouldReconnect,
   } = useGameStore();
 
   useEffect(() => {
+    setShouldReconnect(true); // Permitir reconexión al montar
     // Wait for room to be initialized before connecting
     if (!roomInitialized) return;
 
@@ -76,6 +79,7 @@ export function useRoomSocket(roomId: string, slot: "a" | "b") {
 
         // Only reconnect if we had a successful connection before and it wasn't a clean close
         if (
+          shouldReconnect &&
           hasConnected.current &&
           event.code !== 1000 &&
           event.code !== 1001
@@ -113,5 +117,5 @@ export function useRoomSocket(roomId: string, slot: "a" | "b") {
       setSocket(null);
       setSocketConnected(false);
     };
-  }, [roomId, slot, roomInitialized]); // Simplified dependencies
+  }, [roomId, slot, roomInitialized, shouldReconnect]); // Agregar shouldReconnect a las dependencias
 }

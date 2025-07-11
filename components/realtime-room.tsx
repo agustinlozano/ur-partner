@@ -148,12 +148,11 @@ export default function RealtimeRoom({
   }, [sendMessage, mySlot, roomId]);
 
   const handleLeave = useCallback(() => {
-    sendMessage({ type: ROOM_EVENTS.leave, slot: mySlot }, roomId);
     leaveRoom(roomId, () => {
       console.log("🏠 Redirecting to home after leaving room");
       router.push("/");
     });
-  }, [leaveRoom, sendMessage, roomId, router, mySlot]);
+  }, [leaveRoom, roomId, router]);
 
   // Don't render until initialized
   if (!roomInitialized) {
@@ -173,6 +172,7 @@ export default function RealtimeRoom({
         <div className="flex items-center justify-between w-full mb-6 select-none">
           <div className="flex items-center gap-2">
             <ChatDrawer
+              partner={partner}
               messages={chatMessages}
               mySlot={mySlot}
               onSendMessage={handleSendMessage}

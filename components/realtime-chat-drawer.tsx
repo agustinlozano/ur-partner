@@ -22,12 +22,14 @@ interface ChatMessage {
 }
 
 interface ChatDrawerProps {
+  partner: { name: string; avatar: string };
   messages: ChatMessage[];
   mySlot: "a" | "b";
   onSendMessage: (message: string) => void;
 }
 
 export function ChatDrawer({
+  partner,
   messages,
   mySlot,
   onSendMessage,
@@ -58,12 +60,17 @@ export function ChatDrawer({
         </Button>
       </SheetTrigger>
       <SheetContent side="bottom" className="h-[400px]">
-        <SheetHeader className="max-w-xl w-full mx-auto bg-amber-600">
-          <SheetTitle>Chat</SheetTitle>
+        <SheetHeader className="max-w-xl w-full mx-auto flex gap-x-2">
+          <SheetTitle>
+            <div className="w-2 h-2 bg-green-500 rounded-full inline-block mr-2" />
+            <span className="font-medium font-mono">
+              {partner.avatar} {partner.name}
+            </span>
+          </SheetTitle>
         </SheetHeader>
-        <div className="flex flex-col h-full max-w-xl w-full mx-auto">
-          <ScrollArea className="flex-1 pr-4 h-[250px] bg-amber-400">
-            <div className="space-y-3">
+        <div className="flex flex-col max-w-xl w-full h-full mx-auto">
+          <ScrollArea className="flex-1 pr-4">
+            <div className="space-y-3 h-[250px]">
               {messages.map((msg, index) => (
                 <div
                   key={index}
@@ -92,7 +99,7 @@ export function ChatDrawer({
               ))}
             </div>
           </ScrollArea>
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-2 py-4 z-10">
             <Input
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}

@@ -5,6 +5,7 @@ import { CheckCircle, Circle, Wifi, WifiOff } from "lucide-react";
 
 interface PartnerTrackerProps {
   partnerSlot: "a" | "b";
+  partner: { name: string; avatar: string };
   connected: boolean;
   selectedCategory: string | null;
   completedCategories: string[];
@@ -14,12 +15,17 @@ interface PartnerTrackerProps {
 
 export function PartnerTracker({
   partnerSlot,
+  partner,
   connected,
   selectedCategory,
   completedCategories,
   progress,
   isReady,
 }: PartnerTrackerProps) {
+  const [firstName] = partner.name.split(" ");
+  const shortName =
+    firstName.length > 10 ? firstName.slice(0, 10) + "..." : firstName;
+
   return (
     <Card className="p-4 w-full sm:w-64">
       <div className="flex items-center justify-between mb-4">
@@ -30,7 +36,7 @@ export function PartnerTracker({
             }`}
           />
           <span className="font-medium font-mono">
-            User {partnerSlot.toUpperCase()}
+            {partner.avatar} {shortName}
           </span>
         </div>
         {connected ? (

@@ -11,6 +11,7 @@ import { Upload, CheckCircle, Circle, MousePointer } from "lucide-react";
 
 interface MainPanelProps {
   userSlot: "a" | "b";
+  me: { name: string; avatar: string };
   selectedCategory: string | null;
   progress: number;
   isReady: boolean;
@@ -21,6 +22,7 @@ interface MainPanelProps {
 
 export function MainPanel({
   userSlot,
+  me,
   selectedCategory,
   progress,
   isReady,
@@ -30,6 +32,10 @@ export function MainPanel({
 }: MainPanelProps) {
   const [dragOver, setDragOver] = useState(false);
   const [categoryDragOver, setCategoryDragOver] = useState(false);
+
+  const [firstName] = me.name.split(" ");
+  const shortName =
+    firstName.length > 10 ? firstName.slice(0, 10) + "..." : firstName;
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -108,7 +114,7 @@ export function MainPanel({
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-green-500 rounded-full" />
             <span className="font-medium font-mono">
-              User {userSlot.toUpperCase()}
+              {me.avatar} {shortName}
             </span>
           </div>
           {selectedCategory ? (

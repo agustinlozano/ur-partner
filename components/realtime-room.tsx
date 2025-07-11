@@ -32,6 +32,8 @@ export default function RealtimeRoom({
 
   const {
     // State
+    me,
+    partner,
     mySlot,
     partnerSlot,
     myFixedCategory,
@@ -146,11 +148,12 @@ export default function RealtimeRoom({
   }, [sendMessage, mySlot, roomId]);
 
   const handleLeave = useCallback(() => {
+    sendMessage({ type: ROOM_EVENTS.leave, slot: mySlot }, roomId);
     leaveRoom(roomId, () => {
       console.log("🏠 Redirecting to home after leaving room");
       router.push("/");
     });
-  }, [leaveRoom, roomId, router]);
+  }, [leaveRoom, sendMessage, roomId, router, mySlot]);
 
   // Don't render until initialized
   if (!roomInitialized) {
@@ -234,6 +237,7 @@ export default function RealtimeRoom({
           <div className="lg:col-span-2">
             <MainPanel
               userSlot={mySlot}
+              me={me}
               selectedCategory={myFixedCategory}
               progress={myProgress}
               isReady={myReady}
@@ -245,6 +249,7 @@ export default function RealtimeRoom({
 
           <div className="lg:col-span-1">
             <PartnerTracker
+              partner={partner}
               partnerSlot={partnerSlot}
               connected={partnerConnected}
               selectedCategory={partnerFixedCategory}

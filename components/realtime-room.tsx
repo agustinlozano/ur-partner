@@ -57,6 +57,7 @@ export default function RealtimeRoom({
     completeMyCategory,
     sendMessage,
     leaveRoom,
+    addChatMessage,
   } = useGameStore();
 
   // Initialize store with room data
@@ -138,9 +139,10 @@ export default function RealtimeRoom({
 
   const handleSendMessage = useCallback(
     (message: string) => {
+      addChatMessage(mySlot, message); // local echo
       sendMessage({ type: ROOM_EVENTS.say, slot: mySlot, message }, roomId);
     },
-    [sendMessage, mySlot, roomId]
+    [addChatMessage, sendMessage, mySlot, roomId]
   );
 
   const handlePing = useCallback(() => {

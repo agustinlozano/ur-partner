@@ -16,7 +16,6 @@ export type RelationshipRole =
   | "roommate"
   | "workmate"
   | "gym bro"
-  | "sister"
   | "gym girl";
 
 // Combined type for all possible roles

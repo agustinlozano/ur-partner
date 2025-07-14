@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/toaster";
 import FloatingRoomMenu from "@/components/floating-room-menu";
 import ThemeToggleButton from "@/components/theme-toggle-button";
-// import AudioToggleButton from "@/components/audio-toggle-button";
+import SoundToggleButton from "@/components/sound-toggle-button";
 import { ThemeProvider } from "@/components/theme-provider";
 // import { AudioProvider } from "@/components/audio-provider";
 import { DevKeyTracker } from "@/components/dev-key-tracker";
@@ -76,7 +76,7 @@ export default function RootLayout({
           <div className="relative z-10">{children}</div>
           <FloatingRoomMenu />
           <ThemeToggleButton />
-          {/* <AudioToggleButton /> */}
+          <SoundToggleButton />
           {/* </AudioProvider> */}
         </ThemeProvider>
         <Toaster />

@@ -22,6 +22,7 @@ import {
 import { useRouter, usePathname } from "next/navigation";
 import { X, Users, Clock, ChevronUp, ChevronDown } from "lucide-react";
 import RelativeTime from "./ui/relative-time";
+import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
 
 export default function FloatingRoomMenu() {
   const { activeRoom, clearActive, isRoomExpired, refreshActiveRoom } =
@@ -30,6 +31,7 @@ export default function FloatingRoomMenu() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const playSound = useSoundPlayer();
 
   // Refresh active room state when pathname changes
   useEffect(() => {
@@ -185,7 +187,10 @@ export default function FloatingRoomMenu() {
 
                 <div className="flex gap-2 pt-2">
                   <Button
-                    onClick={goToRoom}
+                    onClick={() => {
+                      playSound(SOUNDS.tap);
+                      goToRoom();
+                    }}
                     variant="default"
                     size="sm"
                     className="flex-1"
@@ -205,6 +210,7 @@ export default function FloatingRoomMenu() {
                             variant="outline"
                             size="sm"
                             className="flex-shrink-0"
+                            onClick={() => playSound(SOUNDS.toggle_off)}
                           >
                             <X className="h-3 w-3" />
                           </Button>

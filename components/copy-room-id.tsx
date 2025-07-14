@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Copy, Check } from "lucide-react";
+import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
 
 interface CopyRoomIdProps {
   roomId: string;
@@ -9,8 +10,9 @@ interface CopyRoomIdProps {
 
 export default function CopyRoomId({ roomId }: CopyRoomIdProps) {
   const [copied, setCopied] = useState(false);
-
   const [domain, setDomain] = useState("");
+
+  const playSound = useSoundPlayer();
 
   useEffect(() => {
     setDomain(
@@ -24,7 +26,7 @@ export default function CopyRoomId({ roomId }: CopyRoomIdProps) {
     try {
       await navigator.clipboard.writeText(`${domain}/join/${roomId}`);
       setCopied(true);
-
+      playSound(SOUNDS.tap);
       // Reset the copied state after 2 seconds
       setTimeout(() => {
         setCopied(false);

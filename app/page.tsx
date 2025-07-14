@@ -101,7 +101,7 @@ export default function Home() {
         </div>
       </div>
 
-      <footer className="mt-20 py-12 mx-2 bg-background/25 md:mx-auto overflow-x-hidden">
+      <footer className="relative mt-20 py-12 mx-2 bg-background/25 md:mx-auto overflow-x-hidden">
         <MatrixBoard
           className="mx-4 p-2 sm:p-4 sm:mx-auto max-w-xl"
           text="Front."
@@ -109,6 +109,18 @@ export default function Home() {
           finalTitle="Frontend Engineer"
           description="Guy from Argentina 🇦🇷 doin' software"
         />
+
+        <div className="absolute bottom-0 z-10 h-[300px] w-full overflow-hidden pointer-events-none [mask-image:radial-gradient(100%_50%,white,transparent)] before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_bottom_center,#3273ffaa,transparent_70%)] before:opacity-30 after:absolute">
+          <Sparkles
+            density={800}
+            speed={1.2}
+            size={1.2}
+            direction="top"
+            opacitySpeed={2}
+            color="#9810fa"
+            className="absolute inset-x-0 bottom-0 h-full w-full -z-10"
+          />
+        </div>
       </footer>
     </GradientBackground>
   );

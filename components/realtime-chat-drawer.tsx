@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/sheet";
 import { MessageCircle, Send } from "lucide-react";
 import { sleep } from "@/lib/utils";
+import { useGameStore } from "@/stores/realtime-store";
 
 interface ChatMessage {
   slot: "a" | "b";
@@ -39,21 +40,28 @@ export function ChatDrawer({
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const { unreadMessagesCount, markMessagesAsRead } = useGameStore();
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
     if (isOpen) {
+      // Mark messages as read when chat opens
+      markMessagesAsRead();
       sleep(300).then(() => {
         scrollToBottom();
       });
     }
-  }, [isOpen]);
+  }, [isOpen, markMessagesAsRead]);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+    // NOTE: check if this new dependency+markMessagesAsRead works ok.
+    // We need this to mark messages as read when a new message comes in.
+    markMessagesAsRead();
+  }, [messages, markMessagesAsRead]);
 
   const handleSend = () => {
     if (newMessage.trim()) {
@@ -72,9 +80,14 @@ export function ChatDrawer({
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="gap-2 relative">
           <MessageCircle className="h-4 w-4" />
           Chat
+          {unreadMessagesCount > 0 && (
+            <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+              {unreadMessagesCount > 9 ? "9+" : unreadMessagesCount}
+            </div>
+          )}
         </Button>
       </SheetTrigger>
       <SheetContent side="bottom" className="h-[400px]">

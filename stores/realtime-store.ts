@@ -53,6 +53,10 @@ export interface GameState {
     timestamp: number;
   }>;
 
+  // Chat state
+  unreadMessagesCount: number;
+  lastReadMessageTimestamp: number;
+
   // WebSocket state
   socket: WebSocket | null;
   socketConnected: boolean;
@@ -78,6 +82,8 @@ interface GameStore extends GameState {
 
   // Chat
   addChatMessage: (slot: "a" | "b", message: string) => void;
+  markMessagesAsRead: () => void;
+  getUnreadCount: () => number;
 
   // WebSocket
   setSocket: (socket: WebSocket | null) => void;
@@ -108,6 +114,8 @@ const initialState: GameState = {
   partnerConnected: false,
   roomInitialized: false,
   chatMessages: [],
+  unreadMessagesCount: 0,
+  lastReadMessageTimestamp: 0,
   socket: null,
   socketConnected: false,
   shouldReconnect: true,
@@ -192,12 +200,23 @@ export const useGameStore = create<GameStore>()(
     // Chat
     addChatMessage: (slot, message) => {
       const state = get();
+      const timestamp = Date.now();
       set({
-        chatMessages: [
-          ...state.chatMessages,
-          { slot, message, timestamp: Date.now() },
-        ],
+        chatMessages: [...state.chatMessages, { slot, message, timestamp }],
+        // Increment unread count only for partner messages
+        unreadMessagesCount:
+          slot !== state.mySlot
+            ? state.unreadMessagesCount + 1
+            : state.unreadMessagesCount,
       });
+    },
+
+    markMessagesAsRead: () => {
+      set({ unreadMessagesCount: 0, lastReadMessageTimestamp: Date.now() });
+    },
+
+    getUnreadCount: () => {
+      return get().unreadMessagesCount;
     },
 
     // WebSocket

@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -14,6 +14,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { MessageCircle, Send } from "lucide-react";
+import { sleep } from "@/lib/utils";
 
 interface ChatMessage {
   slot: "a" | "b";
@@ -36,6 +37,23 @@ export function ChatDrawer({
 }: ChatDrawerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [newMessage, setNewMessage] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      sleep(300).then(() => {
+        scrollToBottom();
+      });
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const handleSend = () => {
     if (newMessage.trim()) {
@@ -97,6 +115,7 @@ export function ChatDrawer({
                   </div>
                 </div>
               ))}
+              <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
           <div className="flex gap-2 py-4 z-10">

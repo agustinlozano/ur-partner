@@ -195,12 +195,15 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
     const roomId = e.target.value.toUpperCase();
     e.target.value = roomId;
 
-    // Check room after a short delay
-    const timer = setTimeout(() => {
+    if (/^[A-Z0-9]{8}$/.test(roomId)) {
       checkRoom(roomId);
-    }, 500);
-
-    return () => clearTimeout(timer);
+    } else {
+      setRoomInfo(null);
+      setCheckRoomError(null);
+      setSelectedEmoji("");
+      setSelectedRole(null);
+      setShowAllRoles(false);
+    }
   };
 
   const handleRoleChange = (role: RelationshipRole) => {
@@ -315,16 +318,8 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
         </p>
       </div>
 
-      {(state.error || checkRoomError) && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg dark:bg-red-950 dark:border-red-800">
-          <p className="text-red-700 text-sm dark:text-red-300">
-            {state.error || checkRoomError}
-          </p>
-        </div>
-      )}
-
-      <form action={formAction} className="space-y-4">
-        <div>
+      <form action={formAction} className="space-y-2">
+        <div className="m-0">
           <label
             htmlFor="roomId"
             className="block text-sm font-medium text-gray-700 mb-2"
@@ -345,7 +340,7 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
             style={{ textTransform: "uppercase" }}
           />
 
-          <div className="mt-2 flex items-center gap-2 text-sm text-gray-500 h-6">
+          <div className="mt-2 flex items-center gap-2 text-sm text-gray-500 h-4">
             {checkingRoom && (
               <>
                 <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-purple-500"></div>
@@ -353,6 +348,20 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
               </>
             )}
           </div>
+        </div>
+
+        <div className="h-8">
+          {state.error || checkRoomError ? (
+            <div className="p-2 bg-red-50 border border-red-200 rounded-lg dark:bg-red-950 dark:border-red-800">
+              <p className="text-red-700 dark:text-red-300 text-xs">
+                {state.error || checkRoomError}
+              </p>
+            </div>
+          ) : (
+            <div className="mb-4 p-4 invisible" aria-hidden="true">
+              &nbsp;
+            </div>
+          )}
         </div>
 
         {roomInfo && !hasAvailableSlots && (

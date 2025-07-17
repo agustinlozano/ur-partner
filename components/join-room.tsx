@@ -6,7 +6,9 @@ import {
   useRef,
   useActionState,
   useTransition,
+  useMemo,
 } from "react";
+import debounce from "lodash.debounce";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { joinRoomAndRedirect } from "@/lib/actions";
@@ -15,6 +17,8 @@ import EmojiSelector from "./emoji-selector";
 import { useActiveRoom } from "@/hooks/use-active-room";
 import { capitalize } from "@/lib/utils";
 import { type RelationshipRole } from "@/lib/role-utils";
+
+const DEBOUNCE_DELAY = 400;
 
 // Componente moderno para el botón usando useFormStatus
 function SubmitButton({
@@ -125,6 +129,22 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
     { success: false, error: null }
   );
 
+  const checkRoomDebounced = useMemo(
+    () =>
+      debounce((roomId: string) => {
+        if (/^[A-Z0-9]{8}$/.test(roomId)) {
+          checkRoom(roomId);
+        } else {
+          setRoomInfo(null);
+          setCheckRoomError(null);
+          setSelectedEmoji("");
+          setSelectedRole(null);
+          setShowAllRoles(false);
+        }
+      }, DEBOUNCE_DELAY),
+    []
+  );
+
   // Pre-complete room ID if provided and check it automatically
   useEffect(() => {
     if (initialRoomId && roomIdInputRef.current) {
@@ -195,15 +215,7 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
     const roomId = e.target.value.toUpperCase();
     e.target.value = roomId;
 
-    if (/^[A-Z0-9]{8}$/.test(roomId)) {
-      checkRoom(roomId);
-    } else {
-      setRoomInfo(null);
-      setCheckRoomError(null);
-      setSelectedEmoji("");
-      setSelectedRole(null);
-      setShowAllRoles(false);
-    }
+    checkRoomDebounced(roomId);
   };
 
   const handleRoleChange = (role: RelationshipRole) => {

@@ -48,3 +48,8 @@ public/*.mp4
 /aws/**/node_modules
 /aws/**/.build
 /aws/**/.serverless
+/playwright-report
+/test-results
+lambda-docs.md
+row-sample.csv
+app/api/room/\[roomId]/upload-images/logs.txt

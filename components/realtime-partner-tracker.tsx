@@ -2,6 +2,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Circle, Wifi, WifiOff } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import "./realtime.css";
 
 interface PartnerTrackerProps {
   partnerSlot: "a" | "b";
@@ -26,8 +28,88 @@ export function PartnerTracker({
   const shortName =
     firstName.length > 10 ? firstName.slice(0, 10) + "..." : firstName;
 
+  // State for tracking changes and animations
+  const [isAnimating, setIsAnimating] = useState(false);
+  const prevDataRef = useRef({
+    connected,
+    selectedCategory,
+    completedCategories: [...completedCategories],
+    progress,
+    isReady,
+    partnerName: partner.name,
+    partnerAvatar: partner.avatar,
+  });
+
+  // State for badge animation
+  const [badgeAnim, setBadgeAnim] = useState(false);
+  const prevCategoryRef = useRef(selectedCategory);
+
+  useEffect(() => {
+    if (selectedCategory !== prevCategoryRef.current) {
+      setBadgeAnim(true);
+      const timer = setTimeout(() => setBadgeAnim(false), 700);
+      prevCategoryRef.current = selectedCategory;
+      return () => clearTimeout(timer);
+    }
+  }, [selectedCategory]);
+
+  // Effect to detect changes in partner data
+  useEffect(() => {
+    const currentData = {
+      connected,
+      selectedCategory,
+      completedCategories: [...completedCategories],
+      progress,
+      isReady,
+      partnerName: partner.name,
+      partnerAvatar: partner.avatar,
+    };
+
+    const prevData = prevDataRef.current;
+
+    // Check if any data has changed
+    const hasChanged =
+      currentData.connected !== prevData.connected ||
+      currentData.selectedCategory !== prevData.selectedCategory ||
+      currentData.completedCategories.length !==
+        prevData.completedCategories.length ||
+      currentData.completedCategories.some(
+        (cat, index) => cat !== prevData.completedCategories[index]
+      ) ||
+      currentData.progress !== prevData.progress ||
+      currentData.isReady !== prevData.isReady ||
+      currentData.partnerName !== prevData.partnerName ||
+      currentData.partnerAvatar !== prevData.partnerAvatar;
+
+    if (hasChanged) {
+      setIsAnimating(true);
+
+      // Reset animation after it completes
+      const timer = setTimeout(() => {
+        setIsAnimating(false);
+      }, 1200); // Match animation duration
+
+      // Update ref with new data
+      prevDataRef.current = currentData;
+
+      return () => clearTimeout(timer);
+    }
+  }, [
+    connected,
+    selectedCategory,
+    completedCategories,
+    progress,
+    isReady,
+    partner.name,
+    partner.avatar,
+  ]);
+
   return (
-    <Card className="p-4 w-full sm:w-64">
+    <Card
+      className={`p-4 w-full sm:w-64 transition-all duration-300 ${
+        isAnimating ? "partner-change-animation" : ""
+      }`}
+    >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div
@@ -50,7 +132,12 @@ export function PartnerTracker({
         <div>
           <p className="text-sm text-muted-foreground mb-2">Current Category</p>
           {selectedCategory ? (
-            <Badge variant="secondary" className="capitalize">
+            <Badge
+              variant="secondary"
+              className={`capitalize transition-all duration-300 ${
+                badgeAnim ? "badge-pop-animation" : ""
+              }`}
+            >
               {selectedCategory}
             </Badge>
           ) : (

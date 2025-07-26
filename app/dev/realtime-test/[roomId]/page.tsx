@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { getRoomData } from "@/lib/actions";
 import { sleep } from "@/lib/utils";
 import { Room } from "@/lib/dynamodb";
+import { Badge } from "@/components/ui/badge";
 // import { useRouter } from "next/navigation";
 
 export default function RealtimeRoomTestPage({
@@ -125,9 +126,14 @@ export default function RealtimeRoomTestPage({
     <GradientBackground className="relative flex flex-col items-center px-2 sm:px-8 py-12 min-h-screen">
       {starfieldEnabled && <Starfield />}
       <div className="relative z-10 w-full max-w-5xl">
-        <h1 className="text-2xl text-gradient font-bold mb-6 font-mono px-4">
-          Realtime Room Experience
-        </h1>
+        <header className="flex font-mono items-center justify-start mb-6">
+          <h1 className="text-2xl text-gradient font-bold px-4">
+            Realtime Room Experience{" "}
+          </h1>
+          <Badge variant="secondary" className="">
+            {roomData.room_id}
+          </Badge>
+        </header>
         <RealtimeRoom
           roomId={roomData.room_id}
           roomData={roomData}

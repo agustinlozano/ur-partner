@@ -509,9 +509,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
                 asChild
                 className="border-purple-900  hover:bg-purple-50 dark:text-purple-300 dark:hover:bg-purple-950"
               >
-                <Link href={`/dev/realtime-test/${roomId}`}>
-                  🎮 Realtime experience
-                </Link>
+                <Link href={`/realtime/${roomId}`}>🎮 Realtime experience</Link>
               </Button>
             </div>
           </div>

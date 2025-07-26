@@ -1,38 +1,38 @@
-![CI/CD Pipeline](https://github.com/wizard/ur-partner/workflows/CI%2FCD%20Pipeline/badge.svg)
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<p align="center">
+  <img src="public/og-image.jpg" alt="UR Partner OG Image" width="600" />
+</p>
 
-## Getting Started
+# UR Partner
 
-First, run the development server:
+**UR Partner** is a modern, real-time web app designed to help you connect, collaborate, and share experiences with others in a fun and interactive way.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## What is UR Partner?
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+UR Partner lets you create or join virtual rooms where you can chat, share ideas, and interact with others in real time. Whether you're working on a project, studying together, or just hanging out, UR Partner makes it easy and enjoyable to stay connected.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Key Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Instant Room Creation:** Start a new room with a single click and invite friends or colleagues instantly.
+- **Real-Time Chat:** Communicate live with everyone in your room.
+- **Personalized Experience:** Choose your personality, customize your profile, and make every session unique.
+- **Fun Interactions:** Use emojis, reactions, and more to express yourself.
+- **Mobile Friendly:** Enjoy a seamless experience on both desktop and mobile devices.
 
-## Learn More
+## Why You'll Love It
 
-To learn more about Next.js, take a look at the following resources:
+- **Simple & Intuitive:** No complicated setup—just join and start collaborating.
+- **Privacy First:** Rooms are private by default. Share your room link only with people you trust.
+- **Beautiful Design:** Clean, modern interface with delightful touches to make your experience enjoyable.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Quick Start
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Create a Room:** Click "Create Room" and share the link with your friends.
+2. **Join a Room:** Got a link? Just open it and jump right in!
+3. **Collaborate:** Chat, share, and interact in real time.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+<p align="center">
+  <i>Ready to connect? <b>UR Partner</b> is here to make every session memorable!</i>
+</p>

@@ -41,7 +41,6 @@ export function ChatDrawer({
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { unreadMessagesCount, markMessagesAsRead } = useGameStore();
-  console.log({ unreadMessagesCount });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -58,7 +57,6 @@ export function ChatDrawer({
   }, [isOpen, markMessagesAsRead]);
 
   useEffect(() => {
-    console.log({ messages: messages.length });
     if (isOpen) {
       scrollToBottom();
       markMessagesAsRead();

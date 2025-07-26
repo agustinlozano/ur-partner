@@ -248,6 +248,7 @@ export default function RealtimeRoom({
               onImageUpload={handleImageUpload}
               onToggleReady={handleToggleReady}
               onCategoryDrop={handleCategorySelect}
+              roomId={roomId}
             />
           </div>
 

@@ -48,7 +48,7 @@ export default function RealtimeRoomTestPage({
         }
         // Check if current user is in this room
         const userData = localStorage.getItem("activeRoom");
-        console.log("userData", userData);
+
         if (!userData) {
           setError("You must join the room first");
           setLoading(false);

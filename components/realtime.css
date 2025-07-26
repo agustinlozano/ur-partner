@@ -1,0 +1,69 @@
+/* Partner Tracker Change Animation */
+@keyframes partner-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 8px rgba(var(--primary-rgb), 0.1);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0);
+  }
+}
+
+@keyframes partner-border-glow {
+  0% {
+    border-color: var(--border);
+    background: var(--card);
+  }
+  50% {
+    border-color: var(--primary);
+    background: color-mix(in oklch, var(--card) 95%, var(--primary) 5%);
+  }
+  100% {
+    border-color: var(--border);
+    background: var(--card);
+  }
+}
+
+.partner-change-animation {
+  animation: partner-pulse 1.2s ease-out, partner-border-glow 1.2s ease-out;
+}
+
+:root {
+  --primary-rgb: 52, 52, 52; /* equivalent to oklch(0.205 0 0) */
+}
+
+.dark {
+  --primary-rgb: 235, 235, 235; /* equivalent to oklch(0.922 0 0) */
+}
+
+/* Badge pop animation for category change */
+@keyframes badge-pop {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.2);
+    background: var(--chart-4, 75%);
+  }
+  50% {
+    transform: scale(1.12);
+    box-shadow: 0 0 8px 2px rgba(var(--primary-rgb), 0.18);
+    background: color-mix(
+      in oklch,
+      var(--chart-4, 75%) 90%,
+      var(--primary) 10%
+    );
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0);
+    background: var(--chart-4, 75%);
+  }
+}
+
+.badge-pop-animation {
+  animation: badge-pop 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}

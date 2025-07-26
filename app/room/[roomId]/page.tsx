@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { Room } from "@/lib/dynamodb";
 import { RelationshipRole } from "@/lib/role-utils";
 import RelativeTime from "@/components/ui/relative-time";
+import { enviroment } from "@/lib/env";
 
 interface PageProps {
   params: Promise<{ roomId: string }>;
@@ -495,6 +496,23 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
                   )} */}
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {enviroment === "development" && (
+          <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/75 dark:to-purple-950 rounded-xl shadow-lg p-6 border border-purple-300 dark:border-purple-600 mb-8 select-none">
+            <div className="text-center">
+              <Button
+                variant="shadow"
+                size="lg"
+                asChild
+                className="border-purple-900  hover:bg-purple-50 dark:text-purple-300 dark:hover:bg-purple-950"
+              >
+                <Link href={`/dev/realtime-test/${roomId}`}>
+                  🎮 Realtime experience
+                </Link>
+              </Button>
             </div>
           </div>
         )}

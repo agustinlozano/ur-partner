@@ -95,7 +95,8 @@ export default function HoverCardDemo({ className }: { className?: string }) {
         <div
           className={cn(
             "relative bg-card/60 border p-1 group rounded",
-            isPlaying && "outline-1 outline-purple-400/25 shadow-2xl"
+            isPlaying &&
+              "outline-1 outline-purple-400/25 shadow-2xl dark:shadow-primary/15"
           )}
         >
           {/* Video container */}

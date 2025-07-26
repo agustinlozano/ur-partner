@@ -66,6 +66,19 @@ export interface Room {
   created_at: string;
   updated_at: string;
 
+  // Realtime fields
+  realtime_a_ready?: boolean;
+  realtime_b_ready?: boolean;
+  realtime_a_progress?: number;
+  realtime_b_progress?: number;
+  realtime_a_fixed_category?: string;
+  realtime_b_fixed_category?: string;
+  realtime_a_completed_categories?: string[];
+  realtime_b_completed_categories?: string[];
+  realtime_chat_messages?: string[];
+  realtime_in_room_a?: boolean;
+  realtime_in_room_b?: boolean;
+
   ttl?: number;
 }
 

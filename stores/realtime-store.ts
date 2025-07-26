@@ -330,7 +330,7 @@ export const useGameStore = create<GameStore>()(
 
       console.log("🚪 Leaving room:", roomId);
 
-      // Evitar reconexión automática
+      // avoid reconnection loop
       setShouldReconnect(false);
 
       // Send leave message via WebSocket
@@ -352,8 +352,7 @@ export const useGameStore = create<GameStore>()(
       }
     },
 
-    // (Ya definido más abajo, no duplicar)
-    // Reconexión manual (stub, la lógica real puede estar en el hook useRoomSocket)
+    // Reconnect socket manually
     reconnectSocket: (roomId, mySlot) => {
       // Reset reconnection flag and socket
       get().setShouldReconnect(true);
@@ -361,10 +360,10 @@ export const useGameStore = create<GameStore>()(
       if (socket && socket.readyState === WebSocket.OPEN) {
         socket.close(4000, "Manual reconnect");
       }
-      // El hook useRoomSocket debería reaccionar a shouldReconnect y re-crear el socket
+      // The useRoomSocket hook should react to shouldReconnect and recreate the socket
     },
 
-    // Flag para controlar reconexión del WebSocket
+    // Flag to control WebSocket reconnection
     setShouldReconnect: (value: boolean) => set({ shouldReconnect: value }),
   }))
 );

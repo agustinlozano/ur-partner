@@ -7,6 +7,7 @@ import VideoSteps from "@/components/video-steps";
 import StatsSection from "@/components/stats-section";
 import HoverCardDemo from "@/components/hover-card-demo";
 import { MatrixBoard } from "@/components/ui/matrix-board";
+import CopyrightYear from "@/components/copyright-year";
 
 export default function Home() {
   return (
@@ -103,13 +104,12 @@ export default function Home() {
 
       <footer className="relative mt-20 py-12 mx-2 bg-background/25 md:mx-auto overflow-x-hidden">
         <MatrixBoard
-          className="mx-4 p-2 sm:p-4 sm:mx-auto max-w-xl"
+          className="mx-4 p-2 mb-18 sm:p-4 sm:mx-auto max-w-xl"
           text="Front."
           title="Software Engineer"
           finalTitle="Frontend Engineer"
           description="Guy from Argentina 🇦🇷 doin' software"
         />
-
         <div className="absolute bottom-0 z-10 h-[300px] w-full overflow-hidden pointer-events-none [mask-image:radial-gradient(100%_50%,white,transparent)] before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_bottom_center,#3273ffaa,transparent_70%)] before:opacity-30 after:absolute">
           <Sparkles
             density={800}
@@ -120,6 +120,8 @@ export default function Home() {
             color="#9810fa"
             className="absolute inset-x-0 bottom-0 h-full w-full -z-10"
           />
+        <div className="absolute bottom-0 left-0 right-0 bg-background/75 text-center text-muted-foreground py-4">
+          <CopyrightYear />
         </div>
       </footer>
     </GradientBackground>

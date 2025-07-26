@@ -6,7 +6,9 @@ import {
   useRef,
   useActionState,
   useTransition,
+  useMemo,
 } from "react";
+import debounce from "lodash.debounce";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { joinRoomAndRedirect } from "@/lib/actions";
@@ -15,6 +17,8 @@ import EmojiSelector from "./emoji-selector";
 import { useActiveRoom } from "@/hooks/use-active-room";
 import { capitalize } from "@/lib/utils";
 import { type RelationshipRole } from "@/lib/role-utils";
+
+const DEBOUNCE_DELAY = 400;
 
 // Componente moderno para el botón usando useFormStatus
 function SubmitButton({
@@ -124,6 +128,22 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
     { success: false, error: null }
   );
 
+  const checkRoomDebounced = useMemo(
+    () =>
+      debounce((roomId: string) => {
+        if (/^[A-Z0-9]{8}$/.test(roomId)) {
+          checkRoom(roomId);
+        } else {
+          setRoomInfo(null);
+          setCheckRoomError(null);
+          setSelectedEmoji("");
+          setSelectedRole(null);
+          setShowAllRoles(false);
+        }
+      }, DEBOUNCE_DELAY),
+    []
+  );
+
   // Pre-complete room ID if provided and check it automatically
   useEffect(() => {
     if (initialRoomId && roomIdInputRef.current) {
@@ -194,12 +214,7 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
     const roomId = e.target.value.toUpperCase();
     e.target.value = roomId;
 
-    // Check room after a short delay
-    const timer = setTimeout(() => {
-      checkRoom(roomId);
-    }, 500);
-
-    return () => clearTimeout(timer);
+    checkRoomDebounced(roomId);
   };
 
   const handleRoleChange = (role: RelationshipRole) => {
@@ -314,16 +329,8 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
         </p>
       </div>
 
-      {(state.error || checkRoomError) && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg dark:bg-red-950 dark:border-red-800">
-          <p className="text-red-700 text-sm dark:text-red-300">
-            {state.error || checkRoomError}
-          </p>
-        </div>
-      )}
-
-      <form action={formAction} className="space-y-4">
-        <div>
+      <form action={formAction} className="space-y-2">
+        <div className="m-0">
           <label
             htmlFor="roomId"
             className="block text-sm font-medium text-gray-700 mb-2"
@@ -344,7 +351,7 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
             style={{ textTransform: "uppercase" }}
           />
 
-          <div className="mt-2 flex items-center gap-2 text-sm text-gray-500 h-6">
+          <div className="mt-2 flex items-center gap-2 text-sm text-gray-500 h-4">
             {checkingRoom && (
               <>
                 <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-purple-500"></div>
@@ -352,6 +359,20 @@ export default function JoinRoom({ initialRoomId }: JoinRoomProps) {
               </>
             )}
           </div>
+        </div>
+
+        <div className="h-8">
+          {state.error || checkRoomError ? (
+            <div className="p-2 bg-red-50 border border-red-200 rounded-lg dark:bg-red-950 dark:border-red-800">
+              <p className="text-red-700 dark:text-red-300 text-xs">
+                {state.error || checkRoomError}
+              </p>
+            </div>
+          ) : (
+            <div className="mb-4 p-4 invisible" aria-hidden="true">
+              &nbsp;
+            </div>
+          )}
         </div>
 
         {roomInfo && !hasAvailableSlots && (

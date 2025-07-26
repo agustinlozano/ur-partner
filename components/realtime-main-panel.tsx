@@ -142,7 +142,7 @@ export function MainPanel({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 text-xs">
           {!connected && roomId && (
             <Button
               variant="outline"
@@ -154,7 +154,7 @@ export function MainPanel({
               className="gap-2"
             >
               <RefreshCcw className="h-4 w-4" />
-              Reintentar conexión
+              Reconnect
             </Button>
           )}
           <Button

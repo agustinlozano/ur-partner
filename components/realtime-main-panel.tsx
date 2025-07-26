@@ -7,11 +7,18 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Upload, CheckCircle, Circle, MousePointer } from "lucide-react";
+import {
+  Upload,
+  CheckCircle,
+  Circle,
+  MousePointer,
+  RefreshCcw,
+} from "lucide-react";
 
 interface MainPanelProps {
   userSlot: "a" | "b";
   me: { name: string; avatar: string };
+  connected: boolean;
   selectedCategory: string | null;
   progress: number;
   isReady: boolean;
@@ -22,6 +29,7 @@ interface MainPanelProps {
 
 export function MainPanel({
   userSlot,
+  connected,
   me,
   selectedCategory,
   progress,
@@ -108,11 +116,15 @@ export function MainPanel({
   const isDragActive = dragOver || categoryDragOver;
 
   return (
-    <Card className="p-2 sm:p-6 flex-1">
+    <Card className="p-2 sm:p-6 flex-1 bg-card/50 backdrop-blur-sm">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full" />
+            {connected ? (
+              <div className="w-2 h-2 bg-green-500 rounded-full" />
+            ) : (
+              <div className="w-2 h-2 bg-red-500 rounded-full" />
+            )}
             <span className="font-medium font-mono">
               {me.avatar} {shortName}
             </span>

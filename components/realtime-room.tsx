@@ -201,6 +201,7 @@ export default function RealtimeRoom({
               }}
               variant={starfieldEnabled ? "default" : "outline"}
               className={cn(
+                "hidden lg:flex items-center gap-2",
                 "disabled:opacity-50 disabled:pointer-events-none",
                 starfieldEnabled
                   ? "min-w-13 bg-emerald-900 border border-emerald-600 text-primary hover:bg-emerald-950 active:bg-emerald-600"
@@ -240,6 +241,7 @@ export default function RealtimeRoom({
             <MainPanel
               userSlot={mySlot}
               me={me}
+              connected={socketConnected}
               selectedCategory={myFixedCategory}
               progress={myProgress}
               isReady={myReady}

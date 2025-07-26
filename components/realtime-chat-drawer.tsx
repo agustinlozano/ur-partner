@@ -41,6 +41,7 @@ export function ChatDrawer({
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { unreadMessagesCount, markMessagesAsRead } = useGameStore();
+  console.log({ unreadMessagesCount });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -57,11 +58,12 @@ export function ChatDrawer({
   }, [isOpen, markMessagesAsRead]);
 
   useEffect(() => {
-    scrollToBottom();
-    // NOTE: check if this new dependency+markMessagesAsRead works ok.
-    // We need this to mark messages as read when a new message comes in.
-    markMessagesAsRead();
-  }, [messages, markMessagesAsRead]);
+    console.log({ messages: messages.length });
+    if (isOpen) {
+      scrollToBottom();
+      markMessagesAsRead();
+    }
+  }, [markMessagesAsRead, messages, isOpen]);
 
   const handleSend = () => {
     if (newMessage.trim()) {

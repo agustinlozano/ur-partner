@@ -3,6 +3,7 @@
 import type React from "react";
 
 import { useState, useCallback } from "react";
+import { useGameStore } from "@/stores/realtime-store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -15,7 +16,7 @@ import {
   RefreshCcw,
 } from "lucide-react";
 
-interface MainPanelProps {
+type MainPanelProps = {
   userSlot: "a" | "b";
   me: { name: string; avatar: string };
   connected: boolean;
@@ -25,7 +26,8 @@ interface MainPanelProps {
   onImageUpload: (file: File) => void;
   onToggleReady: () => void;
   onCategoryDrop: (category: string) => void;
-}
+  roomId?: string; // opcional, para reconectar
+};
 
 export function MainPanel({
   userSlot,
@@ -37,7 +39,9 @@ export function MainPanel({
   onImageUpload,
   onToggleReady,
   onCategoryDrop,
+  roomId,
 }: MainPanelProps) {
+  const reconnectSocket = useGameStore((s) => s.reconnectSocket);
   const [dragOver, setDragOver] = useState(false);
   const [categoryDragOver, setCategoryDragOver] = useState(false);
 
@@ -138,19 +142,35 @@ export function MainPanel({
           )}
         </div>
 
-        <Button
-          variant={isReady ? "default" : "outline"}
-          size="sm"
-          onClick={onToggleReady}
-          className="gap-2"
-        >
-          {isReady ? (
-            <CheckCircle className="h-4 w-4" />
-          ) : (
-            <Circle className="h-4 w-4" />
+        <div className="flex items-center gap-2">
+          {!connected && roomId && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                console.log("click", roomId, userSlot);
+                reconnectSocket(roomId, userSlot);
+              }}
+              className="gap-2"
+            >
+              <RefreshCcw className="h-4 w-4" />
+              Reintentar conexión
+            </Button>
           )}
-          {isReady ? "Ready" : "Not Ready"}
-        </Button>
+          <Button
+            variant={isReady ? "default" : "outline"}
+            size="sm"
+            onClick={onToggleReady}
+            className="gap-2"
+          >
+            {isReady ? (
+              <CheckCircle className="h-4 w-4" />
+            ) : (
+              <Circle className="h-4 w-4" />
+            )}
+            {isReady ? "Ready" : "Not Ready"}
+          </Button>
+        </div>
       </div>
 
       {progress > 0 && (
@@ -196,7 +216,7 @@ export function MainPanel({
                 Drop image or click to upload
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                Upload an image for the "{selectedCategory}" category
+                Upload an image for the &quot;{selectedCategory}&quot; category
               </p>
             </div>
             <input

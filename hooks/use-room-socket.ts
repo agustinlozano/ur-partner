@@ -31,7 +31,7 @@ export function useRoomSocket(roomId: string, slot: "a" | "b") {
       return;
     }
 
-    const wsUrl = `ws://${WS_GATEWAY_URL}?roomId=${roomId}&slot=${slot}`;
+    const wsUrl = `${WS_GATEWAY_URL}?roomId=${roomId}&slot=${slot}`;
 
     const connectWebSocket = () => {
       if (isConnecting.current) return;

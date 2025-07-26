@@ -31,6 +31,8 @@ export interface GameState {
   partnerSlot: "a" | "b";
   me: { name: string; avatar: string };
   partner: { name: string; avatar: string };
+  // Flag para controlar reconexión del WebSocket
+  shouldReconnect: boolean;
 
   // My state
   myFixedCategory: string | null;
@@ -43,7 +45,7 @@ export interface GameState {
   partnerCompletedCategories: string[];
   partnerProgress: number;
   partnerReady: boolean;
-  partnerConnected: boolean; // Si mi partner está en la sala realtime
+  partnerConnected: boolean;
 
   // Room state
   roomInitialized: boolean;
@@ -60,9 +62,6 @@ export interface GameState {
   // WebSocket state
   socket: WebSocket | null;
   socketConnected: boolean;
-
-  // Flag para controlar reconexión del WebSocket
-  shouldReconnect: boolean;
 }
 
 interface GameStore extends GameState {
@@ -94,6 +93,9 @@ interface GameStore extends GameState {
   // Room actions
   leaveRoom: (roomId: string, onLeave?: () => void) => void;
 
+  // Reconexión manual
+  reconnectSocket: (roomId: string, mySlot: "a" | "b") => void;
+
   // Flag para controlar reconexión del WebSocket
   setShouldReconnect: (value: boolean) => void;
 }
@@ -102,6 +104,7 @@ const initialState: GameState = {
   mySlot: "a",
   partnerSlot: "b",
   me: { name: "me", avatar: "me" },
+  shouldReconnect: true,
   partner: { name: "partner", avatar: "partner" },
   myFixedCategory: null,
   myCompletedCategories: [],
@@ -118,7 +121,6 @@ const initialState: GameState = {
   lastReadMessageTimestamp: 0,
   socket: null,
   socketConnected: false,
-  shouldReconnect: true,
 };
 
 export const useGameStore = create<GameStore>()(
@@ -348,6 +350,18 @@ export const useGameStore = create<GameStore>()(
       if (onLeave) {
         onLeave();
       }
+    },
+
+    // (Ya definido más abajo, no duplicar)
+    // Reconexión manual (stub, la lógica real puede estar en el hook useRoomSocket)
+    reconnectSocket: (roomId, mySlot) => {
+      // Reset reconnection flag and socket
+      get().setShouldReconnect(true);
+      const { socket } = get();
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.close(4000, "Manual reconnect");
+      }
+      // El hook useRoomSocket debería reaccionar a shouldReconnect y re-crear el socket
     },
 
     // Flag para controlar reconexión del WebSocket

@@ -120,6 +120,7 @@ export default function Home() {
             color="#9810fa"
             className="absolute inset-x-0 bottom-0 h-full w-full -z-10"
           />
+        </div>
         <div className="absolute bottom-0 left-0 right-0 bg-background/75 text-center text-muted-foreground py-4">
           <CopyrightYear />
         </div>

@@ -90,7 +90,7 @@ export function ChatDrawer({
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent side="bottom" className="h-[400px]">
+      <SheetContent side="bottom" className="h-[400px] px-2">
         <SheetHeader className="max-w-xl w-full mx-auto flex gap-x-2">
           <SheetTitle>
             <div className="w-2 h-2 bg-green-500 rounded-full inline-block mr-2" />

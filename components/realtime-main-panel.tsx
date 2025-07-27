@@ -6,7 +6,6 @@ import { useState, useCallback } from "react";
 import { useGameStore } from "@/stores/realtime-store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Upload, CheckCircle, MousePointer, RefreshCcw } from "lucide-react";
 
@@ -15,7 +14,6 @@ type MainPanelProps = {
   me: { name: string; avatar: string };
   connected: boolean;
   selectedCategory: string | null;
-  progress: number;
   isReady: boolean;
   onImageUpload: (file: File) => void;
   onCategoryDrop: (category: string) => void;
@@ -27,7 +25,6 @@ export function MainPanel({
   connected,
   me,
   selectedCategory,
-  progress,
   isReady,
   onImageUpload,
   onCategoryDrop,
@@ -168,16 +165,6 @@ export function MainPanel({
           )}
         </div>
       </div>
-
-      {progress > 0 && (
-        <div className="mb-4">
-          <div className="flex justify-between text-sm mb-2">
-            <span>Progress</span>
-            <span>{progress}%</span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-      )}
 
       <div
         className={`border-2 border-dashed rounded-lg p-8 text-center transition-all select-none ${

@@ -39,7 +39,6 @@ export default function RealtimeRoom({
     partnerFixedCategory,
     myCompletedCategories,
     partnerCompletedCategories,
-    myProgress,
     partnerProgress,
     myReady,
     partnerReady,
@@ -50,7 +49,6 @@ export default function RealtimeRoom({
 
     // Actions
     setMyFixedCategory,
-    setMyProgress,
     completeMyCategory,
     sendMessage,
     leaveRoom,
@@ -75,45 +73,27 @@ export default function RealtimeRoom({
 
   const handleImageUpload = useCallback(
     (file: File) => {
-      // File is received but we simulate upload progress for now
-      console.log("📸 Starting upload for file:", file.name);
-
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += 10;
-        setMyProgress(progress);
+      console.log("📸 Image uploaded for category:", myFixedCategory, file.name);
+      
+      if (myFixedCategory) {
+        // Complete the category immediately
+        completeMyCategory(myFixedCategory);
         sendMessage(
           {
-            type: ROOM_EVENTS.progress_updated,
+            type: ROOM_EVENTS.category_completed,
             slot: mySlot,
-            progress,
+            category: myFixedCategory,
           },
           roomId
         );
-
-        if (progress >= 100) {
-          clearInterval(interval);
-          if (myFixedCategory) {
-            completeMyCategory(myFixedCategory);
-            sendMessage(
-              {
-                type: ROOM_EVENTS.category_completed,
-                slot: mySlot,
-                category: myFixedCategory,
-              },
-              roomId
-            );
-
-            // Check if all categories are completed and set ready automatically
-            setTimeout(() => {
-              checkAndSetReady(roomId);
-            }, 100);
-          }
-        }
-      }, 1000);
+        
+        // Check if all categories are completed and set ready automatically
+        setTimeout(() => {
+          checkAndSetReady(roomId);
+        }, 100);
+      }
     },
     [
-      setMyProgress,
       sendMessage,
       mySlot,
       myFixedCategory,
@@ -121,9 +101,7 @@ export default function RealtimeRoom({
       roomId,
       checkAndSetReady,
     ]
-  );
-
-  const handleSendMessage = useCallback(
+  );  const handleSendMessage = useCallback(
     (message: string) => {
       addChatMessage(mySlot, message); // local echo
       sendMessage({ type: ROOM_EVENTS.say, slot: mySlot, message }, roomId);
@@ -229,7 +207,6 @@ export default function RealtimeRoom({
               me={me}
               connected={socketConnected}
               selectedCategory={myFixedCategory}
-              progress={myProgress}
               isReady={myReady}
               onImageUpload={handleImageUpload}
               onCategoryDrop={handleCategorySelect}

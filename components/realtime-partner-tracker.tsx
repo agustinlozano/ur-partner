@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Circle, Wifi, WifiOff } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { CompletedCategory } from "@/lib/dynamodb";
 import "./realtime.css";
 
 interface PartnerTrackerProps {
@@ -10,7 +11,7 @@ interface PartnerTrackerProps {
   partner: { name: string; avatar: string };
   connected: boolean;
   selectedCategory: string | null;
-  completedCategories: string[];
+  completedCategories: CompletedCategory[];
   progress: number;
   isReady: boolean;
 }
@@ -171,10 +172,10 @@ export function PartnerTracker({
           <div>
             <p className="text-sm text-muted-foreground mb-2">Completed</p>
             <div className="space-y-1">
-              {completedCategories.map((category) => (
-                <div key={category} className="flex items-center gap-2">
+              {completedCategories.map((c) => (
+                <div key={c.category} className="flex items-center gap-2">
                   <CheckCircle className="h-3 w-3 text-green-500" />
-                  <span className="text-sm capitalize">{category}</span>
+                  <span className="text-sm capitalize">{c.category}</span>
                 </div>
               ))}
             </div>

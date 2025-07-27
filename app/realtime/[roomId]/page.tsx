@@ -10,9 +10,10 @@ import { getRoomData } from "@/lib/actions";
 import { sleep } from "@/lib/utils";
 import { Room } from "@/lib/dynamodb";
 import { Badge } from "@/components/ui/badge";
-// import { useRouter } from "next/navigation";
+import { ActiveRoom } from "@/hooks/use-active-room";
+import { useGameStore } from "@/stores/realtime-store";
 
-export default function RealtimeRoomTestPage({
+export default function RealtimeRoomPage({
   params,
 }: {
   params: Promise<{ roomId: string }>;
@@ -23,6 +24,10 @@ export default function RealtimeRoomTestPage({
   const [error, setError] = useState<string | null>(null);
   // const router = useRouter();
 
+  const initializeFromRoomData = useGameStore(
+    (state) => state.initializeFromRoomData
+  );
+
   useEffect(() => {
     async function loadAndValidate() {
       const { roomId } = await params;
@@ -32,7 +37,9 @@ export default function RealtimeRoomTestPage({
       setError(null);
       try {
         // Load room data
-        const room = await getRoomData(roomId);
+        const room: Room | null = await getRoomData(roomId);
+        console.log("Loaded room data:", room);
+
         if (!room) {
           setError("Room not found or has expired");
           setLoading(false);
@@ -56,8 +63,9 @@ export default function RealtimeRoomTestPage({
           return;
         }
 
-        const user = JSON.parse(userData);
-        if (user.room_id !== roomId) {
+        const user: ActiveRoom = JSON.parse(userData);
+
+        if (user?.room_id !== roomId) {
           setError("You are not a member of this room");
           setLoading(false);
           return;
@@ -75,14 +83,16 @@ export default function RealtimeRoomTestPage({
         }
 
         setRoomData(room);
+        initializeFromRoomData(room, user.slot);
         setLoading(false);
-      } catch (error) {
+      } catch (e) {
+        console.error("Error loading room data:", e);
         setError("Failed to load room data");
         setLoading(false);
       }
     }
     loadAndValidate();
-  }, [params]);
+  }, [params, initializeFromRoomData]);
 
   if (loading) {
     return (
@@ -136,7 +146,6 @@ export default function RealtimeRoomTestPage({
         </header>
         <RealtimeRoom
           roomId={roomData.room_id}
-          roomData={roomData}
           starfieldEnabled={starfieldEnabled}
           onToggleStarfield={() => setStarfieldEnabled((v) => !v)}
         />

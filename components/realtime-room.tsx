@@ -1,33 +1,32 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useRoomSocket } from "@/hooks/use-room-socket";
-import { useGameStore, ROOM_EVENTS } from "@/stores/realtime-store";
+import { LogOut, SparklesIcon, Zap } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { CategoryList } from "@/components/realtime-category-list";
 import { MainPanel } from "@/components/realtime-main-panel";
 import { PartnerTracker } from "@/components/realtime-partner-tracker";
 import { ChatDrawer } from "@/components/realtime-chat-drawer";
-import { Button } from "@/components/ui/button";
-import { LogOut, SparklesIcon, Zap } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+import { useGameStore, ROOM_EVENTS } from "@/stores/realtime-store";
+
 import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
-import { Room } from "@/lib/dynamodb";
-import { useActiveRoom } from "@/hooks/use-active-room";
+import { useRoomSocket } from "@/hooks/use-room-socket";
+
+import { cn } from "@/lib/utils";
 
 export default function RealtimeRoom({
   starfieldEnabled = true,
   onToggleStarfield,
   roomId,
-  roomData,
 }: {
   starfieldEnabled?: boolean;
   onToggleStarfield?: () => void;
   roomId: string;
-  roomData: Room;
 }) {
   const router = useRouter();
-  const { activeRoom } = useActiveRoom();
   const playSound = useSoundPlayer();
 
   const {
@@ -50,7 +49,6 @@ export default function RealtimeRoom({
     socketConnected,
 
     // Actions
-    initializeFromRoomData,
     setMyFixedCategory,
     setMyProgress,
     setMyReady,
@@ -59,19 +57,6 @@ export default function RealtimeRoom({
     leaveRoom,
     addChatMessage,
   } = useGameStore();
-
-  // Initialize store with room data
-  useEffect(() => {
-    if (!activeRoom || !roomData || roomInitialized) return;
-
-    console.log("🏠 Initializing RealtimeRoom with:", {
-      roomId,
-      userSlot: activeRoom.slot,
-      roomData,
-    });
-
-    initializeFromRoomData(roomData, activeRoom.slot);
-  }, [activeRoom, roomData, roomInitialized, initializeFromRoomData]);
 
   // Initialize WebSocket connection
   useRoomSocket(roomId, mySlot);
@@ -117,7 +102,7 @@ export default function RealtimeRoom({
             );
           }
         }
-      }, 200);
+      }, 1000);
     },
     [
       setMyProgress,

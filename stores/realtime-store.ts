@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import { Room } from "@/lib/dynamodb";
+import { CompletedCategory, Room } from "@/lib/dynamodb";
 
 export type RoomEvent =
   | { type: "category_fixed"; slot: "a" | "b"; category: string }
@@ -36,13 +36,13 @@ export interface GameState {
 
   // My state
   myFixedCategory: string | null;
-  myCompletedCategories: string[];
+  myCompletedCategories: CompletedCategory[];
   myProgress: number;
   myReady: boolean;
 
   // Partner state
   partnerFixedCategory: string | null;
-  partnerCompletedCategories: string[];
+  partnerCompletedCategories: CompletedCategory[];
   partnerProgress: number;
   partnerReady: boolean;
   partnerConnected: boolean;
@@ -190,7 +190,10 @@ export const useGameStore = create<GameStore>()(
     completeMyCategory: (category) => {
       const state = get();
       set({
-        myCompletedCategories: [...state.myCompletedCategories, category],
+        myCompletedCategories: [
+          ...state.myCompletedCategories,
+          { category, value: new Date().toISOString() },
+        ],
         myFixedCategory: null,
         myProgress: 0,
       });
@@ -278,20 +281,28 @@ export const useGameStore = create<GameStore>()(
 
         case "category_completed":
           if (event.slot === state.mySlot) {
-            if (!state.myCompletedCategories.includes(event.category)) {
+            if (
+              !state.myCompletedCategories.some(
+                (cat) => cat.category === event.category
+              )
+            ) {
               set({
                 myCompletedCategories: [
                   ...state.myCompletedCategories,
-                  event.category,
+                  { category: event.category, value: new Date().toISOString() },
                 ],
               });
             }
           } else {
-            if (!state.partnerCompletedCategories.includes(event.category)) {
+            if (
+              !state.partnerCompletedCategories.some(
+                (cat) => cat.category === event.category
+              )
+            ) {
               set({
                 partnerCompletedCategories: [
                   ...state.partnerCompletedCategories,
-                  event.category,
+                  { category: event.category, value: new Date().toISOString() },
                 ],
               });
             }

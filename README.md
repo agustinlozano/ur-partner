@@ -47,7 +47,6 @@ UR Partner is built on a modern serverless architecture using Next.js API routes
 
 #### Real-Time Communication
 
-
 The app uses **WebSocket connections** through AWS Lambda for instant messaging and status updates:
 
 - WebSocket Gateway URL for real-time room communication
@@ -57,15 +56,15 @@ The app uses **WebSocket connections** through AWS Lambda for instant messaging 
 
 All real-time interactions are handled via structured WebSocket messages. Here are the supported event types:
 
-| Event Type           | Description                                      |
-|----------------------|--------------------------------------------------|
-| `category_fixed`     | A user fixed a category                         |
-| `category_completed` | A user completed a category                     |
-| `progress_updated`   | A user's progress was updated                   |
-| `is_ready`           | A user marked themselves as ready               |
-| `say`                | A user sent a chat message                      |
-| `ping`               | Keep-alive or connection check                  |
-| `leave`              | A user left the room                            |
+| Event Type           | Description                       |
+| -------------------- | --------------------------------- |
+| `category_fixed`     | A user fixed a category           |
+| `category_completed` | A user completed a category       |
+| `progress_updated`   | A user's progress was updated     |
+| `is_ready`           | A user marked themselves as ready |
+| `say`                | A user sent a chat message        |
+| `ping`               | Keep-alive or connection check    |
+| `leave`              | A user left the room              |
 
 Each event includes the user's slot (`a` or `b`), and some include additional data (like `category`, `progress`, or `message`).
 

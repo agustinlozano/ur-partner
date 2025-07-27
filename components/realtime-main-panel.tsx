@@ -3,7 +3,9 @@
 import type React from "react";
 
 import { useState, useCallback } from "react";
+import Image from "next/image";
 import { useGameStore } from "@/stores/realtime-store";
+import type { UploadedImages } from "@/lib/personality-form-constants";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +19,8 @@ type MainPanelProps = {
   isReady: boolean;
   onImageUpload: (file: File) => void;
   onCategoryDrop: (category: string) => void;
-  roomId?: string; // opcional, para reconectar
+  roomId?: string;
+  uploadedImages?: UploadedImages;
 };
 
 export function MainPanel({
@@ -29,6 +32,7 @@ export function MainPanel({
   onImageUpload,
   onCategoryDrop,
   roomId,
+  uploadedImages = {},
 }: MainPanelProps) {
   const reconnectSocket = useGameStore((s) => s.reconnectSocket);
   const [dragOver, setDragOver] = useState(false);
@@ -166,6 +170,57 @@ export function MainPanel({
         </div>
       </div>
 
+      {/* Completed images preview */}
+      {Object.keys(uploadedImages).length > 0 && (
+        <div className="animate-in fade-in-0 slide-in-from-top-2 duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Completed {Object.keys(uploadedImages).length}/9
+              </span>
+            </div>
+            <div className="flex-1 mx-4 h-px bg-gradient-to-r from-emerald-500/20 via-emerald-500/5 to-transparent"></div>
+          </div>
+          <div className="grid w-fit grid-cols-3 gap-2 py-2">
+            {Object.entries(uploadedImages).map(
+              ([category, imageUrl], index) => {
+                const urlString = Array.isArray(imageUrl)
+                  ? imageUrl[0]
+                  : imageUrl;
+                console.log(
+                  "🖼️ Rendering image for category:",
+                  category,
+                  "URL type:",
+                  urlString.startsWith("data:") ? "base64" : "other"
+                );
+                return (
+                  <div
+                    key={category}
+                    className="group relative w-fit flex-shrink-0 animate-in fade-in-0 zoom-in-95 duration-500"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-border/50 bg-muted/30 shadow-sm hover:shadow-md transition-all duration-200">
+                      <Image
+                        src={urlString}
+                        alt={category}
+                        width={56}
+                        height={56}
+                        className="w-full h-full object-cover transition-all duration-300 group-hover:scale-110 group-hover:brightness-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-background shadow-sm">
+                      <div className="absolute inset-0.5 bg-emerald-400 rounded-full animate-ping opacity-30"></div>
+                    </div>
+                  </div>
+                );
+              }
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* UI description: Drop zone for categories and images */}
       <div
         className={`border-2 border-dashed rounded-lg p-8 text-center transition-all select-none ${
           categoryDragOver

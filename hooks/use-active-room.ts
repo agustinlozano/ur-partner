@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { RelationshipRole } from "@/lib/role-utils";
 
-interface ActiveRoom {
+export interface ActiveRoom {
   room_id: string;
   role: RelationshipRole;
   slot: "a" | "b";

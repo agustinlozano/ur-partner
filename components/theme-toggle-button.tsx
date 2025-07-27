@@ -7,7 +7,7 @@ export default function ThemeToggleButton() {
   const pathname = usePathname();
   const forceDark = pathname.includes("realtime");
   return (
-    <div className="fixed top-4 right-6 z-50">
+    <div className="fixed top-4 right-4 z-50">
       <ThemeToggle forceDark={forceDark} />
     </div>
   );

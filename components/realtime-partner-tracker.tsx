@@ -114,7 +114,7 @@ export function PartnerTracker({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div
-            className={`w-2 h-2 rounded-full ${
+            className={`w-2 h-2 rounded-full animate-pulse ${
               connected ? "bg-green-500" : "bg-red-500"
             }`}
           />

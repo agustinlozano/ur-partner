@@ -51,11 +51,11 @@ export default function RealtimeRoom({
     // Actions
     setMyFixedCategory,
     setMyProgress,
-    setMyReady,
     completeMyCategory,
     sendMessage,
     leaveRoom,
     addChatMessage,
+    checkAndSetReady,
   } = useGameStore();
 
   // Initialize WebSocket connection
@@ -75,6 +75,9 @@ export default function RealtimeRoom({
 
   const handleImageUpload = useCallback(
     (file: File) => {
+      // File is received but we simulate upload progress for now
+      console.log("📸 Starting upload for file:", file.name);
+
       let progress = 0;
       const interval = setInterval(() => {
         progress += 10;
@@ -100,6 +103,11 @@ export default function RealtimeRoom({
               },
               roomId
             );
+
+            // Check if all categories are completed and set ready automatically
+            setTimeout(() => {
+              checkAndSetReady(roomId);
+            }, 100);
           }
         }
       }, 1000);
@@ -111,16 +119,9 @@ export default function RealtimeRoom({
       myFixedCategory,
       completeMyCategory,
       roomId,
+      checkAndSetReady,
     ]
   );
-
-  const handleToggleReady = useCallback(() => {
-    const newReady = !myReady;
-    setMyReady(newReady);
-    if (newReady) {
-      sendMessage({ type: ROOM_EVENTS.is_ready, slot: mySlot }, roomId);
-    }
-  }, [myReady, setMyReady, sendMessage, mySlot, roomId]);
 
   const handleSendMessage = useCallback(
     (message: string) => {
@@ -231,7 +232,6 @@ export default function RealtimeRoom({
               progress={myProgress}
               isReady={myReady}
               onImageUpload={handleImageUpload}
-              onToggleReady={handleToggleReady}
               onCategoryDrop={handleCategorySelect}
               roomId={roomId}
             />

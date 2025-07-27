@@ -8,13 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import {
-  Upload,
-  CheckCircle,
-  Circle,
-  MousePointer,
-  RefreshCcw,
-} from "lucide-react";
+import { Upload, CheckCircle, MousePointer, RefreshCcw } from "lucide-react";
 
 type MainPanelProps = {
   userSlot: "a" | "b";
@@ -24,7 +18,6 @@ type MainPanelProps = {
   progress: number;
   isReady: boolean;
   onImageUpload: (file: File) => void;
-  onToggleReady: () => void;
   onCategoryDrop: (category: string) => void;
   roomId?: string; // opcional, para reconectar
 };
@@ -37,7 +30,6 @@ export function MainPanel({
   progress,
   isReady,
   onImageUpload,
-  onToggleReady,
   onCategoryDrop,
   roomId,
 }: MainPanelProps) {
@@ -168,19 +160,12 @@ export function MainPanel({
               Reconnect
             </Button>
           )}
-          <Button
-            variant={isReady ? "default" : "outline"}
-            size="sm"
-            onClick={onToggleReady}
-            className="gap-2"
-          >
-            {isReady ? (
+          {isReady && (
+            <div className="flex items-center gap-2 text-green-600">
               <CheckCircle className="h-4 w-4" />
-            ) : (
-              <Circle className="h-4 w-4" />
-            )}
-            {isReady ? "Ready" : "Not Ready"}
-          </Button>
+              <span className="text-sm font-medium">Ready!</span>
+            </div>
+          )}
         </div>
       </div>
 

@@ -75,6 +75,7 @@ interface GameStore extends GameState {
   setMyReady: (ready: boolean) => void;
   completeMyCategory: (category: string) => void;
   resetMyProgress: () => void;
+  checkAndSetReady: (roomId: string) => void;
 
   // Partner actions (only updated via WebSocket)
   setPartnerConnected: (connected: boolean) => void;
@@ -187,16 +188,38 @@ export const useGameStore = create<GameStore>()(
     setMyReady: (ready) => set({ myReady: ready }),
     resetMyProgress: () => set({ myProgress: 0 }),
 
-    completeMyCategory: (category) => {
+    completeMyCategory: (category: string) => {
       const state = get();
+      const newCompletedCategories = [
+        ...state.myCompletedCategories,
+        { category, value: new Date().toISOString() },
+      ];
       set({
-        myCompletedCategories: [
-          ...state.myCompletedCategories,
-          { category, value: new Date().toISOString() },
-        ],
+        myCompletedCategories: newCompletedCategories,
         myFixedCategory: null,
         myProgress: 0,
       });
+
+      // Check if all 8 categories are completed and set ready automatically
+      if (newCompletedCategories.length === 8 && !state.myReady) {
+        console.log("🎯 All categories completed! Setting ready state");
+        set({ myReady: true });
+      }
+    },
+
+    // Check if all categories are completed and set ready state
+    checkAndSetReady: (roomId: string) => {
+      const state = get();
+      if (state.myCompletedCategories.length === 8 && !state.myReady) {
+        console.log(
+          "🎯 All categories completed! Setting ready state and sending message"
+        );
+        set({ myReady: true });
+        state.sendMessage(
+          { type: ROOM_EVENTS.is_ready, slot: state.mySlot },
+          roomId
+        );
+      }
     },
 
     // Partner actions
@@ -364,7 +387,10 @@ export const useGameStore = create<GameStore>()(
     },
 
     // Reconnect socket manually
-    reconnectSocket: (roomId, mySlot) => {
+    reconnectSocket: (roomId: string, mySlot: "a" | "b") => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { roomId: _, mySlot: __ } = { roomId, mySlot };
+
       // Reset reconnection flag and socket
       get().setShouldReconnect(true);
       const { socket } = get();

@@ -1,33 +1,32 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useRoomSocket } from "@/hooks/use-room-socket";
-import { useGameStore, ROOM_EVENTS } from "@/stores/realtime-store";
+import { LogOut, SparklesIcon, Zap } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { CategoryList } from "@/components/realtime-category-list";
 import { MainPanel } from "@/components/realtime-main-panel";
 import { PartnerTracker } from "@/components/realtime-partner-tracker";
 import { ChatDrawer } from "@/components/realtime-chat-drawer";
-import { Button } from "@/components/ui/button";
-import { LogOut, SparklesIcon, Zap } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+import { useGameStore, ROOM_EVENTS } from "@/stores/realtime-store";
+
 import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
-import { Room } from "@/lib/dynamodb";
-import { useActiveRoom } from "@/hooks/use-active-room";
+import { useRoomSocket } from "@/hooks/use-room-socket";
+
+import { cn } from "@/lib/utils";
 
 export default function RealtimeRoom({
   starfieldEnabled = true,
   onToggleStarfield,
   roomId,
-  roomData,
 }: {
   starfieldEnabled?: boolean;
   onToggleStarfield?: () => void;
   roomId: string;
-  roomData: Room;
 }) {
   const router = useRouter();
-  const { activeRoom } = useActiveRoom();
   const playSound = useSoundPlayer();
 
   const {
@@ -50,7 +49,6 @@ export default function RealtimeRoom({
     socketConnected,
 
     // Actions
-    initializeFromRoomData,
     setMyFixedCategory,
     setMyProgress,
     setMyReady,
@@ -60,18 +58,24 @@ export default function RealtimeRoom({
     addChatMessage,
   } = useGameStore();
 
-  // Initialize store with room data
-  useEffect(() => {
-    if (!activeRoom || !roomData || roomInitialized) return;
+  console.log("🏠 complete partner category:", myCompletedCategories);
+  console.log("🏠 complete partner category:", partnerCompletedCategories);
 
-    console.log("🏠 Initializing RealtimeRoom with:", {
-      roomId,
-      userSlot: activeRoom.slot,
-      roomData,
-    });
+  // // Fetch room info from API
+  // useEffect(() => {
+  //   if (!roomId) return;
 
-    initializeFromRoomData(roomData, activeRoom.slot);
-  }, [activeRoom, roomData, roomInitialized, initializeFromRoomData]);
+  //   fetch(`/api/room-info/${roomId}`)
+  //     .then((res) => res.json())
+  //     .then((data) => {
+  //       console.log("🏠 Fetched room data:", data);
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error fetching room data:", error);
+  //     });
+
+  //   console.log("🏠 Fetching room data for:", roomId);
+  // }, [roomId]);
 
   // Initialize WebSocket connection
   useRoomSocket(roomId, mySlot);
@@ -117,7 +121,7 @@ export default function RealtimeRoom({
             );
           }
         }
-      }, 200);
+      }, 1000);
     },
     [
       setMyProgress,

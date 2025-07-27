@@ -16,6 +16,7 @@ import {
   Check,
 } from "lucide-react";
 import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
+import { CompletedCategory } from "@/lib/dynamodb";
 
 const CATEGORIES = [
   { id: "animal", label: "animal", icon: Heart },
@@ -30,7 +31,7 @@ const CATEGORIES = [
 
 interface CategoryListProps {
   selectedCategory: string | null;
-  completedCategories: string[];
+  completedCategories: CompletedCategory[];
   onCategorySelect: (category: string) => void;
   disabled?: boolean;
 }
@@ -57,7 +58,9 @@ export function CategoryList({
       <div className="space-y-2">
         {CATEGORIES.map((category) => {
           const Icon = category.icon;
-          const isCompleted = completedCategories.includes(category.id);
+          const isCompleted = completedCategories.some(
+            (cat) => cat.category === category.id
+          );
           const isSelected = selectedCategory === category.id;
           const isDisabled = disabled || isCompleted;
 

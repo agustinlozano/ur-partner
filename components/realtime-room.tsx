@@ -73,8 +73,6 @@ export default function RealtimeRoom({
 
   const handleImageUpload = useCallback(
     (file: File) => {
-      console.log("📸 Image uploaded for category:", myFixedCategory, file.name);
-      
       if (myFixedCategory) {
         // Complete the category immediately
         completeMyCategory(myFixedCategory);
@@ -86,7 +84,7 @@ export default function RealtimeRoom({
           },
           roomId
         );
-        
+
         // Check if all categories are completed and set ready automatically
         setTimeout(() => {
           checkAndSetReady(roomId);
@@ -101,7 +99,8 @@ export default function RealtimeRoom({
       roomId,
       checkAndSetReady,
     ]
-  );  const handleSendMessage = useCallback(
+  );
+  const handleSendMessage = useCallback(
     (message: string) => {
       addChatMessage(mySlot, message); // local echo
       sendMessage({ type: ROOM_EVENTS.say, slot: mySlot, message }, roomId);

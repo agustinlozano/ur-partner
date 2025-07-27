@@ -201,7 +201,7 @@ export const useGameStore = create<GameStore>()(
       });
 
       // Check if all 8 categories are completed and set ready automatically
-      if (newCompletedCategories.length === 8 && !state.myReady) {
+      if (newCompletedCategories.length === 9 && !state.myReady) {
         console.log(
           "🎯 All categories completed! Setting ready state and sending to WebSocket"
         );
@@ -214,7 +214,7 @@ export const useGameStore = create<GameStore>()(
     // Check if all categories are completed and set ready state
     checkAndSetReady: (roomId: string) => {
       const state = get();
-      if (state.myCompletedCategories.length === 8) {
+      if (state.myCompletedCategories.length === 9) {
         console.log(
           "🎯 All categories completed! Setting ready state and sending message"
         );

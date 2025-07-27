@@ -14,6 +14,7 @@ import {
   Palette,
   Coffee,
   Check,
+  Leaf,
 } from "lucide-react";
 import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
 import { CompletedCategory } from "@/lib/dynamodb";
@@ -27,6 +28,7 @@ const CATEGORIES = [
   { id: "hobby", label: "hobby", icon: Gamepad2 },
   { id: "color", label: "color", icon: Palette },
   { id: "drink", label: "drink", icon: Coffee },
+  { id: "plant", label: "plant", icon: Leaf },
 ];
 
 interface CategoryListProps {

@@ -11,6 +11,7 @@ import { PartnerTracker } from "@/components/realtime-partner-tracker";
 import { ChatDrawer } from "@/components/realtime-chat-drawer";
 
 import { useGameStore, ROOM_EVENTS } from "@/stores/realtime-store";
+import { usePersonalityImagesStore } from "@/stores/personality-images-store";
 
 import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
 import { useRoomSocket } from "@/hooks/use-room-socket";
@@ -56,8 +57,17 @@ export default function RealtimeRoom({
     checkAndSetReady,
   } = useGameStore();
 
+  // Personality images store
+  const { setImagesForRoom, getImagesForRoom, clearImagesForRoom } =
+    usePersonalityImagesStore();
+
   // Initialize WebSocket connection
   useRoomSocket(roomId, mySlot);
+
+  // Get current images for this room and user
+  const currentImages = getImagesForRoom(roomId, mySlot);
+
+  // Note: No cleanup needed for base64 images, unlike blob URLs
 
   // Handlers
   const handleCategorySelect = useCallback(
@@ -74,6 +84,21 @@ export default function RealtimeRoom({
   const handleImageUpload = useCallback(
     (file: File) => {
       if (myFixedCategory) {
+        // Convert File to base64 for persistent storage
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const base64Result = e.target?.result as string;
+
+          // Store the uploaded image in the personality images store
+          const currentImages = getImagesForRoom(roomId, mySlot);
+          const newImages = {
+            ...currentImages,
+            [myFixedCategory]: base64Result,
+          };
+          setImagesForRoom(roomId, mySlot, newImages);
+        };
+        reader.readAsDataURL(file);
+
         // Complete the category immediately
         completeMyCategory(myFixedCategory);
         sendMessage(
@@ -98,6 +123,8 @@ export default function RealtimeRoom({
       completeMyCategory,
       roomId,
       checkAndSetReady,
+      getImagesForRoom,
+      setImagesForRoom,
     ]
   );
   const handleSendMessage = useCallback(
@@ -113,11 +140,14 @@ export default function RealtimeRoom({
   }, [sendMessage, mySlot, roomId]);
 
   const handleLeave = useCallback(() => {
+    // Clear images for this room and user slot when leaving
+    clearImagesForRoom(roomId, mySlot);
+
     leaveRoom(roomId, () => {
       console.log("🏠 Redirecting to home after leaving room");
       router.push("/");
     });
-  }, [leaveRoom, roomId, router]);
+  }, [leaveRoom, roomId, router, clearImagesForRoom, mySlot]);
 
   // Don't render until initialized
   if (!roomInitialized) {
@@ -210,6 +240,7 @@ export default function RealtimeRoom({
               onImageUpload={handleImageUpload}
               onCategoryDrop={handleCategorySelect}
               roomId={roomId}
+              uploadedImages={currentImages}
             />
           </div>
 

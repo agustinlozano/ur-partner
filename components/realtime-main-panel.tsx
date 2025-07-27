@@ -49,6 +49,7 @@ export function MainPanel({
   const shortName =
     firstName.length > 10 ? firstName.slice(0, 10) + "..." : firstName;
 
+  const [showCompressLink, setShowCompressLink] = useState(false);
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
@@ -68,6 +69,11 @@ export function MainPanel({
       const imageFile = files.find((file) => file.type.startsWith("image/"));
 
       if (imageFile) {
+        if (imageFile.size > 4 * 1024 * 1024) {
+          setShowCompressLink(true);
+          return;
+        }
+        setShowCompressLink(false);
         onImageUpload(imageFile);
       }
     },
@@ -111,6 +117,11 @@ export function MainPanel({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) {
+        if (file.size > 4 * 1024 * 1024) {
+          setShowCompressLink(true);
+          return;
+        }
+        setShowCompressLink(false);
         onImageUpload(file);
       }
     },
@@ -196,6 +207,18 @@ export function MainPanel({
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
       >
+        {showCompressLink && (
+          <div className="mb-4">
+            <a
+              href="https://www.google.com/search?q=compress+images"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-destructive underline text-sm"
+            >
+              Image too large (over 4MB). Compress it here.
+            </a>
+          </div>
+        )}
         {categoryDragOver ? (
           <div className="space-y-4">
             <MousePointer className="h-12 w-12 mx-auto text-blue-500" />

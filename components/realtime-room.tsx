@@ -58,25 +58,6 @@ export default function RealtimeRoom({
     addChatMessage,
   } = useGameStore();
 
-  console.log("🏠 complete partner category:", myCompletedCategories);
-  console.log("🏠 complete partner category:", partnerCompletedCategories);
-
-  // // Fetch room info from API
-  // useEffect(() => {
-  //   if (!roomId) return;
-
-  //   fetch(`/api/room-info/${roomId}`)
-  //     .then((res) => res.json())
-  //     .then((data) => {
-  //       console.log("🏠 Fetched room data:", data);
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error fetching room data:", error);
-  //     });
-
-  //   console.log("🏠 Fetching room data for:", roomId);
-  // }, [roomId]);
-
   // Initialize WebSocket connection
   useRoomSocket(roomId, mySlot);
 

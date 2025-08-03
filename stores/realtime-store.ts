@@ -1,20 +1,12 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { CompletedCategory, Room } from "@/lib/dynamodb";
-
-export type RoomEvent =
-  | { type: "category_fixed"; slot: "a" | "b"; category: string }
-  | { type: "category_completed"; slot: "a" | "b"; category: string }
-  | { type: "progress_updated"; slot: "a" | "b"; progress: number }
-  | { type: "is_ready"; slot: "a" | "b" }
-  | { type: "say"; slot: "a" | "b"; message: string }
-  | { type: "ping"; slot: "a" | "b" }
-  | { type: "leave"; slot: "a" | "b" }
-  | { type: "get_in"; slot: "a" | "b" };
+import type { RoomEvent } from "@/components/realtime.types";
 
 export const ROOM_EVENTS = {
   category_fixed: "category_fixed",
   category_completed: "category_completed",
+  category_uncompleted: "category_uncompleted",
   progress_updated: "progress_updated",
   is_ready: "is_ready",
   say: "say",
@@ -287,6 +279,25 @@ export const useGameStore = create<GameStore>()(
       const state = get();
 
       switch (event.type) {
+        case "category_uncompleted":
+          if (event.slot === state.mySlot) {
+            // No hacemos nada, ya que el usuario local ya lo gestionó
+          } else {
+            // El partner descompletó una categoría: la quitamos de partnerCompletedCategories
+            if (
+              state.partnerCompletedCategories.some(
+                (cat) => cat.category === event.category
+              )
+            ) {
+              set({
+                partnerCompletedCategories:
+                  state.partnerCompletedCategories.filter(
+                    (cat) => cat.category !== event.category
+                  ),
+              });
+            }
+          }
+          break;
         case "get_in":
           // Partner joined the room
           if (event.slot !== state.mySlot) {

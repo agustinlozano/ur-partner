@@ -91,6 +91,7 @@ export default function RealtimeRoom({
         if (myReady) {
           setMyReady(false);
           sendMessage({ type: ROOM_EVENTS.is_ready, slot: mySlot }, roomId);
+          // TODO: send "not_ready" event
         }
       }
     },

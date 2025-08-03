@@ -4,12 +4,14 @@ import type React from "react";
 
 import { useState, useCallback } from "react";
 import Image from "next/image";
-import { useGameStore } from "@/stores/realtime-store";
-import type { UploadedImages } from "@/lib/personality-form-constants";
+import { Upload, CheckCircle, MousePointer, RefreshCcw } from "lucide-react";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, CheckCircle, MousePointer, RefreshCcw } from "lucide-react";
+
+import { useGameStore } from "@/stores/realtime-store";
+import type { UploadedImages } from "@/lib/personality-form-constants";
 
 type MainPanelProps = {
   userSlot: "a" | "b";
@@ -21,6 +23,7 @@ type MainPanelProps = {
   onCategoryDrop: (category: string) => void;
   roomId?: string;
   uploadedImages?: UploadedImages;
+  onRemoveImage?: (category: string) => void; // use a better type if `personality-images-store` has a specific type for this
 };
 
 export function MainPanel({
@@ -33,7 +36,14 @@ export function MainPanel({
   onCategoryDrop,
   roomId,
   uploadedImages = {},
+  onRemoveImage,
 }: MainPanelProps) {
+  // Elimina la imagen de una categoría
+  const handleRemoveImage = (category: string) => {
+    if (onRemoveImage) {
+      onRemoveImage(category);
+    }
+  };
   const reconnectSocket = useGameStore((s) => s.reconnectSocket);
   const [dragOver, setDragOver] = useState(false);
   const [categoryDragOver, setCategoryDragOver] = useState(false);
@@ -209,8 +219,34 @@ export function MainPanel({
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                     </div>
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-background shadow-sm">
+                    {/* Completed badge + delete button on hover */}
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-background shadow-sm flex items-center justify-center">
                       <div className="absolute inset-0.5 bg-emerald-400 rounded-full animate-ping opacity-30"></div>
+                      {/* Red cross button, visible on hover */}
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+                        style={{ pointerEvents: "auto" }}
+                        aria-label={`Delete the image for ${category} category`}
+                        onClick={() => handleRemoveImage(category)}
+                      >
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <circle cx="6" cy="6" r="6" fill="#ef4444" />
+                          <path
+                            d="M4 4l4 4M8 4l-4 4"
+                            stroke="#fff"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 );

@@ -60,6 +60,37 @@ export default function RealtimeRoom({
   // Personality images store
   const { setImagesForRoom, getImagesForRoom, clearImagesForRoom } =
     usePersonalityImagesStore();
+  // Handler para eliminar imagen de una categoría
+  const handleRemoveImage = useCallback(
+    (category: string) => {
+      const currentImages = getImagesForRoom(roomId, mySlot);
+      if (currentImages && currentImages[category]) {
+        // Quitar imagen
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [category]: _removed, ...rest } = currentImages;
+        setImagesForRoom(roomId, mySlot, rest);
+      }
+      // Quitar la categoría de completadas
+      // Esto actualiza el store para que CategoryList la muestre como disponible
+      const { myCompletedCategories } = useGameStore.getState();
+      const setMyCompletedCategories = (
+        newList: typeof myCompletedCategories
+      ) => {
+        useGameStore.setState({ myCompletedCategories: newList });
+      };
+      if (myCompletedCategories.some((cat) => cat.category === category)) {
+        setMyCompletedCategories(
+          myCompletedCategories.filter((cat) => cat.category !== category)
+        );
+        // Sincronizar con el partner vía WebSocket
+        sendMessage(
+          { type: "category_uncompleted", slot: mySlot, category },
+          roomId
+        );
+      }
+    },
+    [getImagesForRoom, setImagesForRoom, roomId, mySlot, sendMessage]
+  );
 
   // Initialize WebSocket connection
   useRoomSocket(roomId, mySlot);
@@ -241,6 +272,7 @@ export default function RealtimeRoom({
               onCategoryDrop={handleCategorySelect}
               roomId={roomId}
               uploadedImages={currentImages}
+              onRemoveImage={handleRemoveImage}
             />
           </div>
 

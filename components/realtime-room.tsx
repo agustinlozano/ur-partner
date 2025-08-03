@@ -55,6 +55,7 @@ export default function RealtimeRoom({
     leaveRoom,
     addChatMessage,
     checkAndSetReady,
+    setMyReady,
   } = useGameStore();
 
   // Personality images store
@@ -70,8 +71,7 @@ export default function RealtimeRoom({
         const { [category]: _removed, ...rest } = currentImages;
         setImagesForRoom(roomId, mySlot, rest);
       }
-      // Quitar la categoría de completadas
-      // Esto actualiza el store para que CategoryList la muestre como disponible
+      // Remove from completed categories if it exists
       const { myCompletedCategories } = useGameStore.getState();
       const setMyCompletedCategories = (
         newList: typeof myCompletedCategories
@@ -82,14 +82,27 @@ export default function RealtimeRoom({
         setMyCompletedCategories(
           myCompletedCategories.filter((cat) => cat.category !== category)
         );
-        // Sincronizar con el partner vía WebSocket
+        // Sync via WebSocket
         sendMessage(
-          { type: "category_uncompleted", slot: mySlot, category },
+          { type: ROOM_EVENTS.category_uncompleted, slot: mySlot, category },
           roomId
         );
+
+        if (myReady) {
+          setMyReady(false);
+          sendMessage({ type: ROOM_EVENTS.is_ready, slot: mySlot }, roomId);
+        }
       }
     },
-    [getImagesForRoom, setImagesForRoom, roomId, mySlot, sendMessage]
+    [
+      roomId,
+      mySlot,
+      myReady,
+      getImagesForRoom,
+      setImagesForRoom,
+      sendMessage,
+      setMyReady,
+    ]
   );
 
   // Initialize WebSocket connection

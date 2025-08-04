@@ -280,6 +280,15 @@ export const useGameStore = create<GameStore>()(
       const state = get();
 
       switch (event.type) {
+        case "not_ready":
+          if (event.slot === state.mySlot) {
+            // No hacemos nada para el usuario local
+          } else {
+            if (state.partnerReady) {
+              set({ partnerReady: false });
+            }
+          }
+          break;
         case "category_uncompleted":
           if (event.slot === state.mySlot) {
             // No hacemos nada, ya que el usuario local ya lo gestionó

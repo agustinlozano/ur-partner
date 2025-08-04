@@ -56,15 +56,18 @@ The app uses **WebSocket connections** through AWS Lambda for instant messaging 
 
 All real-time interactions are handled via structured WebSocket messages. Here are the supported event types:
 
-| Event Type           | Description                       |
-| -------------------- | --------------------------------- |
-| `category_fixed`     | A user fixed a category           |
-| `category_completed` | A user completed a category       |
-| `progress_updated`   | A user's progress was updated     |
-| `is_ready`           | A user marked themselves as ready |
-| `say`                | A user sent a chat message        |
-| `ping`               | Keep-alive or connection check    |
-| `leave`              | A user left the room              |
+| Event Type             | Description                             |
+| ---------------------- | --------------------------------------- |
+| `category_fixed`       | A user fixed a category                 |
+| `category_completed`   | A user completed a category             |
+| `category_uncompleted` | A user uncompleted (removed) a category |
+| `progress_updated`     | A user's progress was updated           |
+| `is_ready`             | A user marked themselves as ready       |
+| `not_ready`            | A user is no longer ready               |
+| `say`                  | A user sent a chat message              |
+| `ping`                 | Keep-alive or connection check          |
+| `leave`                | A user left the room                    |
+| `get_in`               | A user joined the room                  |
 
 Each event includes the user's slot (`a` or `b`), and some include additional data (like `category`, `progress`, or `message`).
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import debounce from "lodash.debounce";
 import { useRouter } from "next/navigation";
 import { useRoomSocket } from "@/hooks/use-room-socket";
 import { useGameStore, ROOM_EVENTS } from "@/stores/realtime-store";
@@ -14,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
 import { Room } from "@/lib/dynamodb";
 import { useActiveRoom } from "@/hooks/use-active-room";
+import { toast } from "sonner";
 
 export default function RealtimeRoom({
   starfieldEnabled = true,
@@ -48,6 +50,7 @@ export default function RealtimeRoom({
     chatMessages,
     roomInitialized,
     socketConnected,
+    lastPingTimestamp,
 
     // Actions
     initializeFromRoomData,
@@ -145,9 +148,31 @@ export default function RealtimeRoom({
     [addChatMessage, sendMessage, mySlot, roomId]
   );
 
+  // Debounced Ping button logic
+  const [pingCooldown, setPingCooldown] = useState(false);
+  const debouncedPing = useMemo(
+    () =>
+      debounce(
+        () => {
+          sendMessage({ type: ROOM_EVENTS.ping, slot: mySlot }, roomId);
+          setPingCooldown(true);
+          setTimeout(() => setPingCooldown(false), 5000);
+        },
+        0,
+        { leading: true, trailing: false }
+      ),
+    [sendMessage, mySlot, roomId]
+  );
+
   const handlePing = useCallback(() => {
-    sendMessage({ type: ROOM_EVENTS.ping, slot: mySlot }, roomId);
-  }, [sendMessage, mySlot, roomId]);
+    if (!pingCooldown) {
+      debouncedPing();
+      toast.success("Ping sent to your partner", {
+        duration: 2000,
+        icon: "🔔",
+      });
+    }
+  }, [debouncedPing, pingCooldown]);
 
   const handleLeave = useCallback(() => {
     leaveRoom(roomId, () => {
@@ -184,10 +209,10 @@ export default function RealtimeRoom({
               size="sm"
               onClick={handlePing}
               className="gap-2 bg-transparent"
-              disabled={!socketConnected}
+              disabled={!socketConnected || pingCooldown}
             >
               <Zap className="h-4 w-4" />
-              Ping
+              {pingCooldown ? "Cooling" : "Ping"}
             </Button>
             <Button
               size="sm"
@@ -248,6 +273,7 @@ export default function RealtimeRoom({
               onImageUpload={handleImageUpload}
               onToggleReady={handleToggleReady}
               onCategoryDrop={handleCategorySelect}
+              ping={lastPingTimestamp}
               roomId={roomId}
             />
           </div>

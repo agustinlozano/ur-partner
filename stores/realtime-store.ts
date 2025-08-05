@@ -62,6 +62,9 @@ export interface GameState {
   // WebSocket state
   socket: WebSocket | null;
   socketConnected: boolean;
+
+  // Ping state
+  lastPingTimestamp: number;
 }
 
 interface GameStore extends GameState {
@@ -121,6 +124,7 @@ const initialState: GameState = {
   lastReadMessageTimestamp: 0,
   socket: null,
   socketConnected: false,
+  lastPingTimestamp: 0,
 };
 
 export const useGameStore = create<GameStore>()(
@@ -319,7 +323,7 @@ export const useGameStore = create<GameStore>()(
           break;
 
         case "ping":
-          // Handle ping if needed
+          set({ lastPingTimestamp: Date.now() });
           break;
       }
     },

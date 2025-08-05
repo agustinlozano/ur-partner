@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import debounce from "lodash.debounce";
 import { useRouter } from "next/navigation";
 import { LogOut, SparklesIcon, Zap } from "lucide-react";
@@ -16,8 +16,8 @@ import { useGameStore, ROOM_EVENTS } from "@/stores/realtime-store";
 import { usePersonalityImagesStore } from "@/stores/personality-images-store";
 
 import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
-import { useActiveRoom } from "@/hooks/use-active-room";
-import { Room } from "@/lib/dynamodb";
+import { useRoomSocket } from "@/hooks/use-room-socket";
+import { cn } from "@/lib/utils";
 
 export default function RealtimeRoom({
   starfieldEnabled = true,

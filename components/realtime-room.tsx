@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
+import debounce from "lodash.debounce";
 import { useRouter } from "next/navigation";
 import { LogOut, SparklesIcon, Zap } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { CategoryList } from "@/components/realtime-category-list";
@@ -15,7 +17,6 @@ import { usePersonalityImagesStore } from "@/stores/personality-images-store";
 
 import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
 import { useRoomSocket } from "@/hooks/use-room-socket";
-
 import { cn } from "@/lib/utils";
 
 export default function RealtimeRoom({
@@ -47,6 +48,7 @@ export default function RealtimeRoom({
     chatMessages,
     roomInitialized,
     socketConnected,
+    lastPingTimestamp,
 
     // Actions
     setMyFixedCategory,
@@ -179,9 +181,31 @@ export default function RealtimeRoom({
     [addChatMessage, sendMessage, mySlot, roomId]
   );
 
+  // Debounced Ping button logic
+  const [pingCooldown, setPingCooldown] = useState(false);
+  const debouncedPing = useMemo(
+    () =>
+      debounce(
+        () => {
+          sendMessage({ type: ROOM_EVENTS.ping, slot: mySlot }, roomId);
+          setPingCooldown(true);
+          setTimeout(() => setPingCooldown(false), 5000);
+        },
+        0,
+        { leading: true, trailing: false }
+      ),
+    [sendMessage, mySlot, roomId]
+  );
+
   const handlePing = useCallback(() => {
-    sendMessage({ type: ROOM_EVENTS.ping, slot: mySlot }, roomId);
-  }, [sendMessage, mySlot, roomId]);
+    if (!pingCooldown) {
+      debouncedPing();
+      toast.success("Ping sent to your partner", {
+        duration: 2000,
+        icon: "🔔",
+      });
+    }
+  }, [debouncedPing, pingCooldown]);
 
   const handleLeave = useCallback(() => {
     // Clear images for this room and user slot when leaving
@@ -221,10 +245,10 @@ export default function RealtimeRoom({
               size="sm"
               onClick={handlePing}
               className="gap-2 bg-transparent"
-              disabled={!socketConnected}
+              disabled={!socketConnected || pingCooldown}
             >
               <Zap className="h-4 w-4" />
-              Ping
+              {pingCooldown ? "Cooling" : "Ping"}
             </Button>
             <Button
               size="sm"
@@ -283,6 +307,7 @@ export default function RealtimeRoom({
               isReady={myReady}
               onImageUpload={handleImageUpload}
               onCategoryDrop={handleCategorySelect}
+              ping={lastPingTimestamp}
               roomId={roomId}
               uploadedImages={currentImages}
               onRemoveImage={handleRemoveImage}

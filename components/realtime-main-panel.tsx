@@ -2,8 +2,9 @@
 
 import type React from "react";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useGameStore } from "@/stores/realtime-store";
+import "./realtime.css";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -15,6 +16,7 @@ import {
   MousePointer,
   RefreshCcw,
 } from "lucide-react";
+import { toast } from "sonner";
 
 type MainPanelProps = {
   userSlot: "a" | "b";
@@ -23,6 +25,7 @@ type MainPanelProps = {
   selectedCategory: string | null;
   progress: number;
   isReady: boolean;
+  ping?: number;
   onImageUpload: (file: File) => void;
   onToggleReady: () => void;
   onCategoryDrop: (category: string) => void;
@@ -36,6 +39,7 @@ export function MainPanel({
   selectedCategory,
   progress,
   isReady,
+  ping,
   onImageUpload,
   onToggleReady,
   onCategoryDrop,
@@ -44,6 +48,27 @@ export function MainPanel({
   const reconnectSocket = useGameStore((s) => s.reconnectSocket);
   const [dragOver, setDragOver] = useState(false);
   const [categoryDragOver, setCategoryDragOver] = useState(false);
+
+  // Animation state for ping
+  const [shake, setShake] = useState(false);
+  const [pulse, setPulse] = useState(false);
+
+  useEffect(() => {
+    if (ping) {
+      setShake(true);
+      setPulse(true);
+      const shakeTimeout = setTimeout(() => setShake(false), 400); // short shake
+      const pulseTimeout = setTimeout(() => setPulse(false), 700); // match PartnerTracker badge
+      toast.success("Ping received from your partner", {
+        duration: 2000,
+        icon: "🔔",
+      });
+      return () => {
+        clearTimeout(shakeTimeout);
+        clearTimeout(pulseTimeout);
+      };
+    }
+  }, [ping]);
 
   const [firstName] = me.name.split(" ");
   const shortName =
@@ -120,7 +145,12 @@ export function MainPanel({
   const isDragActive = dragOver || categoryDragOver;
 
   return (
-    <Card className="p-2 sm:p-6 flex-1 bg-card/50 backdrop-blur-sm">
+    <Card
+      className={`p-2 sm:p-6 flex-1 bg-card/50 backdrop-blur-sm transition-all duration-300
+        ${shake ? "mainpanel-shake-animation" : ""}
+        ${pulse ? "mainpanel-pulse-animation" : ""}
+      `}
+    >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
@@ -148,7 +178,6 @@ export function MainPanel({
               variant="outline"
               size="sm"
               onClick={() => {
-                console.log("click", roomId, userSlot);
                 reconnectSocket(roomId, userSlot);
               }}
               className="gap-2"

@@ -31,6 +31,11 @@ export const TABLES = {
     "Rooms",
 } as const;
 
+export type CompletedCategory = {
+  category: string;
+  value: string;
+};
+
 export interface Room {
   room_id: string; // Partition Key
 
@@ -73,8 +78,8 @@ export interface Room {
   realtime_b_progress?: number;
   realtime_a_fixed_category?: string;
   realtime_b_fixed_category?: string;
-  realtime_a_completed_categories?: string[];
-  realtime_b_completed_categories?: string[];
+  realtime_a_completed_categories?: CompletedCategory[]; // This could be [{ category: "food", value: "2025-07-27T18:41:18.335Z"}]
+  realtime_b_completed_categories?: CompletedCategory[]; // This could be [{ category: "place", value: "https://ur-partner.s3.us-east-2.amazonaws.com/NLJVAU9Y/slot_a/drink/main.png"}]
   realtime_chat_messages?: string[];
   realtime_in_room_a?: boolean;
   realtime_in_room_b?: boolean;

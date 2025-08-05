@@ -53,3 +53,4 @@ public/*.mp4
 lambda-docs.md
 row-sample.csv
 app/api/room/\[roomId]/upload-images/logs.txt
+row-sample.json

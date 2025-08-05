@@ -3,33 +3,32 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import debounce from "lodash.debounce";
 import { useRouter } from "next/navigation";
-import { useRoomSocket } from "@/hooks/use-room-socket";
-import { useGameStore, ROOM_EVENTS } from "@/stores/realtime-store";
+import { LogOut, SparklesIcon, Zap } from "lucide-react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
 import { CategoryList } from "@/components/realtime-category-list";
 import { MainPanel } from "@/components/realtime-main-panel";
 import { PartnerTracker } from "@/components/realtime-partner-tracker";
 import { ChatDrawer } from "@/components/realtime-chat-drawer";
-import { Button } from "@/components/ui/button";
-import { LogOut, SparklesIcon, Zap } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+import { useGameStore, ROOM_EVENTS } from "@/stores/realtime-store";
+import { usePersonalityImagesStore } from "@/stores/personality-images-store";
+
 import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
-import { Room } from "@/lib/dynamodb";
 import { useActiveRoom } from "@/hooks/use-active-room";
-import { toast } from "sonner";
+import { Room } from "@/lib/dynamodb";
 
 export default function RealtimeRoom({
   starfieldEnabled = true,
   onToggleStarfield,
   roomId,
-  roomData,
 }: {
   starfieldEnabled?: boolean;
   onToggleStarfield?: () => void;
   roomId: string;
-  roomData: Room;
 }) {
   const router = useRouter();
-  const { activeRoom } = useActiveRoom();
   const playSound = useSoundPlayer();
 
   const {
@@ -42,7 +41,6 @@ export default function RealtimeRoom({
     partnerFixedCategory,
     myCompletedCategories,
     partnerCompletedCategories,
-    myProgress,
     partnerProgress,
     myReady,
     partnerReady,
@@ -53,31 +51,69 @@ export default function RealtimeRoom({
     lastPingTimestamp,
 
     // Actions
-    initializeFromRoomData,
     setMyFixedCategory,
-    setMyProgress,
-    setMyReady,
     completeMyCategory,
     sendMessage,
     leaveRoom,
     addChatMessage,
+    checkAndSetReady,
+    setMyReady,
   } = useGameStore();
 
-  // Initialize store with room data
-  useEffect(() => {
-    if (!activeRoom || !roomData || roomInitialized) return;
+  // Personality images store
+  const { setImagesForRoom, getImagesForRoom, clearImagesForRoom } =
+    usePersonalityImagesStore();
+  // Handler para eliminar imagen de una categoría
+  const handleRemoveImage = useCallback(
+    (category: string) => {
+      const currentImages = getImagesForRoom(roomId, mySlot);
+      if (currentImages && currentImages[category]) {
+        // Quitar imagen
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [category]: _removed, ...rest } = currentImages;
+        setImagesForRoom(roomId, mySlot, rest);
+      }
+      // Remove from completed categories if it exists
+      const { myCompletedCategories } = useGameStore.getState();
+      const setMyCompletedCategories = (
+        newList: typeof myCompletedCategories
+      ) => {
+        useGameStore.setState({ myCompletedCategories: newList });
+      };
+      if (myCompletedCategories.some((cat) => cat.category === category)) {
+        setMyCompletedCategories(
+          myCompletedCategories.filter((cat) => cat.category !== category)
+        );
+        // Sync via WebSocket
+        sendMessage(
+          { type: ROOM_EVENTS.category_uncompleted, slot: mySlot, category },
+          roomId
+        );
 
-    console.log("🏠 Initializing RealtimeRoom with:", {
+        if (myReady) {
+          setMyReady(false);
+          sendMessage({ type: ROOM_EVENTS.not_ready, slot: mySlot }, roomId);
+        }
+      }
+    },
+    [
       roomId,
-      userSlot: activeRoom.slot,
-      roomData,
-    });
-
-    initializeFromRoomData(roomData, activeRoom.slot);
-  }, [activeRoom, roomData, roomInitialized, initializeFromRoomData]);
+      mySlot,
+      myReady,
+      getImagesForRoom,
+      setImagesForRoom,
+      sendMessage,
+      setMyReady,
+    ]
+  );
 
   // Initialize WebSocket connection
   useRoomSocket(roomId, mySlot);
+
+  // Get current images for this room and user
+  const currentImages = getImagesForRoom(roomId, mySlot);
+
+  // Note: No cleanup needed for base64 images, unlike blob URLs
 
   // Handlers
   const handleCategorySelect = useCallback(
@@ -93,53 +129,50 @@ export default function RealtimeRoom({
 
   const handleImageUpload = useCallback(
     (file: File) => {
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += 10;
-        setMyProgress(progress);
+      if (myFixedCategory) {
+        // Convert File to base64 for persistent storage
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const base64Result = e.target?.result as string;
+
+          // Store the uploaded image in the personality images store
+          const currentImages = getImagesForRoom(roomId, mySlot);
+          const newImages = {
+            ...currentImages,
+            [myFixedCategory]: base64Result,
+          };
+          setImagesForRoom(roomId, mySlot, newImages);
+        };
+        reader.readAsDataURL(file);
+
+        // Complete the category immediately
+        completeMyCategory(myFixedCategory);
         sendMessage(
           {
-            type: ROOM_EVENTS.progress_updated,
+            type: ROOM_EVENTS.category_completed,
             slot: mySlot,
-            progress,
+            category: myFixedCategory,
           },
           roomId
         );
 
-        if (progress >= 100) {
-          clearInterval(interval);
-          if (myFixedCategory) {
-            completeMyCategory(myFixedCategory);
-            sendMessage(
-              {
-                type: ROOM_EVENTS.category_completed,
-                slot: mySlot,
-                category: myFixedCategory,
-              },
-              roomId
-            );
-          }
-        }
-      }, 200);
+        // Check if all categories are completed and set ready automatically
+        setTimeout(() => {
+          checkAndSetReady(roomId);
+        }, 100);
+      }
     },
     [
-      setMyProgress,
       sendMessage,
       mySlot,
       myFixedCategory,
       completeMyCategory,
       roomId,
+      checkAndSetReady,
+      getImagesForRoom,
+      setImagesForRoom,
     ]
   );
-
-  const handleToggleReady = useCallback(() => {
-    const newReady = !myReady;
-    setMyReady(newReady);
-    if (newReady) {
-      sendMessage({ type: ROOM_EVENTS.is_ready, slot: mySlot }, roomId);
-    }
-  }, [myReady, setMyReady, sendMessage, mySlot, roomId]);
-
   const handleSendMessage = useCallback(
     (message: string) => {
       addChatMessage(mySlot, message); // local echo
@@ -175,11 +208,14 @@ export default function RealtimeRoom({
   }, [debouncedPing, pingCooldown]);
 
   const handleLeave = useCallback(() => {
+    // Clear images for this room and user slot when leaving
+    clearImagesForRoom(roomId, mySlot);
+
     leaveRoom(roomId, () => {
       console.log("🏠 Redirecting to home after leaving room");
       router.push("/");
     });
-  }, [leaveRoom, roomId, router]);
+  }, [leaveRoom, roomId, router, clearImagesForRoom, mySlot]);
 
   // Don't render until initialized
   if (!roomInitialized) {
@@ -268,13 +304,13 @@ export default function RealtimeRoom({
               me={me}
               connected={socketConnected}
               selectedCategory={myFixedCategory}
-              progress={myProgress}
               isReady={myReady}
               onImageUpload={handleImageUpload}
-              onToggleReady={handleToggleReady}
               onCategoryDrop={handleCategorySelect}
               ping={lastPingTimestamp}
               roomId={roomId}
+              uploadedImages={currentImages}
+              onRemoveImage={handleRemoveImage}
             />
           </div>
 

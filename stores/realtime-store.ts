@@ -1,22 +1,15 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import { Room } from "@/lib/dynamodb";
-
-export type RoomEvent =
-  | { type: "category_fixed"; slot: "a" | "b"; category: string }
-  | { type: "category_completed"; slot: "a" | "b"; category: string }
-  | { type: "progress_updated"; slot: "a" | "b"; progress: number }
-  | { type: "is_ready"; slot: "a" | "b" }
-  | { type: "say"; slot: "a" | "b"; message: string }
-  | { type: "ping"; slot: "a" | "b" }
-  | { type: "leave"; slot: "a" | "b" }
-  | { type: "get_in"; slot: "a" | "b" };
+import { CompletedCategory, Room } from "@/lib/dynamodb";
+import type { RoomEvent } from "@/components/realtime.types";
 
 export const ROOM_EVENTS = {
   category_fixed: "category_fixed",
   category_completed: "category_completed",
+  category_uncompleted: "category_uncompleted",
   progress_updated: "progress_updated",
   is_ready: "is_ready",
+  not_ready: "not_ready",
   say: "say",
   ping: "ping",
   leave: "leave",
@@ -36,13 +29,13 @@ export interface GameState {
 
   // My state
   myFixedCategory: string | null;
-  myCompletedCategories: string[];
+  myCompletedCategories: CompletedCategory[];
   myProgress: number;
   myReady: boolean;
 
   // Partner state
   partnerFixedCategory: string | null;
-  partnerCompletedCategories: string[];
+  partnerCompletedCategories: CompletedCategory[];
   partnerProgress: number;
   partnerReady: boolean;
   partnerConnected: boolean;
@@ -78,6 +71,7 @@ interface GameStore extends GameState {
   setMyReady: (ready: boolean) => void;
   completeMyCategory: (category: string) => void;
   resetMyProgress: () => void;
+  checkAndSetReady: (roomId: string) => void;
 
   // Partner actions (only updated via WebSocket)
   setPartnerConnected: (connected: boolean) => void;
@@ -191,13 +185,45 @@ export const useGameStore = create<GameStore>()(
     setMyReady: (ready) => set({ myReady: ready }),
     resetMyProgress: () => set({ myProgress: 0 }),
 
-    completeMyCategory: (category) => {
+    completeMyCategory: (category: string) => {
       const state = get();
+      const newCompletedCategories = [
+        ...state.myCompletedCategories,
+        { category, value: new Date().toISOString() },
+      ];
       set({
-        myCompletedCategories: [...state.myCompletedCategories, category],
+        myCompletedCategories: newCompletedCategories,
         myFixedCategory: null,
         myProgress: 0,
       });
+
+      // Check if all 8 categories are completed and set ready automatically
+      if (newCompletedCategories.length === 9 && !state.myReady) {
+        console.log(
+          "🎯 All categories completed! Setting ready state and sending to WebSocket"
+        );
+        set({ myReady: true });
+        // Send the ready message to WebSocket immediately
+        // Note: We need roomId, but this function doesn't have it, so we'll handle it in checkAndSetReady
+      }
+    },
+
+    // Check if all categories are completed and set ready state
+    checkAndSetReady: (roomId: string) => {
+      const state = get();
+      if (state.myCompletedCategories.length === 9) {
+        console.log(
+          "🎯 All categories completed! Setting ready state and sending message"
+        );
+        if (!state.myReady) {
+          set({ myReady: true });
+        }
+        // Always send the message when all categories are completed
+        state.sendMessage(
+          { type: ROOM_EVENTS.is_ready, slot: state.mySlot },
+          roomId
+        );
+      }
     },
 
     // Partner actions
@@ -258,6 +284,34 @@ export const useGameStore = create<GameStore>()(
       const state = get();
 
       switch (event.type) {
+        case "not_ready":
+          if (event.slot === state.mySlot) {
+            // No hacemos nada para el usuario local
+          } else {
+            if (state.partnerReady) {
+              set({ partnerReady: false });
+            }
+          }
+          break;
+        case "category_uncompleted":
+          if (event.slot === state.mySlot) {
+            // No hacemos nada, ya que el usuario local ya lo gestionó
+          } else {
+            // El partner descompletó una categoría: la quitamos de partnerCompletedCategories
+            if (
+              state.partnerCompletedCategories.some(
+                (cat) => cat.category === event.category
+              )
+            ) {
+              set({
+                partnerCompletedCategories:
+                  state.partnerCompletedCategories.filter(
+                    (cat) => cat.category !== event.category
+                  ),
+              });
+            }
+          }
+          break;
         case "get_in":
           // Partner joined the room
           if (event.slot !== state.mySlot) {
@@ -282,20 +336,28 @@ export const useGameStore = create<GameStore>()(
 
         case "category_completed":
           if (event.slot === state.mySlot) {
-            if (!state.myCompletedCategories.includes(event.category)) {
+            if (
+              !state.myCompletedCategories.some(
+                (cat) => cat.category === event.category
+              )
+            ) {
               set({
                 myCompletedCategories: [
                   ...state.myCompletedCategories,
-                  event.category,
+                  { category: event.category, value: new Date().toISOString() },
                 ],
               });
             }
           } else {
-            if (!state.partnerCompletedCategories.includes(event.category)) {
+            if (
+              !state.partnerCompletedCategories.some(
+                (cat) => cat.category === event.category
+              )
+            ) {
               set({
                 partnerCompletedCategories: [
                   ...state.partnerCompletedCategories,
-                  event.category,
+                  { category: event.category, value: new Date().toISOString() },
                 ],
               });
             }
@@ -357,7 +419,10 @@ export const useGameStore = create<GameStore>()(
     },
 
     // Reconnect socket manually
-    reconnectSocket: (roomId, mySlot) => {
+    reconnectSocket: (roomId: string, mySlot: "a" | "b") => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { roomId: _, mySlot: __ } = { roomId, mySlot };
+
       // Reset reconnection flag and socket
       get().setShouldReconnect(true);
       const { socket } = get();

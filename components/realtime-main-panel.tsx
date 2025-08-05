@@ -166,13 +166,13 @@ export function MainPanel({
 
   return (
     <Card
-      className={`p-2 sm:p-6 flex-1 bg-card/50 backdrop-blur-sm transition-all duration-300
+      className={`p-3 sm:p-6 flex-1 bg-card/50 backdrop-blur-sm transition-all duration-300
         ${shake ? "mainpanel-shake-animation" : ""}
         ${pulse ? "mainpanel-pulse-animation" : ""}
       `}
     >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3 mt-2 sm:mt-0">
           <div className="flex items-center gap-2">
             {connected ? (
               <div className="w-2 h-2 bg-green-500 rounded-full" />
@@ -318,7 +318,7 @@ export function MainPanel({
           </div>
         )}
         {categoryDragOver ? (
-          <div className="space-y-4">
+          <div className="space-y-4 h-44">
             <MousePointer className="h-12 w-12 mx-auto text-blue-500" />
             <div>
               <p className="text-lg font-medium text-blue-600 dark:text-blue-400">
@@ -330,7 +330,7 @@ export function MainPanel({
             </div>
           </div>
         ) : selectedCategory ? (
-          <div className="space-y-4">
+          <div className="space-y-4 h-44">
             <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
             <div>
               <p className="text-lg font-medium">

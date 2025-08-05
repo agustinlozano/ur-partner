@@ -48,7 +48,6 @@ export function MainPanel({
   uploadedImages = {},
   onRemoveImage,
 }: MainPanelProps) {
-  // Elimina la imagen de una categoría
   const handleRemoveImage = (category: string) => {
     if (onRemoveImage) {
       onRemoveImage(category);
@@ -114,16 +113,17 @@ export function MainPanel({
     [onImageUpload, onCategoryDrop]
   );
 
+  // Improved drag detection: if there are files, it's an image drag; otherwise, treat as category drag
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    const categoryData = e.dataTransfer.getData("text/plain");
-
-    if (categoryData && !categoryData.includes("/")) {
-      setCategoryDragOver(true);
-      setDragOver(false);
-    } else {
+    const items = Array.from(e.dataTransfer.items);
+    const hasFiles = items.some((item) => item.kind === "file");
+    if (hasFiles) {
       setDragOver(true);
       setCategoryDragOver(false);
+    } else {
+      setCategoryDragOver(true);
+      setDragOver(false);
     }
   }, []);
 
@@ -131,11 +131,12 @@ export function MainPanel({
     e.preventDefault();
     const items = Array.from(e.dataTransfer.items);
     const hasFiles = items.some((item) => item.kind === "file");
-
     if (hasFiles) {
       setDragOver(true);
+      setCategoryDragOver(false);
     } else {
       setCategoryDragOver(true);
+      setDragOver(false);
     }
   }, []);
 
@@ -318,7 +319,7 @@ export function MainPanel({
           </div>
         )}
         {categoryDragOver ? (
-          <div className="space-y-4 h-44">
+          <div className="space-y-4 h-44 flex flex-col items-center justify-center">
             <MousePointer className="h-12 w-12 mx-auto text-blue-500" />
             <div>
               <p className="text-lg font-medium text-blue-600 dark:text-blue-400">
@@ -330,7 +331,7 @@ export function MainPanel({
             </div>
           </div>
         ) : selectedCategory ? (
-          <div className="space-y-4 h-44">
+          <div className="space-y-4 h-44 flex flex-col items-center justify-center">
             <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
             <div>
               <p className="text-lg font-medium">

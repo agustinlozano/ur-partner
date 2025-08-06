@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { Room } from "@/lib/dynamodb";
 import { RelationshipRole } from "@/lib/role-utils";
 import RelativeTime from "@/components/ui/relative-time";
-import { enviroment } from "@/lib/env";
+import { Badge } from "@/components/ui/badge";
 
 interface PageProps {
   params: Promise<{ roomId: string }>;
@@ -500,20 +500,44 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
           </div>
         )}
 
-        {enviroment === "development" && (
-          <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/75 dark:to-purple-950 rounded-xl shadow-lg p-6 border border-purple-300 dark:border-purple-600 mb-8 select-none">
-            <div className="text-center">
-              <Button
-                variant="shadow"
-                size="lg"
-                asChild
-                className="border-purple-900  hover:bg-purple-50 dark:text-purple-300 dark:hover:bg-purple-950"
-              >
-                <Link href={`/realtime/${roomId}`}>🎮 Realtime experience</Link>
-              </Button>
+        <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/75 dark:to-purple-950 rounded-xl shadow-lg p-6 border border-purple-300 dark:border-purple-600 mb-8 select-none">
+          <div className="text-center flex flex-col items-center gap-3">
+            <div className="text-6xl mb-4">⚡️</div>
+            <h3 className="text-xl font-semibold mb-4 text-purple-500 dark:text-purple-300">
+              Realtime Experience{" "}
+              <Badge className="ml-2 border-purple-400 bg-purple-200 text-purple-500 dark:text-purple-50 dark:bg-purple-950">
+                DEV
+              </Badge>
+            </h3>
+            <div className="text-sm text-purple-800 dark:text-purple-200 font-mono max-w-xl mx-auto mb-2">
+              Dive into the <span className="font-bold">live</span> playground
+              where every move is synced instantly.
+              <br />
+              <span className="text-purple-500">
+                Chat, upload, drag, and vibe
+              </span>{" "}
+              with your partner in real time.
+              <br />
+              <span className="inline-block mt-1 font-bold">
+                No refreshes. No waiting.
+              </span>
+              <span className="block">💜</span>
+            </div>
+            <Button
+              variant="shadow"
+              size="lg"
+              asChild
+              className="border-purple-900 hover:bg-purple-50 dark:text-purple-300 dark:hover:bg-purple-950"
+            >
+              <Link href={`/realtime/${roomId}`}>
+                🎮 Enter Realtime Experience
+              </Link>
+            </Button>
+            <div className="text-xs italic text-purple-400 font-mono mt-2">
+              <span className="">(Experimental: for devs & curious ppl!)</span>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Room Info */}
         <div className="bg-card/60 rounded-xl shadow-lg p-6 border">

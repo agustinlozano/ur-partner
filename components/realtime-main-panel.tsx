@@ -294,13 +294,15 @@ export function MainPanel({
 
       {/* UI description: Drop zone for categories and images */}
       <div
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-all select-none ${
-          categoryDragOver
-            ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20"
-            : dragOver
-            ? "border-primary bg-primary/5"
-            : "border-muted-foreground/25"
-        } ${isDragActive ? "scale-[1.02]" : ""}`}
+        className={`border-2 border-dashed rounded-lg p-8 text-center transition-all select-none
+          ${
+            categoryDragOver
+              ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20"
+              : dragOver
+              ? "border-purple-500 bg-purple-50 dark:bg-purple-950/20"
+              : "border-muted-foreground/25"
+          }
+          ${isDragActive ? "scale-[1.02]" : ""}`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragEnter={handleDragEnter}
@@ -355,7 +357,7 @@ export function MainPanel({
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 h-44 flex flex-col items-center justify-center">
             <div className="h-12 w-12 mx-auto rounded-full bg-muted flex items-center justify-center">
               <MousePointer className="h-6 w-6 text-muted-foreground" />
             </div>

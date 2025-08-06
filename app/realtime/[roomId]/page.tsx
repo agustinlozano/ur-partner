@@ -28,6 +28,11 @@ export default function RealtimeRoomPage({
     (state) => state.initializeFromRoomData
   );
 
+  const localUser = localStorage.getItem("activeRoom");
+  const activeRoom: ActiveRoom | null = localUser
+    ? JSON.parse(localUser)
+    : null;
+
   useEffect(() => {
     async function loadAndValidate() {
       const { roomId } = await params;
@@ -119,9 +124,15 @@ export default function RealtimeRoomPage({
               {error || "You don't have permission to access this page."}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href={`/`}>
-                <Button variant="default">Back to Home</Button>
-              </Link>
+              {activeRoom ? (
+                <Link href={`/room/${activeRoom.room_id}`}>
+                  <Button variant="default">Back to Room</Button>
+                </Link>
+              ) : (
+                <Link href={`/`}>
+                  <Button variant="default">Back to Home</Button>
+                </Link>
+              )}
               <Link href="/join">
                 <Button variant="outline">Join Room</Button>
               </Link>

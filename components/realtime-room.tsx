@@ -213,7 +213,7 @@ export default function RealtimeRoom({
 
     leaveRoom(roomId, () => {
       console.log("🏠 Redirecting to home after leaving room");
-      router.push("/");
+      router.push(`/room/${roomId}`);
     });
   }, [leaveRoom, roomId, router, clearImagesForRoom, mySlot]);
 

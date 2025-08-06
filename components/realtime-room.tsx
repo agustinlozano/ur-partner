@@ -269,13 +269,13 @@ export default function RealtimeRoom({
                   : ""
               )}
             >
-              {starfieldEnabled ? "On" : "Off"}{" "}
               <SparklesIcon
                 className={cn(
                   "size-4",
                   starfieldEnabled ? "text-emerald-200" : "text-red-400"
                 )}
               />
+              {starfieldEnabled ? "On" : "Off"}{" "}
             </Button>
           </div>
           <Button

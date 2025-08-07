@@ -24,9 +24,9 @@ const CATEGORIES = [
   { id: "place", label: "place", icon: MapPin },
   { id: "character", label: "character", icon: User },
   { id: "food", label: "food", icon: Utensils },
-  { id: "session", label: "session", icon: Calendar },
+  { id: "season", label: "season", icon: Calendar },
   { id: "hobby", label: "hobby", icon: Gamepad2 },
-  { id: "color", label: "color", icon: Palette },
+  { id: "colour", label: "colour", icon: Palette },
   { id: "drink", label: "drink", icon: Coffee },
   { id: "plant", label: "plant", icon: Leaf },
 ];

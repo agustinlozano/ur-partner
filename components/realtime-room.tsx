@@ -11,6 +11,7 @@ import { CategoryList } from "@/components/realtime-category-list";
 import { MainPanel } from "@/components/realtime-main-panel";
 import { PartnerTracker } from "@/components/realtime-partner-tracker";
 import { ChatDrawer } from "@/components/realtime-chat-drawer";
+import { RealtimeRevealCard } from "@/components/realtime-reveal-card";
 
 import { useGameStore, ROOM_EVENTS } from "@/stores/realtime-store";
 import { usePersonalityImagesStore } from "@/stores/personality-images-store";
@@ -183,6 +184,11 @@ export default function RealtimeRoom({
 
   // Debounced Ping button logic
   const [pingCooldown, setPingCooldown] = useState(false);
+  const [isRevealing, setIsRevealing] = useState(false);
+
+  // Check if both users are ready for reveal
+  const canReveal = myReady && partnerReady;
+
   const debouncedPing = useMemo(
     () =>
       debounce(
@@ -216,6 +222,12 @@ export default function RealtimeRoom({
       router.push(`/room/${roomId}`);
     });
   }, [leaveRoom, roomId, router, clearImagesForRoom, mySlot]);
+
+  const handleReveal = useCallback(() => {
+    setIsRevealing(true);
+    // Any additional reveal logic can be added here
+    // The navigation is handled by RealtimeRevealCard
+  }, []);
 
   // Don't render until initialized
   if (!roomInitialized) {
@@ -299,6 +311,15 @@ export default function RealtimeRoom({
           </div>
 
           <div className="lg:col-span-2">
+            {/* Reveal Card - appears when both users are ready */}
+            <div className="mb-6">
+              <RealtimeRevealCard
+                roomId={roomId}
+                canReveal={canReveal}
+                isRevealing={isRevealing}
+                onReveal={handleReveal}
+              />
+            </div>
             <MainPanel
               userSlot={mySlot}
               me={me}

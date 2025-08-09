@@ -254,6 +254,13 @@ export const leaveRoomBySlot = async (
       updates[fieldName] = "" as any;
     });
 
+    // Clear realtime fields for the slot
+    updates[`realtime_${userSlot}_ready`] = false as any;
+    updates[`realtime_${userSlot}_progress`] = 0 as any;
+    updates[`realtime_${userSlot}_fixed_category`] = "" as any;
+    updates[`realtime_${userSlot}_completed_categories`] = [] as any;
+    updates[`realtime_in_room_${userSlot}`] = false as any;
+
     const updatedRoom = await updateRoom(roomId, updates);
     return updatedRoom;
   } catch (error) {

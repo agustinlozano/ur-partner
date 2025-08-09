@@ -24,7 +24,7 @@ export function ThemeToggle({ forceDark = false }: { forceDark?: boolean }) {
         if (!forceDark) {
           setTheme(theme === "light" ? "dark" : "light");
           playSound(SOUNDS.tap);
-        } else toast.warning("This is a dark-only mode page :)");
+        } else toast.warning("This is a dark-only mode page 😅");
       }}
       className="relative"
       // disabled={forceDark}

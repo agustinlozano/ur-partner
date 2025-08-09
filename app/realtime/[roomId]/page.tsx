@@ -22,16 +22,12 @@ export default function RealtimeRoomPage({
   const [roomData, setRoomData] = useState<Room | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeRoom, setActiveRoom] = useState<ActiveRoom | null>(null);
   // const router = useRouter();
 
   const initializeFromRoomData = useGameStore(
     (state) => state.initializeFromRoomData
   );
-
-  const localUser = localStorage.getItem("activeRoom");
-  const activeRoom: ActiveRoom | null = localUser
-    ? JSON.parse(localUser)
-    : null;
 
   useEffect(() => {
     async function loadAndValidate() {
@@ -41,6 +37,12 @@ export default function RealtimeRoomPage({
       await sleep(2000);
       setError(null);
       try {
+        // Safe localStorage access (client only)
+        const userData =
+          typeof window !== "undefined"
+            ? localStorage.getItem("activeRoom")
+            : null;
+
         // Load room data
         const room: Room | null = await getRoomData(roomId);
         console.log("Loaded room data:", room);
@@ -59,8 +61,6 @@ export default function RealtimeRoomPage({
           setLoading(false);
           return;
         }
-        // Check if current user is in this room
-        const userData = localStorage.getItem("activeRoom");
 
         if (!userData) {
           setError("You must join the room first");
@@ -69,6 +69,7 @@ export default function RealtimeRoomPage({
         }
 
         const user: ActiveRoom = JSON.parse(userData);
+        setActiveRoom(user);
 
         if (user?.room_id !== roomId) {
           setError("You are not a member of this room");

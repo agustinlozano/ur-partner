@@ -204,7 +204,10 @@ export function MainPanel({
             </span>
           </div>
           {selectedCategory ? (
-            <Badge variant="secondary" className="capitalize">
+            <Badge
+              variant="secondary"
+              className="text-xs px-3 border border-emerald-800 bg-emerald-600/20"
+            >
               {selectedCategory}
             </Badge>
           ) : (

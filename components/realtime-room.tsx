@@ -21,7 +21,7 @@ import { useRoomSocket } from "@/hooks/use-room-socket";
 import { cn } from "@/lib/utils";
 
 export default function RealtimeRoom({
-  starfieldEnabled = true,
+  starfieldEnabled = false,
   onToggleStarfield,
   roomId,
 }: {
@@ -293,9 +293,10 @@ export default function RealtimeRoom({
           <Button
             size="sm"
             onClick={handleLeave}
-            className="gap-2 border border-red-400 bg-red-900 text-primary hover:bg-red-950 hover:text-white active:bg-red-800 disabled:opacity-50 disabled:pointer-events-none"
+            variant="outline"
+            // className="gap-2 border border-red-400 bg-red-900 text-primary hover:bg-red-950 hover:text-white active:bg-red-800 disabled:opacity-50 disabled:pointer-events-none"
           >
-            <LogOut className="size-4" />
+            <LogOut className="size-4 text-red-400" />
             Leave
           </Button>
         </div>

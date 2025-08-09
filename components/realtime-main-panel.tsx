@@ -370,7 +370,7 @@ export function MainPanel({
               id="file-upload"
             />
             <div className="flex gap-2 flex-wrap justify-center">
-              <Button asChild disabled={unsplashLoading}>
+              <Button size="sm" asChild disabled={unsplashLoading}>
                 <label htmlFor="file-upload" className="cursor-pointer">
                   Choose File
                 </label>

@@ -6,7 +6,7 @@ import FloatingRoomMenu from "@/components/floating-room-menu";
 import ThemeToggleButton from "@/components/theme-toggle-button";
 import SoundToggleButton from "@/components/sound-toggle-button";
 import { ThemeProvider } from "@/components/theme-provider";
-// import { AudioProvider } from "@/components/audio-provider";
+import { GlobalUnsplashImageSelector } from "@/components/unsplash-image-selector-wrapper";
 import { DevKeyTracker } from "@/components/dev-key-tracker";
 import { cn } from "@/lib/utils";
 import "./globals.css";
@@ -77,6 +77,7 @@ export default function RootLayout({
           <FloatingRoomMenu />
           <ThemeToggleButton />
           <SoundToggleButton />
+          <GlobalUnsplashImageSelector />
           {/* </AudioProvider> */}
         </ThemeProvider>
         <Toaster />

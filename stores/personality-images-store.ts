@@ -21,6 +21,10 @@ interface PersonalityImagesState {
 const storage = {
   getItem: (name: string) => {
     try {
+      if (typeof sessionStorage === "undefined") {
+        console.warn("sessionStorage is not available");
+        return null;
+      }
       const value = sessionStorage.getItem(name);
       return value ? JSON.parse(value) : null;
     } catch (error) {

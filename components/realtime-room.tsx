@@ -312,7 +312,7 @@ export default function RealtimeRoom({
 
           <div className="lg:col-span-2">
             {/* Reveal Card - appears when both users are ready */}
-            <div className="mb-6">
+            <div className={cn(canReveal ? "mb-6" : "")}>
               <RealtimeRevealCard
                 roomId={roomId}
                 canReveal={canReveal}

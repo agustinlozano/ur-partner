@@ -18,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import { useGameStore } from "@/stores/realtime-store";
+import { pickUnsplashImage } from "@/stores/unsplash-image-selector-store";
+import type { UnsplashPhoto } from "@/components/unsplash-image-selector";
 import type { UploadedImages } from "@/lib/personality-form-constants";
 import "./realtime.css";
 
@@ -164,6 +166,23 @@ export function MainPanel({
   );
 
   const isDragActive = dragOver || categoryDragOver;
+  const [unsplashLoading, setUnsplashLoading] = useState(false);
+
+  const handlePickUnsplash = async () => {
+    if (!selectedCategory || unsplashLoading) return;
+    try {
+      setUnsplashLoading(true);
+      const photo = await pickUnsplashImage();
+      if (!photo) return;
+      const file = await unsplashPhotoToFile(photo);
+      onImageUpload(file);
+      toast.success("Unsplash image added");
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to use Unsplash image");
+    } finally {
+      setUnsplashLoading(false);
+    }
+  };
 
   return (
     <Card
@@ -350,11 +369,45 @@ export function MainPanel({
               className="hidden"
               id="file-upload"
             />
-            <Button asChild>
-              <label htmlFor="file-upload" className="cursor-pointer">
-                Choose File
-              </label>
-            </Button>
+            <div className="flex gap-2 flex-wrap justify-center">
+              <Button asChild disabled={unsplashLoading}>
+                <label htmlFor="file-upload" className="cursor-pointer">
+                  Choose File
+                </label>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handlePickUnsplash}
+                disabled={unsplashLoading}
+                className="gap-2"
+              >
+                {unsplashLoading ? (
+                  <svg
+                    className="animate-spin h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                    />
+                  </svg>
+                ) : null}
+                {unsplashLoading ? "Fetching..." : "Pick from Unsplash"}
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="space-y-4 h-44 flex flex-col items-center justify-center">
@@ -374,4 +427,14 @@ export function MainPanel({
       </div>
     </Card>
   );
+}
+
+async function unsplashPhotoToFile(photo: UnsplashPhoto): Promise<File> {
+  const url = photo.urls.regular || photo.urls.small || photo.urls.thumb;
+  const res = await fetch(url);
+  console.log("Fetched Unsplash image:", res);
+  if (!res.ok) throw new Error("Failed to download Unsplash image");
+  const blob = await res.blob();
+  const ext = blob.type.includes("png") ? "png" : "jpg";
+  return new File([blob], `unsplash-${photo.id}.${ext}`, { type: blob.type });
 }

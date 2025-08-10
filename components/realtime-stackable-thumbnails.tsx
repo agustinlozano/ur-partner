@@ -18,12 +18,16 @@ interface StackableThumbnailsProps {
   thumbnails: ThumbnailData[];
   onRemove?: (id: string) => void;
   maxVisible?: number;
+  blurred?: boolean;
+  position?: "fixed" | "relative";
 }
 
 export function StackableThumbnails({
   thumbnails,
   onRemove,
   maxVisible = 5,
+  blurred = false,
+  position = "fixed",
 }: StackableThumbnailsProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [exitingIds, setExitingIds] = useState<Set<string>>(new Set());
@@ -58,7 +62,11 @@ export function StackableThumbnails({
   }
 
   return (
-    <div className={styles.container}>
+    <div
+      className={`${styles.container} ${
+        position === "relative" ? "!relative !bottom-auto !left-auto" : ""
+      }`}
+    >
       <div
         ref={containerRef}
         className={styles.stackContainer}
@@ -118,7 +126,9 @@ export function StackableThumbnails({
                   alt={thumbnail.category}
                   width={64}
                   height={64}
-                  className={styles.thumbnailImage}
+                  className={`${styles.thumbnailImage} ${
+                    blurred ? styles.blurred : ""
+                  }`}
                   quality={75}
                   priority={isTop}
                 />

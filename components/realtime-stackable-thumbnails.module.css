@@ -175,6 +175,7 @@
   transform: scale(0.7) translateY(4px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
+  z-index: 80;
 }
 
 .stackContainer:not(:hover) .counter {

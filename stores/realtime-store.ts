@@ -8,6 +8,7 @@ export const ROOM_EVENTS = {
   category_completed: "category_completed",
   category_uncompleted: "category_uncompleted",
   progress_updated: "progress_updated",
+  image_uploaded: "image_uploaded",
   is_ready: "is_ready",
   not_ready: "not_ready",
   say: "say",

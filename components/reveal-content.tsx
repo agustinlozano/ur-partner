@@ -15,7 +15,11 @@ import {
   USE_LAMBDA_UPLOAD,
 } from "@/lib/env";
 import { useIsMobile } from "@/hooks/use-is-mobile";
-import { PartnerImagesResult, UploadImagesResult } from "@/lib/actions";
+import {
+  PartnerImagesResult,
+  UploadImagesResult,
+  fetchPartnerImagesSecure,
+} from "@/lib/actions";
 
 interface RevealContentProps {
   roomId: string;
@@ -33,11 +37,9 @@ interface PartnerImagesState {
   loading: boolean;
   error: string | null;
   images: any;
-  cachedImages: any;
   partnerRole: string;
   totalImages: number;
   categoriesCompleted: number;
-  imagesDownloaded: boolean;
 }
 
 const LOADING_MESSAGES = [
@@ -75,11 +77,9 @@ export default function RevealContent({ roomId }: RevealContentProps) {
     loading: false,
     error: null,
     images: {},
-    cachedImages: {},
     partnerRole: "",
     totalImages: 0,
     categoriesCompleted: 0,
-    imagesDownloaded: false,
   });
   const [showReveal, setShowReveal] = useState(false);
   const [viewMode, setViewMode] = useState<"marquee" | "hover" | "gallery">(
@@ -181,43 +181,22 @@ export default function RevealContent({ roomId }: RevealContentProps) {
     }
   }, [revealState.stage, userSlot, showReveal]);
 
-  // Cleanup blob URLs when component unmounts to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      if (partnerImages.cachedImages) {
-        Object.values(partnerImages.cachedImages).forEach((value) => {
-          if (Array.isArray(value)) {
-            value.forEach((url) => {
-              if (typeof url === "string" && url.startsWith("blob:")) {
-                URL.revokeObjectURL(url);
-              }
-            });
-          } else if (typeof value === "string" && value.startsWith("blob:")) {
-            URL.revokeObjectURL(value);
-          }
-        });
-      }
-    };
-  }, [partnerImages.cachedImages]);
-
   const checkPartnerImages = async () => {
     if (!userSlot) return;
 
     setPartnerImages((prev) => ({ ...prev, loading: true, error: null }));
 
-    const result = await checkPartnerImagesAPI(roomId, userSlot);
+    const result = await fetchPartnerImagesSecure(roomId, userSlot);
 
-    if (result.success) {
+    if (result.success && result.isReady) {
       setPartnerImages({
         isReady: result.isReady,
         loading: false,
         error: null,
         images: result.images || {},
-        cachedImages: {},
         partnerRole: result.partnerRole || "",
         totalImages: result.totalImages || 0,
         categoriesCompleted: result.categoriesCompleted || 0,
-        imagesDownloaded: false,
       });
     } else {
       setPartnerImages((prev) => ({
@@ -228,88 +207,10 @@ export default function RevealContent({ roomId }: RevealContentProps) {
     }
   };
 
-  // Function to download and cache images as blobs
-  const downloadAndCacheImages = async (imageUrls: any) => {
-    const cachedImages: any = {};
-
-    try {
-      // Process each category
-      for (const [category, urls] of Object.entries(imageUrls)) {
-        if (Array.isArray(urls)) {
-          // Handle array of URLs (like character category)
-          cachedImages[category] = [];
-          for (const url of urls) {
-            try {
-              const response = await fetch(url as string);
-              if (response.ok) {
-                const blob = await response.blob();
-                const blobUrl = URL.createObjectURL(blob);
-                cachedImages[category].push(blobUrl);
-              } else {
-                console.warn(`Failed to download image: ${url}`);
-                cachedImages[category].push(url); // Fallback to original URL
-              }
-            } catch (error) {
-              console.warn(`Error downloading image ${url}:`, error);
-              cachedImages[category].push(url as string); // Fallback to original URL
-            }
-          }
-        } else {
-          // Handle single URL
-          try {
-            const response = await fetch(urls as string);
-            if (response.ok) {
-              const blob = await response.blob();
-              const blobUrl = URL.createObjectURL(blob);
-              cachedImages[category] = blobUrl;
-            } else {
-              console.warn(`Failed to download image: ${urls}`);
-              cachedImages[category] = urls; // Fallback to original URL
-            }
-          } catch (error) {
-            console.warn(`Error downloading image ${urls}:`, error);
-            cachedImages[category] = urls as string; // Fallback to original URL
-          }
-        }
-      }
-
-      return cachedImages;
-    } catch (error) {
-      console.error("Error caching images:", error);
-      return imageUrls; // Return original URLs as fallback
-    }
-  };
-
   const handleRevealImages = async () => {
-    if (!partnerImages.imagesDownloaded && partnerImages.images) {
-      // Show loading state while downloading images
-      setPartnerImages((prev) => ({ ...prev, loading: true }));
-
-      try {
-        const cachedImages = await downloadAndCacheImages(partnerImages.images);
-
-        setPartnerImages((prev) => ({
-          ...prev,
-          cachedImages,
-          imagesDownloaded: true,
-          loading: false,
-        }));
-
-        setShowReveal(true);
-      } catch (error) {
-        console.error("Error downloading images:", error);
-        // Fallback to showing original URLs
-        setPartnerImages((prev) => ({
-          ...prev,
-          cachedImages: prev.images,
-          imagesDownloaded: true,
-          loading: false,
-        }));
-        setShowReveal(true);
-      }
-    } else {
-      setShowReveal(true);
-    }
+    // Since images are already processed as base64 from the server action,
+    // we can show the reveal immediately
+    setShowReveal(true);
   };
 
   // Function to start the image upload process
@@ -624,16 +525,8 @@ export default function RevealContent({ roomId }: RevealContentProps) {
                     onClick={handleRevealImages}
                     variant="shadow"
                     size="lg"
-                    disabled={partnerImages.loading}
                   >
-                    {partnerImages.loading ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                        Downloading Images...
-                      </>
-                    ) : (
-                      "🎭 Reveal Their Vision of You"
-                    )}
+                    🎭 Reveal Their Vision of You
                   </Button>
                 </div>
               </div>
@@ -758,31 +651,13 @@ export default function RevealContent({ roomId }: RevealContentProps) {
 
           {/* Partner's Images - Different Views */}
           {viewMode === "marquee" && (
-            <CategoryMarquee
-              uploadedImages={
-                partnerImages.imagesDownloaded
-                  ? partnerImages.cachedImages
-                  : partnerImages.images
-              }
-            />
+            <CategoryMarquee uploadedImages={partnerImages.images} />
           )}
           {viewMode === "hover" && (
-            <CategoryHoverReveal
-              uploadedImages={
-                partnerImages.imagesDownloaded
-                  ? partnerImages.cachedImages
-                  : partnerImages.images
-              }
-            />
+            <CategoryHoverReveal uploadedImages={partnerImages.images} />
           )}
           {viewMode === "gallery" && (
-            <CategoryExpandableGallery
-              uploadedImages={
-                partnerImages.imagesDownloaded
-                  ? partnerImages.cachedImages
-                  : partnerImages.images
-              }
-            />
+            <CategoryExpandableGallery uploadedImages={partnerImages.images} />
           )}
 
           {enviroment === "development" && (
@@ -855,53 +730,6 @@ export async function uploadImagesAPI(
       success: false,
       error: "Failed to connect to server",
       message: "Failed to connect to server",
-    };
-  }
-}
-
-export async function checkPartnerImagesAPI(
-  roomId: string,
-  userSlot: string
-): Promise<PartnerImagesResult> {
-  try {
-    const response = await fetch(
-      `/api/room/${roomId}/partner-images?userSlot=${userSlot}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (data.success) {
-      return {
-        success: true,
-        isReady: data.isReady,
-        images: data.images,
-        partnerRole: data.partnerRole,
-        totalImages: data.totalImages,
-        categoriesCompleted: data.categoriesCompleted,
-      };
-    } else {
-      return {
-        success: false,
-        isReady: false,
-        error: data.error || "Failed to check partner images",
-      };
-    }
-  } catch (error) {
-    console.error("Error checking partner images:", error);
-    return {
-      success: false,
-      isReady: false,
-      error: "Failed to connect to server",
     };
   }
 }

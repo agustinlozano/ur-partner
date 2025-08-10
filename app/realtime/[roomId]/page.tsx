@@ -18,7 +18,7 @@ export default function RealtimeRoomPage({
 }: {
   params: Promise<{ roomId: string }>;
 }) {
-  const [starfieldEnabled, setStarfieldEnabled] = useState(true);
+  const [starfieldEnabled, setStarfieldEnabled] = useState(false);
   const [roomData, setRoomData] = useState<Room | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

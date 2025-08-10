@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { enviroment } from "@/lib/env";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import { checkRevealReadyEnhanced } from "@/lib/check-reveal-ready";
+import { fetchPartnerImagesSecure } from "@/lib/actions";
 import GradientBackground from "./gradient-background";
 
 interface ViewRevealContentProps {
@@ -22,12 +23,10 @@ interface PartnerImagesState {
   loading: boolean;
   error: string | null;
   images: any;
-  cachedImages: any;
   partnerRole: string;
   totalImages: number;
   categoriesCompleted: number;
   categoriesWithProgress: number;
-  imagesDownloaded: boolean;
 }
 
 export default function ViewRevealContent({ roomId }: ViewRevealContentProps) {
@@ -46,12 +45,10 @@ export default function ViewRevealContent({ roomId }: ViewRevealContentProps) {
     loading: true,
     error: null,
     images: {},
-    cachedImages: {},
     partnerRole: "",
     totalImages: 0,
     categoriesCompleted: 0,
     categoriesWithProgress: 0,
-    imagesDownloaded: false,
   });
   const [showReveal, setShowReveal] = useState(false);
   const [viewMode, setViewMode] = useState<"marquee" | "hover" | "gallery">(
@@ -71,6 +68,7 @@ export default function ViewRevealContent({ roomId }: ViewRevealContentProps) {
       try {
         // Check if user data exists
         const userData = localStorage.getItem("activeRoom");
+        console.log("🐢 User Data:", userData);
 
         if (!userData) {
           setAccessError("No user session found. Please join the room first.");
@@ -90,6 +88,7 @@ export default function ViewRevealContent({ roomId }: ViewRevealContentProps) {
 
         // Check if reveal is ready using our enhanced function
         const revealStatus = await checkRevealReadyEnhanced(roomId, user.slot);
+        console.log("🐢 Reveal Status:", revealStatus);
 
         if (revealStatus.error) {
           setAccessError(
@@ -111,14 +110,15 @@ export default function ViewRevealContent({ roomId }: ViewRevealContentProps) {
           return;
         }
 
-        // If we get here, access is granted - load partner images
+        // If we get here, access is granted - load partner images using server action
         setPartnerImages((prev) => ({
           ...prev,
           loading: true,
           error: null,
         }));
 
-        const result = await checkPartnerImagesAPI(roomId, user.slot);
+        const result = await fetchPartnerImagesSecure(roomId, user.slot);
+        console.log("🐢 Fetched Partner Images:", result);
 
         if (result.success && result.isReady) {
           setPartnerImages({
@@ -126,17 +126,16 @@ export default function ViewRevealContent({ roomId }: ViewRevealContentProps) {
             loading: false,
             error: null,
             images: result.images || {},
-            cachedImages: {},
             partnerRole: result.partnerRole || "",
             totalImages: result.totalImages || 0,
             categoriesCompleted: result.categoriesCompleted || 0,
             categoriesWithProgress: revealStatus.categoriesWithProgress || 0,
-            imagesDownloaded: false,
           });
           setShowReveal(true);
         } else {
           setAccessError(
-            "Partner images are not ready yet. Please try again later."
+            result.error ||
+              "Partner images are not ready yet. Please try again later."
           );
           setAccessDenied(true);
         }
@@ -150,116 +149,7 @@ export default function ViewRevealContent({ roomId }: ViewRevealContentProps) {
     validateAccess();
   }, [roomId]);
 
-  // Function to download and cache images as blobs
-  const downloadAndCacheImages = async (imageUrls: any) => {
-    const cachedImages: any = {};
-
-    try {
-      // Process each category
-      for (const [category, urls] of Object.entries(imageUrls)) {
-        if (Array.isArray(urls)) {
-          // Handle array of URLs (like character category)
-          cachedImages[category] = [];
-          for (const url of urls) {
-            try {
-              const response = await fetch(url as string);
-              if (response.ok) {
-                const blob = await response.blob();
-                const blobUrl = URL.createObjectURL(blob);
-                cachedImages[category].push(blobUrl);
-              } else {
-                console.warn(`Failed to download image: ${url}`);
-                cachedImages[category].push(url); // Fallback to original URL
-              }
-            } catch (error) {
-              console.warn(`Error downloading image ${url}:`, error);
-              cachedImages[category].push(url as string); // Fallback to original URL
-            }
-          }
-        } else {
-          // Handle single URL
-          try {
-            const response = await fetch(urls as string);
-            if (response.ok) {
-              const blob = await response.blob();
-              const blobUrl = URL.createObjectURL(blob);
-              cachedImages[category] = blobUrl;
-            } else {
-              console.warn(`Failed to download image: ${urls}`);
-              cachedImages[category] = urls; // Fallback to original URL
-            }
-          } catch (error) {
-            console.warn(`Error downloading image ${urls}:`, error);
-            cachedImages[category] = urls as string; // Fallback to original URL
-          }
-        }
-      }
-
-      return cachedImages;
-    } catch (error) {
-      console.error("Error caching images:", error);
-      return imageUrls; // Return original URLs as fallback
-    }
-  };
-
-  const handleCacheImages = async () => {
-    if (!partnerImages.imagesDownloaded && partnerImages.images) {
-      // Show loading state while downloading images
-      setPartnerImages((prev) => ({ ...prev, loading: true }));
-
-      try {
-        const cachedImages = await downloadAndCacheImages(partnerImages.images);
-
-        setPartnerImages((prev) => ({
-          ...prev,
-          cachedImages,
-          imagesDownloaded: true,
-          loading: false,
-        }));
-      } catch (error) {
-        console.error("Error downloading images:", error);
-        // Fallback to showing original URLs
-        setPartnerImages((prev) => ({
-          ...prev,
-          cachedImages: prev.images,
-          imagesDownloaded: true,
-          loading: false,
-        }));
-      }
-    }
-  };
-
-  // Auto-cache images when component loads
-  useEffect(() => {
-    if (
-      showReveal &&
-      partnerImages.isReady &&
-      !partnerImages.imagesDownloaded
-    ) {
-      handleCacheImages();
-    }
-  }, [showReveal, partnerImages.isReady, partnerImages.imagesDownloaded]);
-
-  // Cleanup blob URLs when component unmounts to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      if (partnerImages.cachedImages) {
-        Object.values(partnerImages.cachedImages).forEach((value) => {
-          if (Array.isArray(value)) {
-            value.forEach((url) => {
-              if (typeof url === "string" && url.startsWith("blob:")) {
-                URL.revokeObjectURL(url);
-              }
-            });
-          } else if (typeof value === "string" && value.startsWith("blob:")) {
-            URL.revokeObjectURL(value);
-          }
-        });
-      }
-    };
-  }, [partnerImages.cachedImages]);
-
-  // Access Denied State
+  // Main Reveal Content
   if (accessDenied) {
     return (
       <GradientBackground className="flex items-center justify-center px-4">
@@ -391,39 +281,21 @@ export default function ViewRevealContent({ roomId }: ViewRevealContentProps) {
 
           {/* Partner's Images - Different Views */}
           {viewMode === "marquee" && (
-            <CategoryMarquee
-              uploadedImages={
-                partnerImages.imagesDownloaded
-                  ? partnerImages.cachedImages
-                  : partnerImages.images
-              }
-            />
+            <CategoryMarquee uploadedImages={partnerImages.images} />
           )}
           {viewMode === "hover" && (
-            <CategoryHoverReveal
-              uploadedImages={
-                partnerImages.imagesDownloaded
-                  ? partnerImages.cachedImages
-                  : partnerImages.images
-              }
-            />
+            <CategoryHoverReveal uploadedImages={partnerImages.images} />
           )}
           {viewMode === "gallery" && (
-            <CategoryExpandableGallery
-              uploadedImages={
-                partnerImages.imagesDownloaded
-                  ? partnerImages.cachedImages
-                  : partnerImages.images
-              }
-            />
+            <CategoryExpandableGallery uploadedImages={partnerImages.images} />
           )}
 
-          {/* Loading state for image caching */}
+          {/* Loading state - only show during initial fetch */}
           {partnerImages.loading && (
             <div className="text-center">
               <div className="flex items-center justify-center gap-2 text-sm text-purple-600 dark:text-purple-400">
                 <RefreshCw className="w-3 h-3 animate-spin" />
-                <span>Optimizing images...</span>
+                <span>Loading images...</span>
               </div>
             </div>
           )}
@@ -448,60 +320,4 @@ export default function ViewRevealContent({ roomId }: ViewRevealContentProps) {
       )}
     </div>
   );
-}
-
-// Reuse the API function from reveal-content.tsx
-export async function checkPartnerImagesAPI(
-  roomId: string,
-  userSlot: string
-): Promise<{
-  success: boolean;
-  isReady: boolean;
-  images?: any;
-  partnerRole?: string;
-  totalImages?: number;
-  categoriesCompleted?: number;
-  error?: string;
-}> {
-  try {
-    const response = await fetch(
-      `/api/room/${roomId}/partner-images?userSlot=${userSlot}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (data.success) {
-      return {
-        success: true,
-        isReady: data.isReady,
-        images: data.images,
-        partnerRole: data.partnerRole,
-        totalImages: data.totalImages,
-        categoriesCompleted: data.categoriesCompleted,
-      };
-    } else {
-      return {
-        success: false,
-        isReady: false,
-        error: data.error || "Failed to check partner images",
-      };
-    }
-  } catch (error) {
-    console.error("Error checking partner images:", error);
-    return {
-      success: false,
-      isReady: false,
-      error: "Failed to connect to server",
-    };
-  }
 }

@@ -150,7 +150,7 @@ export default function RealtimeRoomPage({
       <div className="relative z-10 w-full max-w-5xl">
         <header className="flex font-mono items-center justify-start mb-6">
           <h1 className="text-2xl text-gradient font-bold px-4">
-            Realtime Room Experience{" "}
+            Realtime Room{" "}
           </h1>
           <Badge variant="secondary" className="">
             {roomData.room_id}

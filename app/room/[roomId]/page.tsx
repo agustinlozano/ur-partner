@@ -518,9 +518,6 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
               </span>{" "}
               with your partner in real time.
               <br />
-              <span className="inline-block mt-1 font-bold">
-                No refreshes. No waiting.
-              </span>
               <span className="block">💜</span>
             </div>
             <Button

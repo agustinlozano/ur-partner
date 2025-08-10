@@ -5,13 +5,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import Image from "next/image";
 
-import {
-  Upload,
-  CheckCircle,
-  Circle,
-  MousePointer,
-  RefreshCcw,
-} from "lucide-react";
+import { Upload, CheckCircle, MousePointer, RefreshCcw } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +15,7 @@ import { useGameStore } from "@/stores/realtime-store";
 import { pickUnsplashImage } from "@/stores/unsplash-image-selector-store";
 import type { UnsplashPhoto } from "@/components/unsplash-image-selector";
 import type { UploadedImages } from "@/lib/personality-form-constants";
+import { compressImageToBase64, CompressResult } from "./realtime.compress";
 import "./realtime.css";
 
 type MainPanelProps = {
@@ -30,7 +25,7 @@ type MainPanelProps = {
   selectedCategory: string | null;
   isReady: boolean;
   ping?: number;
-  onImageUpload: (file: File) => void;
+  onImageUpload: (file: File, thumbnail?: CompressResult) => void;
   onCategoryDrop: (category: string) => void;
   roomId?: string;
   uploadedImages?: UploadedImages;
@@ -84,9 +79,10 @@ export function MainPanel({
   const shortName =
     firstName.length > 10 ? firstName.slice(0, 10) + "..." : firstName;
 
-  const [showCompressLink, setShowCompressLink] = useState(false);
+  const [compressing, setCompressing] = useState(false);
+
   const handleDrop = useCallback(
-    (e: React.DragEvent) => {
+    async (e: React.DragEvent) => {
       e.preventDefault();
       setDragOver(false);
       setCategoryDragOver(false);
@@ -104,16 +100,80 @@ export function MainPanel({
       const imageFile = files.find((file) => file.type.startsWith("image/"));
 
       if (imageFile) {
-        if (imageFile.size > 4 * 1024 * 1024) {
-          setShowCompressLink(true);
-          return;
-        }
-        setShowCompressLink(false);
-        onImageUpload(imageFile);
+        await handleImageFile(imageFile);
       }
     },
     [onImageUpload, onCategoryDrop]
   );
+
+  const handleImageFile = async (file: File) => {
+    // Always compress images for optimal performance
+    try {
+      setCompressing(true);
+      await handleCompressAndUpload(file);
+    } catch (error) {
+      toast.error("Failed to process image");
+      setCompressing(false);
+    }
+  };
+
+  const handleCompressAndUpload = async (file: File) => {
+    if (!file) return;
+
+    try {
+      setCompressing(true);
+
+      // Compression for storage (onImageUpload)
+      const storageCompressionOptions = {
+        maxWidth: 1080,
+        maxHeight: 1080,
+        quality: 0.75,
+        format: "jpeg" as const,
+      };
+
+      // Compression for thumbnail display
+      const thumbnailCompressionOptions = {
+        maxWidth: 120,
+        maxHeight: 120,
+        quality: 0.5,
+        format: "jpeg" as const,
+      };
+
+      // Compress for storage
+      const storageResult = await compressImageToBase64(
+        file,
+        storageCompressionOptions
+      );
+
+      // Compress for thumbnail
+      const thumbnailResult = await compressImageToBase64(
+        file,
+        thumbnailCompressionOptions
+      );
+
+      // Convert storage base64 back to file for upload
+      const compressedFile = base64ToFile(
+        storageResult.base64,
+        `compressed-${file.name}`
+      );
+
+      toast.success(
+        `Image optimized: ${
+          storageResult.compressionRatio
+        }% smaller (${formatBytes(storageResult.compressedSize)})`
+      );
+
+      // Upload the storage-quality compressed file
+      onImageUpload(compressedFile, thumbnailResult);
+    } catch (error) {
+      console.error("Compression failed:", error);
+      toast.error("Image optimization failed. Uploading original...");
+      // Fallback to original file if compression fails
+      onImageUpload(file);
+    } finally {
+      setCompressing(false);
+    }
+  };
 
   // Improved drag detection: if there are files, it's an image drag; otherwise, treat as category drag
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -151,15 +211,10 @@ export function MainPanel({
   }, []);
 
   const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) {
-        if (file.size > 4 * 1024 * 1024) {
-          setShowCompressLink(true);
-          return;
-        }
-        setShowCompressLink(false);
-        onImageUpload(file);
+        await handleImageFile(file);
       }
     },
     [onImageUpload]
@@ -175,8 +230,10 @@ export function MainPanel({
       const photo = await pickUnsplashImage();
       if (!photo) return;
       const file = await unsplashPhotoToFile(photo);
-      onImageUpload(file);
-      toast.success("Unsplash image added");
+
+      // Compress Unsplash images too
+      await handleCompressAndUpload(file);
+      toast.success("Unsplash image optimized and added");
     } catch (e: any) {
       toast.error(e?.message || "Failed to use Unsplash image");
     } finally {
@@ -252,6 +309,10 @@ export function MainPanel({
           <div className="grid w-fit grid-cols-3 gap-2 py-2">
             {Object.entries(uploadedImages).map(
               ([category, imageUrl], index) => {
+                console.log(
+                  "🖼️ Rendering image for uploadedImages:",
+                  uploadedImages
+                );
                 const urlString = Array.isArray(imageUrl)
                   ? imageUrl[0]
                   : imageUrl;
@@ -330,16 +391,33 @@ export function MainPanel({
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
       >
-        {showCompressLink && (
-          <div className="mb-4">
-            <a
-              href="https://www.google.com/search?q=compress+images"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-destructive underline text-sm"
-            >
-              Image too large (over 4MB). Compress it here.
-            </a>
+        {compressing && (
+          <div className="mb-4 space-y-2">
+            <div className="flex items-center justify-center gap-2">
+              <svg
+                className="animate-spin h-4 w-4 text-blue-500"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                />
+              </svg>
+              <span className="text-sm text-blue-600 dark:text-blue-400">
+                Optimizing image...
+              </span>
+            </div>
           </div>
         )}
         {categoryDragOver ? (
@@ -373,9 +451,13 @@ export function MainPanel({
               id="file-upload"
             />
             <div className="flex gap-2 flex-wrap justify-center">
-              <Button size="sm" asChild disabled={unsplashLoading}>
+              <Button
+                size="sm"
+                asChild
+                disabled={unsplashLoading || compressing}
+              >
                 <label htmlFor="file-upload" className="cursor-pointer">
-                  Choose File
+                  {compressing ? "Processing..." : "Choose File"}
                 </label>
               </Button>
               <Button
@@ -383,7 +465,7 @@ export function MainPanel({
                 variant="outline"
                 size="sm"
                 onClick={handlePickUnsplash}
-                disabled={unsplashLoading}
+                disabled={unsplashLoading || compressing}
                 className="gap-2"
               >
                 {unsplashLoading ? (
@@ -421,7 +503,7 @@ export function MainPanel({
               <p className="text-lg font-medium text-muted-foreground">
                 Drop a category here
               </p>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground mt-1 text-pretty">
                 Drag a category from the left panel or click on one to select
               </p>
             </div>
@@ -440,4 +522,35 @@ async function unsplashPhotoToFile(photo: UnsplashPhoto): Promise<File> {
   const blob = await res.blob();
   const ext = blob.type.includes("png") ? "png" : "jpg";
   return new File([blob], `unsplash-${photo.id}.${ext}`, { type: blob.type });
+}
+
+/**
+ * Convert base64 string to File object
+ */
+function base64ToFile(base64: string, filename: string): File {
+  const arr = base64.split(",");
+  const mimeMatch = arr[0].match(/:(.*?);/);
+  const mime = mimeMatch ? mimeMatch[1] : "image/jpeg";
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+
+  return new File([u8arr], filename, { type: mime });
+}
+
+/**
+ * Format bytes to human readable string
+ */
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return "0 Bytes";
+
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
 }

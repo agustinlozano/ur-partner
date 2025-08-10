@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { CompletedCategory, Room } from "@/lib/dynamodb";
-import type { RoomEvent } from "@/components/realtime.types";
+import type { RoomEvent, UploadedImage } from "@/components/realtime.types";
 
 export const ROOM_EVENTS = {
   category_fixed: "category_fixed",
@@ -40,6 +40,7 @@ export interface GameState {
   partnerProgress: number;
   partnerReady: boolean;
   partnerConnected: boolean;
+  partnerUploadedImages: UploadedImage[]; // Store partner's uploaded image payloads
 
   // Room state
   roomInitialized: boolean;
@@ -76,6 +77,8 @@ interface GameStore extends GameState {
 
   // Partner actions (only updated via WebSocket)
   setPartnerConnected: (connected: boolean) => void;
+  addPartnerUploadedImage: (imageData: UploadedImage) => void;
+  clearPartnerUploadedImages: () => void;
 
   // Chat
   addChatMessage: (slot: "a" | "b", message: string) => void;
@@ -113,6 +116,7 @@ const initialState: GameState = {
   partnerProgress: 0,
   partnerReady: false,
   partnerConnected: false,
+  partnerUploadedImages: [],
   roomInitialized: false,
   chatMessages: [],
   unreadMessagesCount: 0,
@@ -229,6 +233,13 @@ export const useGameStore = create<GameStore>()(
 
     // Partner actions
     setPartnerConnected: (connected) => set({ partnerConnected: connected }),
+    addPartnerUploadedImage: (imageData) => {
+      const state = get();
+      set({
+        partnerUploadedImages: [...state.partnerUploadedImages, imageData],
+      });
+    },
+    clearPartnerUploadedImages: () => set({ partnerUploadedImages: [] }),
 
     // Chat
     addChatMessage: (slot, message) => {
@@ -323,7 +334,10 @@ export const useGameStore = create<GameStore>()(
         case "leave":
           // Partner left the room
           if (event.slot !== state.mySlot) {
-            set({ partnerConnected: false });
+            set({
+              partnerConnected: false,
+              partnerUploadedImages: [], // Clear partner's uploaded images when they leave
+            });
           }
           break;
 
@@ -370,6 +384,39 @@ export const useGameStore = create<GameStore>()(
             set({ myProgress: event.progress });
           } else {
             set({ partnerProgress: event.progress });
+          }
+          break;
+
+        case "image_uploaded":
+          // Only handle partner's image uploads (not our own)
+          if (event.slot !== state.mySlot) {
+            const { payload } = event;
+
+            // Add the uploaded image data to the store
+            get().addPartnerUploadedImage(payload);
+
+            // Show a toast notification about partner's upload
+            import("sonner").then(({ toast }) => {
+              const formatBytes = (bytes: number): string => {
+                if (bytes === 0) return "0 Bytes";
+                const k = 1024;
+                const sizes = ["Bytes", "KB", "MB", "GB"];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return (
+                  parseFloat((bytes / Math.pow(k, i)).toFixed(1)) +
+                  " " +
+                  sizes[i]
+                );
+              };
+
+              toast.success(`Partner uploaded image for ${payload.category}`, {
+                description: `${payload.fileName} (${formatBytes(
+                  payload.compressedSize
+                )})`,
+                duration: 3000,
+                icon: "📸",
+              });
+            });
           }
           break;
 

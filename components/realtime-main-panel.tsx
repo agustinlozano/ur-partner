@@ -109,6 +109,21 @@ export function MainPanel({
   );
 
   const handleImageFile = async (file: File) => {
+    // Check file size limit (20MB)
+    const maxSize = 20 * 1024 * 1024; // 20MB in bytes
+    if (file.size > maxSize) {
+      toast.error(
+        `File too large. Maximum size is 20MB. Your file is ${formatBytes(
+          file.size
+        )}.`,
+        {
+          duration: 5000,
+          icon: "🚨",
+        }
+      );
+      return;
+    }
+
     // Always compress images for optimal performance
     try {
       setCompressing(true);

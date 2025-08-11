@@ -416,9 +416,6 @@ export const useGameStore = create<GameStore>()(
               };
 
               toast.success(`Partner uploaded image for ${payload.category}`, {
-                description: `${payload.fileName} (${formatBytes(
-                  payload.compressedSize
-                )})`,
                 duration: 3000,
                 icon: "📸",
               });

@@ -54,3 +54,8 @@ lambda-docs.md
 row-sample.csv
 app/api/room/\[roomId]/upload-images/logs.txt
 row-sample.json
+# components/stackable-thumbnails-demo.tsx
+# components/compression-demo.ts
+components/compression-demo.ts
+components/stackable-thumbnails-demo.tsx
+components/compression-test.ts

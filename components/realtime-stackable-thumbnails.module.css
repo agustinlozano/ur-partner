@@ -183,6 +183,10 @@
   transform: scale(1) translateY(0);
 }
 
+.stackContainer:hover .counter {
+  opacity: 0;
+}
+
 /* Animation keyframes */
 @keyframes slideInFromRight {
   from {

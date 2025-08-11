@@ -25,7 +25,7 @@ interface StackableThumbnailsProps {
 export function StackableThumbnails({
   thumbnails,
   onRemove,
-  maxVisible = 5,
+  maxVisible = 3,
   blurred = false,
   position = "fixed",
 }: StackableThumbnailsProps) {
@@ -181,16 +181,15 @@ export function StackableThumbnails({
           })}
         </AnimatePresence>
 
-        {/* Counter for hidden thumbnails */}
+        {/* Counter for hidden thumbnails - only show on first thumbnail */}
         {hiddenCount > 0 && (
           <motion.div
-            className={styles.counter}
-            initial={{ opacity: 0, scale: 0.7 }}
+            className={isHovered ? "hidden" : styles.counter}
+            initial={{ opacity: 1 }}
             animate={{
               opacity: isHovered ? 0 : 1,
-              scale: isHovered ? 0.7 : 1,
             }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0 }}
           >
             +{hiddenCount}
           </motion.div>

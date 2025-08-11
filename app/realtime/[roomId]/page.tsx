@@ -145,7 +145,7 @@ export default function RealtimeRoomPage({
   }
 
   return (
-    <GradientBackground className="relative flex flex-col items-center px-2 sm:px-8 py-12 min-h-screen">
+    <GradientBackground className="relative flex flex-col items-center px-2 sm:px-4 py-12 min-h-screen">
       {starfieldEnabled && <Starfield />}
       <div className="relative z-10 w-full max-w-5xl">
         <header className="flex font-mono items-center justify-start mb-6">

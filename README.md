@@ -6,10 +6,6 @@
 
 **UR Partner** is a modern, real-time web app designed to help you connect, collaborate, and share experiences with others in a fun and interactive way.
 
-## What is UR Partner?
-
-UR Partner lets you create or join virtual rooms where you can chat, share ideas, and interact with others in real time. Whether you're working on a project, studying together, or just hanging out, UR Partner makes it easy and enjoyable to stay connected.
-
 ## Key Features
 
 - **Instant Room Creation:** Start a new room with a single click and invite friends or colleagues instantly.
@@ -17,12 +13,7 @@ UR Partner lets you create or join virtual rooms where you can chat, share ideas
 - **Personalized Experience:** Choose your personality, customize your profile, and make every session unique.
 - **Fun Interactions:** Use emojis, reactions, and more to express yourself.
 - **Mobile Friendly:** Enjoy a seamless experience on both desktop and mobile devices.
-
-## Why You'll Love It
-
-- **Simple & Intuitive:** No complicated setup—just join and start collaborating.
-- **Privacy First:** Rooms are private by default. Share your room link only with people you trust.
-- **Beautiful Design:** Clean, modern interface with delightful touches to make your experience enjoyable.
+- **Unsplash Integration:** Access a vast library of images to enhance your conversations.
 
 ## Quick Start
 
@@ -44,6 +35,9 @@ UR Partner is built on a modern serverless architecture using Next.js API routes
 - **`POST /api/room/[roomId]/update-ready`** - Mark user as ready for reveal
 - **`POST /api/room/[roomId]/upload-images`** - Handle personality image uploads
 - **`POST /api/room/[roomId]/leave`** - Handle user leaving the room
+- **`POST /api/room/[roomId]/partner-images`** - Get partner personality images
+- **`POST /api/room/[roomId]/partner-status`** - Get partner status
+- **`POST /api/room/[roomId]/update-progress`** - Update user progress based on the category
 
 #### Real-Time Communication
 
@@ -56,18 +50,16 @@ The app uses **WebSocket connections** through AWS Lambda for instant messaging 
 
 All real-time interactions are handled via structured WebSocket messages. Here are the supported event types:
 
-| Event Type             | Description                             |
-| ---------------------- | --------------------------------------- |
-| `category_fixed`       | A user fixed a category                 |
-| `category_completed`   | A user completed a category             |
-| `category_uncompleted` | A user uncompleted (removed) a category |
-| `progress_updated`     | A user's progress was updated           |
-| `is_ready`             | A user marked themselves as ready       |
-| `not_ready`            | A user is no longer ready               |
-| `say`                  | A user sent a chat message              |
-| `ping`                 | Keep-alive or connection check          |
-| `leave`                | A user left the room                    |
-| `get_in`               | A user joined the room                  |
+| Event Type           | Description                       |
+| -------------------- | --------------------------------- |
+| `category_fixed`     | A user fixed a category           |
+| `category_completed` | A user completed a category       |
+| `progress_updated`   | A user's progress was updated     |
+| `image_uploaded`     | A user uploaded an image          |
+| `is_ready`           | A user marked themselves as ready |
+| `say`                | A user sent a chat message        |
+| `ping`               | Keep-alive or connection check    |
+| `leave`              | A user left the room              |
 
 Each event includes the user's slot (`a` or `b`), and some include additional data (like `category`, `progress`, or `message`).
 

@@ -394,7 +394,7 @@ export default function RealtimeRoom({
                 </div>
                 <StackableThumbnails
                   thumbnails={partnerThumbnails}
-                  maxVisible={5}
+                  maxVisible={3}
                   position="relative"
                   blurred
                 />

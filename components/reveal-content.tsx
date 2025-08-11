@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
-import { ArrowLeft, RefreshCw } from "lucide-react";
+import { ArrowLeft, LoaderCircle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { usePersonalityImagesStore } from "@/stores/personality-images-store";
 import { CategoryMarquee } from "./personality-form/category-marquee";
@@ -15,11 +15,7 @@ import {
   USE_LAMBDA_UPLOAD,
 } from "@/lib/env";
 import { useIsMobile } from "@/hooks/use-is-mobile";
-import {
-  PartnerImagesResult,
-  UploadImagesResult,
-  fetchPartnerImagesSecure,
-} from "@/lib/actions";
+import { UploadImagesResult, fetchPartnerImagesSecure } from "@/lib/actions";
 
 interface RevealContentProps {
   roomId: string;
@@ -486,7 +482,7 @@ export default function RevealContent({ roomId }: RevealContentProps) {
 
           {partnerImages.loading && (
             <div className="flex items-center justify-center gap-3 mb-6">
-              <RefreshCw className="w-5 h-5 animate-spin" />
+              <LoaderCircle className="w-5 h-5 animate-spin" />
               <span>Loading partner's gallery...</span>
             </div>
           )}

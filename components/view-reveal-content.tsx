@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
-import { ArrowLeft, RefreshCw } from "lucide-react";
+import { ArrowLeft, LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { CategoryMarquee } from "./personality-form/category-marquee";
 import CategoryHoverReveal from "./personality-form/category-hover-reveal";
 import CategoryExpandableGallery from "./personality-form/category-expandable-gallery";
-import { useRouter } from "next/navigation";
 import { enviroment } from "@/lib/env";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import { checkRevealReadyEnhanced } from "@/lib/check-reveal-ready";
@@ -294,7 +293,7 @@ export default function ViewRevealContent({ roomId }: ViewRevealContentProps) {
           {partnerImages.loading && (
             <div className="text-center">
               <div className="flex items-center justify-center gap-2 text-sm text-purple-600 dark:text-purple-400">
-                <RefreshCw className="w-3 h-3 animate-spin" />
+                <LoaderCircle className="w-3 h-3 animate-spin" />
                 <span>Loading images...</span>
               </div>
             </div>

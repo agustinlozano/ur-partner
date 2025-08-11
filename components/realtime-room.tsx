@@ -19,6 +19,8 @@ import { usePersonalityImagesStore } from "@/stores/personality-images-store";
 import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
 import { useRoomSocket } from "@/hooks/use-room-socket";
 import { cn } from "@/lib/utils";
+import { CompressResult } from "./realtime.compress";
+import { StackableThumbnails } from "./realtime-stackable-thumbnails";
 
 export default function RealtimeRoom({
   starfieldEnabled = false,
@@ -46,6 +48,7 @@ export default function RealtimeRoom({
     myReady,
     partnerReady,
     partnerConnected,
+    partnerUploadedImages,
     chatMessages,
     roomInitialized,
     socketConnected,
@@ -129,7 +132,7 @@ export default function RealtimeRoom({
   );
 
   const handleImageUpload = useCallback(
-    (file: File) => {
+    (file: File, thumbnail?: CompressResult) => {
       if (myFixedCategory) {
         // Convert File to base64 for persistent storage
         const reader = new FileReader();
@@ -143,6 +146,28 @@ export default function RealtimeRoom({
             [myFixedCategory]: base64Result,
           };
           setImagesForRoom(roomId, mySlot, newImages);
+
+          if (thumbnail) {
+            // Send image_uploaded event with comprehensive payload
+            sendMessage(
+              {
+                type: ROOM_EVENTS.image_uploaded,
+                slot: mySlot,
+                payload: {
+                  category: myFixedCategory,
+                  fileName: file.name,
+                  base64: thumbnail?.base64,
+                  compressedSize: thumbnail?.compressedSize,
+                  compressionRatio: thumbnail?.compressionRatio,
+                  dimensions: thumbnail?.dimensions,
+                  originalSize: thumbnail?.originalSize,
+                  timestamp: Date.now(),
+                  hasImage: true,
+                },
+              },
+              roomId
+            );
+          }
         };
         reader.readAsDataURL(file);
 
@@ -203,6 +228,20 @@ export default function RealtimeRoom({
     [sendMessage, mySlot, roomId]
   );
 
+  // Convert partner uploaded images to thumbnail format
+  const partnerThumbnails = useMemo(() => {
+    const thumbnails = partnerUploadedImages.map((uploadedImage) => ({
+      id: `partner-${uploadedImage.category}-${uploadedImage.timestamp}`,
+      src: uploadedImage.base64,
+      category: uploadedImage.category,
+      isUnsplash: false, // Partner uploads are not from Unsplash
+      timestamp: uploadedImage.timestamp,
+    }));
+
+    console.log("Partner thumbnails:", thumbnails);
+    return thumbnails;
+  }, [partnerUploadedImages]);
+
   const handlePing = useCallback(() => {
     if (!pingCooldown) {
       debouncedPing();
@@ -255,7 +294,10 @@ export default function RealtimeRoom({
             <Button
               variant="outline"
               size="sm"
-              onClick={handlePing}
+              onClick={() => {
+                handlePing();
+                playSound(SOUNDS.tap);
+              }}
               className="gap-2 bg-transparent"
               disabled={!socketConnected || pingCooldown}
             >
@@ -346,6 +388,21 @@ export default function RealtimeRoom({
               progress={partnerProgress}
               isReady={partnerReady}
             />
+
+            {/* Partner's uploaded images thumbnails */}
+            {partnerThumbnails.length > 0 && (
+              <div className="mt-4">
+                <div className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Partner's Uploads ({partnerThumbnails.length})
+                </div>
+                <StackableThumbnails
+                  thumbnails={partnerThumbnails}
+                  maxVisible={4}
+                  position="relative"
+                  blurred
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

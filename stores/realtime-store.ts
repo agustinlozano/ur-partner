@@ -1,13 +1,14 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { CompletedCategory, Room } from "@/lib/dynamodb";
-import type { RoomEvent } from "@/components/realtime.types";
+import type { RoomEvent, UploadedImage } from "@/components/realtime.types";
 
 export const ROOM_EVENTS = {
   category_fixed: "category_fixed",
   category_completed: "category_completed",
   category_uncompleted: "category_uncompleted",
   progress_updated: "progress_updated",
+  image_uploaded: "image_uploaded",
   is_ready: "is_ready",
   not_ready: "not_ready",
   say: "say",
@@ -26,6 +27,7 @@ export interface GameState {
   partner: { name: string; avatar: string };
   // Flag para controlar reconexión del WebSocket
   shouldReconnect: boolean;
+  reconnectTrigger: number;
 
   // My state
   myFixedCategory: string | null;
@@ -39,6 +41,7 @@ export interface GameState {
   partnerProgress: number;
   partnerReady: boolean;
   partnerConnected: boolean;
+  partnerUploadedImages: UploadedImage[]; // Store partner's uploaded image payloads
 
   // Room state
   roomInitialized: boolean;
@@ -55,6 +58,7 @@ export interface GameState {
   // WebSocket state
   socket: WebSocket | null;
   socketConnected: boolean;
+  reconnecting: boolean;
 
   // Ping state
   lastPingTimestamp: number;
@@ -75,6 +79,8 @@ interface GameStore extends GameState {
 
   // Partner actions (only updated via WebSocket)
   setPartnerConnected: (connected: boolean) => void;
+  addPartnerUploadedImage: (imageData: UploadedImage) => void;
+  clearPartnerUploadedImages: () => void;
 
   // Chat
   addChatMessage: (slot: "a" | "b", message: string) => void;
@@ -84,6 +90,7 @@ interface GameStore extends GameState {
   // WebSocket
   setSocket: (socket: WebSocket | null) => void;
   setSocketConnected: (connected: boolean) => void;
+  setReconnecting: (reconnecting: boolean) => void;
   sendMessage: (event: RoomEvent, roomId: string) => void;
   handleMessage: (event: RoomEvent) => void;
 
@@ -102,6 +109,7 @@ const initialState: GameState = {
   partnerSlot: "b",
   me: { name: "me", avatar: "me" },
   shouldReconnect: true,
+  reconnectTrigger: 0,
   partner: { name: "partner", avatar: "partner" },
   myFixedCategory: null,
   myCompletedCategories: [],
@@ -112,12 +120,14 @@ const initialState: GameState = {
   partnerProgress: 0,
   partnerReady: false,
   partnerConnected: false,
+  partnerUploadedImages: [],
   roomInitialized: false,
   chatMessages: [],
   unreadMessagesCount: 0,
   lastReadMessageTimestamp: 0,
   socket: null,
   socketConnected: false,
+  reconnecting: false,
   lastPingTimestamp: 0,
 };
 
@@ -228,6 +238,13 @@ export const useGameStore = create<GameStore>()(
 
     // Partner actions
     setPartnerConnected: (connected) => set({ partnerConnected: connected }),
+    addPartnerUploadedImage: (imageData) => {
+      const state = get();
+      set({
+        partnerUploadedImages: [...state.partnerUploadedImages, imageData],
+      });
+    },
+    clearPartnerUploadedImages: () => set({ partnerUploadedImages: [] }),
 
     // Chat
     addChatMessage: (slot, message) => {
@@ -254,6 +271,7 @@ export const useGameStore = create<GameStore>()(
     // WebSocket
     setSocket: (socket) => set({ socket }),
     setSocketConnected: (connected) => set({ socketConnected: connected }),
+    setReconnecting: (reconnecting) => set({ reconnecting }),
 
     sendMessage: (event, roomId) => {
       const { socket, socketConnected } = get();
@@ -322,7 +340,10 @@ export const useGameStore = create<GameStore>()(
         case "leave":
           // Partner left the room
           if (event.slot !== state.mySlot) {
-            set({ partnerConnected: false });
+            set({
+              partnerConnected: false,
+              partnerUploadedImages: [], // Clear partner's uploaded images when they leave
+            });
           }
           break;
 
@@ -369,6 +390,36 @@ export const useGameStore = create<GameStore>()(
             set({ myProgress: event.progress });
           } else {
             set({ partnerProgress: event.progress });
+          }
+          break;
+
+        case "image_uploaded":
+          // Only handle partner's image uploads (not our own)
+          if (event.slot !== state.mySlot) {
+            const { payload } = event;
+
+            // Add the uploaded image data to the store
+            get().addPartnerUploadedImage(payload);
+
+            // Show a toast notification about partner's upload
+            import("sonner").then(({ toast }) => {
+              const formatBytes = (bytes: number): string => {
+                if (bytes === 0) return "0 Bytes";
+                const k = 1024;
+                const sizes = ["Bytes", "KB", "MB", "GB"];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return (
+                  parseFloat((bytes / Math.pow(k, i)).toFixed(1)) +
+                  " " +
+                  sizes[i]
+                );
+              };
+
+              toast.success(`Partner uploaded image for ${payload.category}`, {
+                duration: 3000,
+                icon: "📸",
+              });
+            });
           }
           break;
 
@@ -420,16 +471,39 @@ export const useGameStore = create<GameStore>()(
 
     // Reconnect socket manually
     reconnectSocket: (roomId: string, mySlot: "a" | "b") => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { roomId: _, mySlot: __ } = { roomId, mySlot };
+      console.log(
+        "🔄 Manual reconnect triggered for room:",
+        roomId,
+        "slot:",
+        mySlot
+      );
 
-      // Reset reconnection flag and socket
-      get().setShouldReconnect(true);
+      // Set reconnecting state for user feedback
+      set({ reconnecting: true });
+
+      // Close existing socket if open
       const { socket } = get();
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.close(4000, "Manual reconnect");
+      if (socket) {
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.close(4000, "Manual reconnect");
+        }
+        // Clear the socket immediately
+        set({ socket: null, socketConnected: false });
       }
-      // The useRoomSocket hook should react to shouldReconnect and recreate the socket
+
+      // Reset reconnection flag and increment trigger to force re-connection
+      set({
+        shouldReconnect: true,
+        reconnectTrigger: get().reconnectTrigger + 1,
+      });
+
+      // Clear reconnecting state after a delay (the useRoomSocket hook will handle actual reconnection)
+      setTimeout(() => {
+        const currentState = get();
+        if (currentState.reconnecting) {
+          set({ reconnecting: false });
+        }
+      }, 5000); // Clear reconnecting state after 5 seconds max
     },
 
     // Flag to control WebSocket reconnection

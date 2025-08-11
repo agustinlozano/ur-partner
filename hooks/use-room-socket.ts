@@ -11,17 +11,32 @@ export function useRoomSocket(roomId: string, slot: "a" | "b") {
   const {
     setSocket,
     setSocketConnected,
+    setReconnecting,
     handleMessage,
     sendMessage,
     roomInitialized,
     shouldReconnect,
     setShouldReconnect,
+    reconnectTrigger,
   } = useGameStore();
 
   useEffect(() => {
     setShouldReconnect(true); // Permitir reconexión al montar
     // Wait for room to be initialized before connecting
     if (!roomInitialized) return;
+
+    // Clean up any existing connections when reconnectTrigger changes
+    if (reconnectTrigger > 0 && socketRef.current) {
+      console.log(
+        "🔄 Cleaning up existing connection due to reconnect trigger"
+      );
+      if (socketRef.current.readyState === WebSocket.OPEN) {
+        socketRef.current.close(1000, "Reconnecting");
+      }
+      socketRef.current = null;
+      isConnecting.current = false;
+      hasConnected.current = false;
+    }
 
     // Prevent multiple simultaneous connections
     if (
@@ -48,6 +63,7 @@ export function useRoomSocket(roomId: string, slot: "a" | "b") {
         isConnecting.current = false;
         hasConnected.current = true;
         setSocketConnected(true);
+        setReconnecting(false); // Clear reconnecting state on successful connection
 
         // Send get_in message after a brief delay to ensure connection is stable
         setTimeout(() => {
@@ -117,5 +133,5 @@ export function useRoomSocket(roomId: string, slot: "a" | "b") {
       setSocket(null);
       setSocketConnected(false);
     };
-  }, [roomId, slot, roomInitialized, shouldReconnect]); // Agregar shouldReconnect a las dependencias
+  }, [roomId, slot, roomInitialized, shouldReconnect, reconnectTrigger]); // Add reconnectTrigger to dependencies
 }

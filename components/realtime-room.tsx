@@ -294,7 +294,10 @@ export default function RealtimeRoom({
             <Button
               variant="outline"
               size="sm"
-              onClick={handlePing}
+              onClick={() => {
+                handlePing();
+                playSound(SOUNDS.tap);
+              }}
               className="gap-2 bg-transparent"
               disabled={!socketConnected || pingCooldown}
             >

@@ -10,6 +10,7 @@ import { Upload, CheckCircle, MousePointer, RefreshCcw } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { UnsplashIcon } from "./icons";
 
 import { useGameStore } from "@/stores/realtime-store";
 import { pickUnsplashImage } from "@/stores/unsplash-image-selector-store";
@@ -51,6 +52,7 @@ export function MainPanel({
     }
   };
   const reconnectSocket = useGameStore((s) => s.reconnectSocket);
+  const reconnecting = useGameStore((s) => s.reconnecting);
   const [dragOver, setDragOver] = useState(false);
   const [categoryDragOver, setCategoryDragOver] = useState(false);
 
@@ -281,9 +283,12 @@ export function MainPanel({
                 reconnectSocket(roomId, userSlot);
               }}
               className="gap-2"
+              disabled={reconnecting}
             >
-              <RefreshCcw className="h-4 w-4" />
-              Reconnect
+              <RefreshCcw
+                className={`h-4 w-4 ${reconnecting ? "animate-spin" : ""}`}
+              />
+              {reconnecting ? "Reconnecting..." : "Reconnect"}
             </Button>
           )}
           {isReady && (
@@ -490,7 +495,13 @@ export function MainPanel({
                     />
                   </svg>
                 ) : null}
-                {unsplashLoading ? "Fetching..." : "Pick from Unsplash"}
+                {unsplashLoading ? (
+                  "Fetching..."
+                ) : (
+                  <>
+                    <UnsplashIcon /> Pick from Unsplash
+                  </>
+                )}
               </Button>
             </div>
           </div>

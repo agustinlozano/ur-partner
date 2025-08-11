@@ -27,6 +27,7 @@ export interface GameState {
   partner: { name: string; avatar: string };
   // Flag para controlar reconexión del WebSocket
   shouldReconnect: boolean;
+  reconnectTrigger: number;
 
   // My state
   myFixedCategory: string | null;
@@ -57,6 +58,7 @@ export interface GameState {
   // WebSocket state
   socket: WebSocket | null;
   socketConnected: boolean;
+  reconnecting: boolean;
 
   // Ping state
   lastPingTimestamp: number;
@@ -88,6 +90,7 @@ interface GameStore extends GameState {
   // WebSocket
   setSocket: (socket: WebSocket | null) => void;
   setSocketConnected: (connected: boolean) => void;
+  setReconnecting: (reconnecting: boolean) => void;
   sendMessage: (event: RoomEvent, roomId: string) => void;
   handleMessage: (event: RoomEvent) => void;
 
@@ -106,6 +109,7 @@ const initialState: GameState = {
   partnerSlot: "b",
   me: { name: "me", avatar: "me" },
   shouldReconnect: true,
+  reconnectTrigger: 0,
   partner: { name: "partner", avatar: "partner" },
   myFixedCategory: null,
   myCompletedCategories: [],
@@ -123,6 +127,7 @@ const initialState: GameState = {
   lastReadMessageTimestamp: 0,
   socket: null,
   socketConnected: false,
+  reconnecting: false,
   lastPingTimestamp: 0,
 };
 
@@ -266,6 +271,7 @@ export const useGameStore = create<GameStore>()(
     // WebSocket
     setSocket: (socket) => set({ socket }),
     setSocketConnected: (connected) => set({ socketConnected: connected }),
+    setReconnecting: (reconnecting) => set({ reconnecting }),
 
     sendMessage: (event, roomId) => {
       const { socket, socketConnected } = get();
@@ -468,16 +474,39 @@ export const useGameStore = create<GameStore>()(
 
     // Reconnect socket manually
     reconnectSocket: (roomId: string, mySlot: "a" | "b") => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { roomId: _, mySlot: __ } = { roomId, mySlot };
+      console.log(
+        "🔄 Manual reconnect triggered for room:",
+        roomId,
+        "slot:",
+        mySlot
+      );
 
-      // Reset reconnection flag and socket
-      get().setShouldReconnect(true);
+      // Set reconnecting state for user feedback
+      set({ reconnecting: true });
+
+      // Close existing socket if open
       const { socket } = get();
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.close(4000, "Manual reconnect");
+      if (socket) {
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.close(4000, "Manual reconnect");
+        }
+        // Clear the socket immediately
+        set({ socket: null, socketConnected: false });
       }
-      // The useRoomSocket hook should react to shouldReconnect and recreate the socket
+
+      // Reset reconnection flag and increment trigger to force re-connection
+      set({
+        shouldReconnect: true,
+        reconnectTrigger: get().reconnectTrigger + 1,
+      });
+
+      // Clear reconnecting state after a delay (the useRoomSocket hook will handle actual reconnection)
+      setTimeout(() => {
+        const currentState = get();
+        if (currentState.reconnecting) {
+          set({ reconnecting: false });
+        }
+      }, 5000); // Clear reconnecting state after 5 seconds max
     },
 
     // Flag to control WebSocket reconnection

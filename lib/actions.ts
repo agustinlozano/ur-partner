@@ -240,3 +240,112 @@ export async function fetchPartnerImagesSecure(
     };
   }
 }
+
+// Resource map for secure fetching by slug
+const RESOURCE_MAP: Record<string, { name: string; url: string }> = {
+  "hover-card-demo": {
+    name: "Hover Card Demo",
+    url: "https://ur-partner.s3.us-east-2.amazonaws.com/assets/hover-card-demo.mp4",
+  },
+  "creating-room": {
+    name: "Creating Room",
+    url: "https://ur-partner.s3.us-east-2.amazonaws.com/assets/1-creating-room.mp4",
+  },
+  "copy-share-link": {
+    name: "Copy & Share Link",
+    url: "https://ur-partner.s3.us-east-2.amazonaws.com/assets/2-copy-link.mp4",
+  },
+  "join-room": {
+    name: "Join Room",
+    url: "https://ur-partner.s3.us-east-2.amazonaws.com/assets/3-join.mp4",
+  },
+};
+
+export interface FetchResourceResult {
+  success: boolean;
+  slug?: string;
+  name?: string;
+  dataUrl?: string;
+  error?: string;
+}
+
+/**
+ * Server action to securely fetch a resource by slug, convert to base64 data URL, and return slug, name, and dataUrl.
+ */
+export async function fetchResourceBySlug(
+  slug: string
+): Promise<FetchResourceResult> {
+  try {
+    if (!slug || typeof slug !== "string") {
+      return { success: false, error: "Slug is required" };
+    }
+    const resource = RESOURCE_MAP[slug];
+    if (!resource) {
+      return { success: false, error: `Resource not found for slug: ${slug}` };
+    }
+    const response = await fetch(resource.url);
+    if (!response.ok) {
+      return {
+        success: false,
+        error: `Failed to fetch resource: ${resource.name}`,
+      };
+    }
+    const blob = await response.blob();
+    const buffer = await blob.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString("base64");
+    const mimeType = blob.type || inferMimeType(resource.url);
+    const dataUrl = `data:${mimeType};base64,${base64}`;
+    return {
+      success: true,
+      slug,
+      name: resource.name,
+      dataUrl,
+    };
+  } catch (error) {
+    console.error("Error fetching resource by slug:", error);
+    return { success: false, error: "Failed to fetch resource" };
+  }
+}
+
+// Helper to infer MIME type from file extension if blob.type is missing
+function inferMimeType(url: string): string {
+  if (url.endsWith(".png")) return "image/png";
+  if (url.endsWith(".jpg") || url.endsWith(".jpeg")) return "image/jpeg";
+  if (url.endsWith(".mp4")) return "video/mp4";
+  if (url.endsWith(".webm")) return "video/webm";
+  return "application/octet-stream";
+}
+
+export interface FetchResourcesResult {
+  success: boolean;
+  resources?: FetchResourceResult[];
+  error?: string;
+}
+
+/**
+ * Server action to securely fetch multiple resources by slugs, convert to base64 data URLs.
+ */
+export async function fetchResourcesBySlug(
+  slugs: string[]
+): Promise<FetchResourcesResult> {
+  try {
+    if (!Array.isArray(slugs) || slugs.length === 0) {
+      return { success: false, error: "Slugs array is required" };
+    }
+
+    const results = await Promise.all(
+      slugs.map((slug) => fetchResourceBySlug(slug))
+    );
+
+    const hasAnyFailure = results.some((result) => !result.success);
+
+    return {
+      success: !hasAnyFailure,
+      resources: results,
+      error: hasAnyFailure ? "Some resources failed to fetch" : undefined,
+    };
+  } catch (error) {
+    console.error("Error fetching resources by slugs:", error);
+    return { success: false, error: "Failed to fetch resources" };
+  }
+}

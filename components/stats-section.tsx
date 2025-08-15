@@ -37,7 +37,7 @@ function StatCard({
   return (
     <motion.div
       className={cn(
-        "p-6 rounded-xl shadow-lg border group select-none",
+        "p-6 rounded-xl shadow-lg border group",
         gradient,
         "hover:shadow-xl transition-all duration-300"
       )}

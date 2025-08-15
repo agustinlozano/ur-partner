@@ -186,7 +186,7 @@ export default function VideoSteps({ className }: { className?: string }) {
       </div>
 
       {/* Additional info */}
-      <div className="mt-12 text-center">
+      {/* <div className="mt-12 text-center">
         <div className="inline-flex items-center gap-2 px-6 py-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-full">
           <span>💡</span>
           <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">
@@ -202,7 +202,7 @@ export default function VideoSteps({ className }: { className?: string }) {
             </p>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

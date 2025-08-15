@@ -47,6 +47,8 @@ export function MatrixBoard({
   containerShadow = "0 1px 0 0 hsl(0 0% 100% / 0.5) inset",
 }: MatrixBoardProps) {
   const [hovered, setHovered] = useState(false);
+  const [enabled, setEnabled] = useState(false);
+  const [suppressNextHoverSound, setSuppressNextHoverSound] = useState(false);
   const playSound = useSoundPlayer();
 
   const cssVars = {
@@ -74,6 +76,13 @@ export function MatrixBoard({
       tabIndex={0}
       onMouseEnter={() => {
         setHovered(true);
+        // only play after the user has clicked at least once
+        if (!enabled) return;
+        if (suppressNextHoverSound) {
+          // clear suppression for the next hover
+          setSuppressNextHoverSound(false);
+          return;
+        }
         playSound(SOUNDS.sparkles);
       }}
       onMouseLeave={() => setHovered(false)}
@@ -82,6 +91,12 @@ export function MatrixBoard({
       }}
       onBlur={() => {
         setHovered(false);
+      }}
+      onClick={() => {
+        // enable hover-sound behavior after a click
+        // if the user clicked while already hovering, suppress the immediate hover sound
+        setEnabled(true);
+        if (hovered) setSuppressNextHoverSound(true);
       }}
     >
       <div className={styles.board}>

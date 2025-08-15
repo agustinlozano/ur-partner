@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import { XIcon } from "./icons";
 import styles from "./matrix-board.module.css";
 import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
+import { useTheme } from "next-themes";
+import { toast } from "sonner";
 
 interface MatrixBoardProps {
   text?: string;
@@ -46,10 +48,14 @@ export function MatrixBoard({
   containerBorder = "1px solid color-mix(in lch, canvas, canvasText 35%)",
   containerShadow = "0 1px 0 0 hsl(0 0% 100% / 0.5) inset",
 }: MatrixBoardProps) {
+  const textArray = ["Design", "AI", "Cloud", "Startups"];
   const [hovered, setHovered] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [suppressNextHoverSound, setSuppressNextHoverSound] = useState(false);
+  const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const playSound = useSoundPlayer();
+
+  const { theme } = useTheme();
 
   const cssVars = {
     "--blur": blur,
@@ -75,6 +81,12 @@ export function MatrixBoard({
       style={containerStyle}
       tabIndex={0}
       onMouseEnter={() => {
+        if (!enabled && theme === "light") {
+          toast.info("Try hovering in dark mode", {
+            icon: "🌙",
+            duration: 4000,
+          });
+        }
         setHovered(true);
         // only play after the user has clicked at least once
         if (!enabled) return;
@@ -85,7 +97,11 @@ export function MatrixBoard({
         }
         playSound(SOUNDS.sparkles);
       }}
-      onMouseLeave={() => setHovered(false)}
+      onMouseLeave={() => {
+        setHovered(false);
+        // cycle to next text in array when leaving hover
+        setCurrentTextIndex((prev) => (prev + 1) % textArray.length);
+      }}
       onFocus={() => {
         setHovered(true);
       }}
@@ -101,9 +117,19 @@ export function MatrixBoard({
     >
       <div className={styles.board}>
         <div className={styles.textWrap}>
-          <div aria-hidden="true" className={styles.fluidText}>
-            {text}
-          </div>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={currentTextIndex}
+              initial={{ opacity: 0, y: 20, rotateX: -90 }}
+              animate={{ opacity: 1, y: 0, rotateX: 0 }}
+              exit={{ opacity: 0, y: -20, rotateX: 90 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              aria-hidden="true"
+              className={styles.fluidText}
+            >
+              {textArray[currentTextIndex]}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
       <div

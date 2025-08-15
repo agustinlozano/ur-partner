@@ -36,7 +36,7 @@ const Circle = forwardRef<
           animate={{ scale: 1, opacity: 1, rotate: 0 }}
           exit={{ scale: 0, opacity: 0, rotate: 180 }}
           transition={{
-            type: "spring",
+            type: "tween",
             stiffness: 500,
             damping: 25,
           }}
@@ -174,7 +174,7 @@ export function BidirectionalBeam({ className }: { className?: string }) {
       const key = pair.join("|");
       recent.current.unshift(key);
       if (recent.current.length > 6) recent.current.pop();
-    }, 2000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);

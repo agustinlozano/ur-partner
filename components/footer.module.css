@@ -1,0 +1,155 @@
+.container {
+  /* make a grid like this */
+  /* github-repo matrix-board matrix-board matrix-board
+   * github-repo matrix-board matrix-board matrix-board
+   * made-in-argy matrix-board matrix-board matrix-board
+   * made-in-argy matrix-board matrix-board matrix-board
+   */
+  display: grid;
+  gap: 0.8rem;
+  align-items: start;
+
+  margin-bottom: 4rem;
+
+  /* mobile: stacked */
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  grid-template-areas:
+    "board board"
+    "made repo";
+}
+
+@media (min-width: 768px) {
+  .container {
+    grid-template-columns: 1fr 2fr;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "board repo"
+      "board made"
+      ". board";
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    grid-template-columns: 1fr 1fr 240px;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "board board repo"
+      "board board made"
+      "board board .";
+  }
+}
+
+/* assign first three children to named grid areas so ordering is stable */
+.container > :first-child {
+  grid-area: repo;
+}
+
+.container > :nth-child(2) {
+  grid-area: made;
+}
+
+.container > :nth-child(3) {
+  grid-area: board;
+}
+
+/* GitHub Repo Component - Always dark style but friendly for light backgrounds */
+.githubRepo {
+  /* fallback for older browsers */
+  background-color: var(--color-card);
+  /* add subtle opacity using color-mix when available */
+  background-color: color-mix(in srgb, var(--color-card) 88%, transparent);
+  border-color: var(--color-border);
+  color: var(--color-card-foreground);
+  transition: all 0.3s ease;
+}
+
+.githubRepo:hover {
+  border-color: var(--color-ring);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.18);
+  transform: scale(1.02);
+}
+
+:global(.light) .githubRepo {
+  /* light-specific tweak, still driven by theme vars */
+  background-color: var(--color-card);
+  background-color: color-mix(in srgb, var(--color-card) 92%, transparent);
+  border-color: var(--color-border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06);
+}
+
+:global(.light) .githubRepo:hover {
+  border-color: var(--color-ring);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.12);
+}
+
+.githubIcon {
+  background-color: var(--sidebar);
+  background-color: color-mix(in srgb, var(--sidebar) 84%, transparent);
+  color: var(--sidebar-foreground);
+}
+
+:global(.light) .githubIcon {
+  background-color: var(--sidebar);
+  background-color: color-mix(in srgb, var(--sidebar) 88%, transparent);
+  color: var(--sidebar-foreground);
+}
+
+.githubTitle {
+  color: var(--color-foreground);
+}
+
+.githubSubtitle {
+  color: var(--color-muted-foreground);
+}
+
+.githubOverlay {
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(55, 65, 81, 0.1),
+    transparent
+  );
+}
+
+/* Made in Argentina Component - Light/Dark versions */
+.madeInArgy {
+  background-color: var(--color-card);
+  background-color: color-mix(in srgb, var(--color-card) 84%, transparent);
+  border-color: var(--color-border);
+  color: var(--color-card-foreground);
+  transition: all 0.3s ease;
+}
+
+.madeInArgy:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+:global(.dark) .madeInArgy {
+  background-color: var(--color-card);
+  background-color: color-mix(in srgb, var(--color-card) 78%, transparent);
+  border-color: var(--color-border);
+  color: var(--color-card-foreground);
+}
+
+:global(.dark) .madeInArgy:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.18);
+}
+
+.argyTitle {
+  color: var(--color-foreground);
+}
+
+:global(.dark) .argyTitle {
+  color: var(--color-foreground);
+}
+
+.argySubtitle {
+  color: var(--color-muted-foreground);
+}
+
+:global(.dark) .argySubtitle {
+  color: var(--color-muted-foreground);
+}

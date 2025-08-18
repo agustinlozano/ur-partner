@@ -1,21 +1,23 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { getRoomData } from "@/lib/actions";
-import GradientBackground from "@/components/gradient-background";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+
+import GradientBackground from "@/components/gradient-background";
 import ActiveRoomSaver from "@/components/active-room-saver";
 import CopyRoomId from "@/components/copy-room-id";
-// import AudioTrigger from "@/components/audio-trigger";
-import { cn } from "@/lib/utils";
-import { useState, useEffect, useRef } from "react";
-import { checkRevealReadyEnhanced } from "@/lib/check-reveal-ready";
-import { sleep } from "@/lib/utils";
-import { useRouter } from "next/navigation";
-import { Room } from "@/lib/dynamodb";
-import { RelationshipRole } from "@/lib/role-utils";
 import RelativeTime from "@/components/ui/relative-time";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { UnsplashIcon } from "@/components/icons";
+
+import { checkRevealReadyEnhanced } from "@/lib/check-reveal-ready";
+import { RelationshipRole } from "@/lib/role-utils";
+import { getRoomData } from "@/lib/actions";
+import { Room } from "@/lib/dynamodb";
+import { sleep } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ roomId: string }>;
@@ -500,13 +502,13 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
           </div>
         )}
 
-        <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/75 dark:to-purple-950 rounded-xl shadow-lg p-6 border border-purple-300 dark:border-purple-600 mb-8 select-none">
+        <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/75 dark:to-purple-950 rounded-xl shadow-lg p-6 border border-purple-300 dark:border-purple-600 mb-8">
           <div className="text-center flex flex-col items-center gap-3">
             <div className="text-6xl mb-4">⚡️</div>
             <h3 className="text-xl font-semibold mb-4 text-purple-500 dark:text-purple-300">
               Realtime Experience{" "}
-              <Badge className="ml-2 border-purple-400 bg-purple-200 text-purple-500 dark:text-purple-50 dark:bg-purple-950">
-                DEV
+              <Badge className="ml-2 border-purple-400 bg-purple-200 text-purple-500 dark:text-purple-50 dark:bg-purple-950 select-none">
+                BETA
               </Badge>
             </h3>
             <div className="text-sm text-purple-800 dark:text-purple-200 font-mono max-w-xl mx-auto mb-2">
@@ -524,14 +526,16 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
               variant="shadow"
               size="lg"
               asChild
-              className="border-purple-900 hover:bg-purple-50 dark:text-purple-300 dark:hover:bg-purple-950"
+              className="border-purple-900 hover:bg-purple-50 dark:text-purple-300 dark:hover:bg-purple-950 select-none"
             >
               <Link href={`/realtime/${roomId}`}>
                 🎮 Enter Realtime Experience
               </Link>
             </Button>
-            <div className="text-xs italic text-purple-400 font-mono mt-2">
-              <span className="">(Experimental: for devs & curious ppl!)</span>
+            {/* Unsplash attribution */}
+            <div className="mt-3 text-xs text-primary/80 dark:text-primary/60 flex items-center gap-2">
+              <UnsplashIcon className="h-4 w-4" />
+              <span>Powered by Unsplash</span>
             </div>
           </div>
         </div>

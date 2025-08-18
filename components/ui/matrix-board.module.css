@@ -1,7 +1,7 @@
 .container {
   background: color-mix(in lch, canvas, canvasText 10%);
   /* width: clamp(360px, 50vw, 768px); */
-  min-height: 345px;
+  min-height: 350px;
   max-height: 450px;
   border: 1px solid color-mix(in lch, canvas, canvasText 35%);
   border-radius: 12px;
@@ -12,6 +12,13 @@
   gap: 1rem;
   box-shadow: 0 1px 0 0 hsl(0 0% 100% / 0.5) inset;
 }
+
+/* media query for md (tailwindcss) */
+/* @media (min-width: 768px) {
+  .container {
+    height: 336px;
+  }
+} */
 
 .container:focus-within {
   outline: 2px solid hsl(var(--hue) 80% 50%);

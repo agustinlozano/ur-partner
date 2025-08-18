@@ -4,10 +4,10 @@ import { motion, AnimatePresence } from "motion/react";
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { XIcon } from "./icons";
-import styles from "./matrix-board.module.css";
 import { useSoundPlayer, SOUNDS } from "@/hooks/use-sound-store";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
+import styles from "./matrix-board.module.css";
 
 interface MatrixBoardProps {
   text?: string;

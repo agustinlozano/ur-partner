@@ -6,7 +6,6 @@ import { BidirectionalBeam } from "@/components/bidirectional-animated-beam";
 import VideoSteps from "@/components/video-steps";
 import StatsSection from "@/components/stats-section";
 import HoverCardDemo from "@/components/hover-card-demo";
-import { MatrixBoard } from "@/components/ui/matrix-board";
 import CopyrightYear from "@/components/copyright-year";
 import FooterContent from "@/components/footer-content";
 

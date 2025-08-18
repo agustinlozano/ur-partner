@@ -20,7 +20,7 @@ export function AWSServices() {
           <span className={cn("font-medium text-sm mb-2", s.awsTitle)}>
             AWS Services
           </span>
-          <ul className="grid grid-cols-2 gap-1">
+          <ul className="grid grid-cols-4 md:grid-cols-2 gap-1">
             {services.map((service, index) => {
               const urls: Record<string, string> = {
                 "API Gateway": "https://aws.amazon.com/api-gateway/",

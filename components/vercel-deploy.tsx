@@ -10,7 +10,7 @@ export function VercelDeploy() {
         s.vercelDeploy
       )}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-center gap-3 h-full">
         <div className="flex gap-2">
           <div
             className={cn(

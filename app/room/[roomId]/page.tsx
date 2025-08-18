@@ -408,7 +408,7 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
           </div>
         )}
 
-        <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/75 dark:to-purple-950 rounded-xl shadow-lg p-6 border border-purple-300 dark:border-purple-600 mb-8">
+        <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/75 dark:to-purple-950/50 rounded-xl shadow-lg p-6 border border-purple-300 dark:border-purple-600 mb-8">
           <div className="text-center flex flex-col items-center gap-3">
             <div className="text-6xl mb-4">⚡️</div>
             <h3 className="text-xl font-semibold mb-4 text-purple-500 dark:text-purple-300">

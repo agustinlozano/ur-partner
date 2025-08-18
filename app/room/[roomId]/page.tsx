@@ -408,6 +408,44 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
           </div>
         )}
 
+        <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/75 dark:to-purple-950 rounded-xl shadow-lg p-6 border border-purple-300 dark:border-purple-600 mb-8">
+          <div className="text-center flex flex-col items-center gap-3">
+            <div className="text-6xl mb-4">⚡️</div>
+            <h3 className="text-xl font-semibold mb-4 text-purple-500 dark:text-purple-300">
+              Realtime Experience{" "}
+              <Badge className="ml-2 border-purple-400 bg-purple-200 text-purple-500 dark:text-purple-50 dark:bg-purple-950 select-none">
+                BETA
+              </Badge>
+            </h3>
+            <div className="text-sm text-purple-800 dark:text-purple-200 font-mono max-w-xl mx-auto mb-2">
+              Dive into the <span className="font-bold">live</span> playground
+              where every move is synced instantly.
+              <br />
+              <span className="text-purple-500">
+                Chat, upload, drag, and vibe
+              </span>{" "}
+              with your partner in real time.
+              <br />
+              <span className="block">💜</span>
+            </div>
+            <Button
+              variant="shadow"
+              size="lg"
+              asChild
+              className="border-purple-900 hover:bg-purple-50 dark:text-purple-300 dark:hover:bg-purple-950 select-none"
+            >
+              <Link href={`/realtime/${roomId}`}>
+                🎮 Enter Realtime Experience
+              </Link>
+            </Button>
+            {/* Unsplash attribution */}
+            <div className="mt-3 text-xs text-primary/80 dark:text-primary/60 flex items-center gap-2">
+              <UnsplashIcon className="h-4 w-4" />
+              <span>Powered by Unsplash</span>
+            </div>
+          </div>
+        </div>
+
         {!missingPartner && (
           <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-xl shadow-lg p-6 border border-green-200 dark:border-green-800 mb-8 select-none">
             <div className="text-center">
@@ -501,44 +539,6 @@ export default function RoomDetailPage({ params, searchParams }: PageProps) {
             </div>
           </div>
         )}
-
-        <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/75 dark:to-purple-950 rounded-xl shadow-lg p-6 border border-purple-300 dark:border-purple-600 mb-8">
-          <div className="text-center flex flex-col items-center gap-3">
-            <div className="text-6xl mb-4">⚡️</div>
-            <h3 className="text-xl font-semibold mb-4 text-purple-500 dark:text-purple-300">
-              Realtime Experience{" "}
-              <Badge className="ml-2 border-purple-400 bg-purple-200 text-purple-500 dark:text-purple-50 dark:bg-purple-950 select-none">
-                BETA
-              </Badge>
-            </h3>
-            <div className="text-sm text-purple-800 dark:text-purple-200 font-mono max-w-xl mx-auto mb-2">
-              Dive into the <span className="font-bold">live</span> playground
-              where every move is synced instantly.
-              <br />
-              <span className="text-purple-500">
-                Chat, upload, drag, and vibe
-              </span>{" "}
-              with your partner in real time.
-              <br />
-              <span className="block">💜</span>
-            </div>
-            <Button
-              variant="shadow"
-              size="lg"
-              asChild
-              className="border-purple-900 hover:bg-purple-50 dark:text-purple-300 dark:hover:bg-purple-950 select-none"
-            >
-              <Link href={`/realtime/${roomId}`}>
-                🎮 Enter Realtime Experience
-              </Link>
-            </Button>
-            {/* Unsplash attribution */}
-            <div className="mt-3 text-xs text-primary/80 dark:text-primary/60 flex items-center gap-2">
-              <UnsplashIcon className="h-4 w-4" />
-              <span>Powered by Unsplash</span>
-            </div>
-          </div>
-        </div>
 
         {/* Room Info */}
         <div className="bg-card/60 rounded-xl shadow-lg p-6 border">

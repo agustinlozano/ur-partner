@@ -8,7 +8,7 @@ import s from "./footer.module.css";
 
 export default function FooterContent() {
   return (
-    <div className={cn("sm:mx-auto mb-12 m-2 max-w-4xl", s.container)}>
+    <div className={cn("md:mx-auto mb-12 m-2 max-w-4xl sm:px-3", s.container)}>
       <GithubRepo />
       <MadeInArgy />
       <MatrixBoard

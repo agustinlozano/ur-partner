@@ -16,14 +16,17 @@
   grid-template-rows: auto auto auto auto;
   grid-template-areas:
     "board board"
-    "made repo"
-    "aws vercel";
+    "aws aws"
+    "repo vercel"
+    "made made";
 
-  /* .container > :nth-child(5) {
+  .container > :nth-child(1) {
+    text-align: center;
+  }
+
+  .container > :nth-child(5) {
     height: 100%;
-    width: fit-content;
-    @apply flex items-center justify-center;
-  } */
+  }
 }
 
 @media (min-width: 768px) {
@@ -37,11 +40,10 @@
       "aws aws vercel .";
   }
 
-  /* .container > :nth-child(5) {
+  .container > :nth-child(5) {
     height: 100%;
     width: fit-content;
-    @apply flex items-center justify-center;
-  } */
+  }
 }
 
 @media (min-width: 1024px) {
@@ -264,7 +266,7 @@
     var(--color-foreground) 86%,
     var(--color-muted-foreground) 14%
   );
-  transform: translateY(-2px);
+  transform: scale(1.05);
 }
 
 .iconLink {
@@ -276,6 +278,6 @@
 }
 
 .iconLink:hover {
-  transform: translateY(-3px) scale(1.05);
+  transform: scale(1.05);
   opacity: 1;
 }

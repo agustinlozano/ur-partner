@@ -108,7 +108,7 @@ export default async function Home() {
         </div>
       </div>
 
-      <footer className="relative mt-20 py-12 mx-2 bg-background/25 md:mx-auto overflow-x-hidden">
+      <footer className="relative mt-20 py-12 px-2 bg-background/25 md:mx-auto overflow-x-hidden">
         <FooterContent />
         <div className="absolute bottom-0 left-0 right-0 bg-background/75 text-center text-muted-foreground py-4">
           <CopyrightYear />

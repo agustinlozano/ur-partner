@@ -8,8 +8,11 @@ import StatsSection from "@/components/stats-section";
 import HoverCardDemo from "@/components/hover-card-demo";
 import CopyrightYear from "@/components/copyright-year";
 import FooterContent from "@/components/footer-content";
+import { getRoomCounter } from "@/lib/dynamodb";
 
-export default function Home() {
+export default async function Home() {
+  const roomCounter = await getRoomCounter();
+
   return (
     <GradientBackground variant="blue">
       <div className="mx-2 py-12 relative md:mx-auto">
@@ -85,7 +88,10 @@ export default function Home() {
         </div>
 
         {/* Stats Section */}
-        <StatsSection className="mt-16 max-w-2xl mx-auto" />
+        <StatsSection
+          className="mt-16 max-w-2xl mx-auto"
+          roomCounter={roomCounter}
+        />
         <HoverCardDemo className="mx-auto max-w-5xl mt-16" />
         <VideoSteps className="mx-auto max-w-4xl mt-16" />
 

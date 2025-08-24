@@ -83,7 +83,13 @@ function StatCard({
   );
 }
 
-export default function StatsSection({ className }: { className?: string }) {
+export default function StatsSection({
+  roomCounter,
+  className,
+}: {
+  roomCounter: number;
+  className?: string;
+}) {
   const stats = [
     {
       icon: <Users className="w-6 h-6" />,
@@ -117,10 +123,17 @@ export default function StatsSection({ className }: { className?: string }) {
     },
   ];
 
+  const updatedStats = stats.map((stat) => {
+    if (stat.label === "Rooms Created") {
+      return { ...stat, targetValue: roomCounter };
+    }
+    return stat;
+  });
+
   return (
     <div className={cn("w-full max-w-4xl mx-auto py-8", className)}>
       <div className="grid md:grid-cols-3 gap-6">
-        {stats.map((stat, index) => (
+        {updatedStats.map((stat, index) => (
           <StatCard key={stat.label} {...stat} />
         ))}
       </div>

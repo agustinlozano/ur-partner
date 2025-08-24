@@ -34,7 +34,7 @@ export function MatrixBoard({
   text = "Front.",
   title = "CSS Matrix Board",
   finalTitle,
-  description = "Guy from Argentina 🇦🇷 doin' software",
+  description = "Guy from Argentina 🇦🇷",
   href,
   blur = 1.5,
   hue = 280,
@@ -134,7 +134,7 @@ export function MatrixBoard({
       </div>
       <div
         className={
-          "flex w-full gap-4 p-2 sm:gap-8 border rounded-b-md bg-muted/50"
+          "flex w-full grow mb-2 gap-4 p-2 sm:mb-0 sm:gap-8 border rounded-b-md bg-muted/50"
         }
       >
         <div className={styles.avatar}>
@@ -164,7 +164,9 @@ export function MatrixBoard({
               </motion.span>
             </AnimatePresence>
           </h2>
-          <p className="m-0 text-sm text-primary/75">{description}</p>
+          <p className="m-0 text-pretty pr-4 text-sm text-primary/75">
+            <span className="inline-block">{description}</span>
+          </p>
           <a
             href="https://x.com/gustinlzn"
             target="_blank"

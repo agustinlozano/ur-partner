@@ -24,12 +24,16 @@ const client = new DynamoDBClient({
 export const dynamoDb = DynamoDBDocumentClient.from(client);
 
 // Nombres de las tablas
-export const TABLES = {
+export const TABLES = Object.freeze({
   ROOMS:
     process.env.AWS_DYNAMODB_TABLE_NAME ||
     process.env.DYNAMODB_ROOMS_TABLE ||
     "Rooms",
-} as const;
+  UR_PARTNER:
+    process.env.AWS_UR_PARTNER_TABLE_NAME ||
+    process.env.DYNAMODB_UR_PARTNER_TABLE ||
+    "UrPartner",
+});
 
 export type CompletedCategory = {
   category: string;
@@ -316,5 +320,66 @@ export const getAllRoomsIncludingExpired = async (): Promise<Room[]> => {
   } catch (error) {
     console.error("Error getting all rooms including expired:", error);
     throw new Error("Failed to get all rooms including expired");
+  }
+};
+
+// -------------------------
+// UrPartner table utilities
+// -------------------------
+
+/**
+ * Read the current room counter value from the UrPartner table.
+ * Returns the numeric value or null if not present.
+ */
+const DEFAULT_FAKE_ROOM_COUNTER = 98;
+export const getRoomCounter = async (): Promise<number> => {
+  try {
+    const result = await dynamoDb.send(
+      new GetCommand({
+        TableName: TABLES.UR_PARTNER,
+        Key: { app_id: "ur-partner-app" },
+      })
+    );
+
+    if (!result.Item) return DEFAULT_FAKE_ROOM_COUNTER;
+
+    // The counter is stored under `room_counter` attribute as a number
+    const val = (result.Item as any).room_counter;
+    if (typeof val === "number") return val;
+    if (typeof val === "string") return Number(val);
+    return DEFAULT_FAKE_ROOM_COUNTER;
+  } catch (error) {
+    console.error("Error reading room counter:", error);
+    throw new Error("Failed to read room counter");
+  }
+};
+
+/**
+ * Atomically increment the room counter by 1 and return the new value.
+ * Initializes the counter to 0 if it does not exist.
+ */
+export const incrementRoomCounter = async (): Promise<number> => {
+  try {
+    const result = await dynamoDb.send(
+      new UpdateCommand({
+        TableName: TABLES.UR_PARTNER,
+        Key: { app_id: "ur-partner-app" },
+        UpdateExpression:
+          "SET room_counter = if_not_exists(room_counter, :start) + :inc",
+        ExpressionAttributeValues: {
+          ":start": 0,
+          ":inc": 1,
+        },
+        ReturnValues: "UPDATED_NEW",
+      })
+    );
+
+    const updated = (result.Attributes as any)?.room_counter;
+    if (typeof updated === "number") return updated;
+    if (typeof updated === "string") return Number(updated);
+    throw new Error("Invalid counter value after increment");
+  } catch (error) {
+    console.error("Error incrementing room counter:", error);
+    throw new Error("Failed to increment room counter");
   }
 };

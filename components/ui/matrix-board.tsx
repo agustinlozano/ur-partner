@@ -10,11 +10,9 @@ import { toast } from "sonner";
 import styles from "./matrix-board.module.css";
 
 interface MatrixBoardProps {
-  text?: string;
   title?: string;
   finalTitle?: string;
   description?: string;
-  href?: string;
   blur?: number;
   hue?: number;
   spread?: number;
@@ -31,11 +29,9 @@ interface MatrixBoardProps {
 }
 
 export function MatrixBoard({
-  text = "Front.",
   title = "CSS Matrix Board",
   finalTitle,
   description = "Guy from Argentina 🇦🇷",
-  href,
   blur = 1.5,
   hue = 280,
   spread = 1.3,

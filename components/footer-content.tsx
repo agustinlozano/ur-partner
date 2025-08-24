@@ -13,9 +13,8 @@ export default function FooterContent() {
       <MadeInArgy />
       <MatrixBoard
         className="pt-4 px-2 sm:p-4 sm:mx-auto w-full"
-        text="Front."
         title="Software Engineer"
-        finalTitle="Frontend Engineer"
+        finalTitle="Product Designer"
         description="Doing software and AI stuff"
       />
       <AWSServices />

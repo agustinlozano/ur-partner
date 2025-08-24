@@ -6,6 +6,7 @@ import {
   createRoom,
   generateUniqueRoomId,
   type Room,
+  incrementRoomCounter,
 } from "./dynamodb";
 import {
   type DatabaseSlot,
@@ -272,6 +273,9 @@ export async function createRoomAndRedirect(formData: FormData) {
   });
 
   if (result.success && result.room_id) {
+    // increment the room counter
+    await incrementRoomCounter();
+
     const encodedName = encodeURIComponent(name);
     const encodedEmoji = encodeURIComponent(emoji);
     return {

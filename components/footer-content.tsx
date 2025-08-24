@@ -12,11 +12,11 @@ export default function FooterContent() {
       <GithubRepo />
       <MadeInArgy />
       <MatrixBoard
-        className="p-2 sm:p-4 sm:mx-auto w-full"
+        className="pt-4 px-2 sm:p-4 sm:mx-auto w-full"
         text="Front."
         title="Software Engineer"
         finalTitle="Frontend Engineer"
-        description="Guy from Argentina 🇦🇷 doing software and AI stuff"
+        description="Doing software and AI stuff"
       />
       <AWSServices />
       <VercelDeploy />

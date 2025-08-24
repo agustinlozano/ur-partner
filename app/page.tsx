@@ -16,7 +16,7 @@ export default async function Home() {
   return (
     <GradientBackground variant="blue">
       <div className="mx-2 py-12 relative md:mx-auto">
-        <div className="text-center mb-6 max-w-3xl mx-auto">
+        <div className="text-center my-6 mb-6 max-w-3xl mx-auto">
           <h1 className="text-4xl font-bold mb-6 font-mono text-gradient text-balance">
             Imagine With Ur Partner
           </h1>

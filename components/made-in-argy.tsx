@@ -37,7 +37,7 @@ export function MadeInArgy() {
   return (
     <div
       className={cn(
-        "rounded-lg border p-4 transition-all duration-300",
+        "rounded-lg border p-4 transition-all duration-300 w-fit md:w-auto",
         s.madeInArgy
       )}
     >

@@ -3,7 +3,7 @@ import { AWSIcon } from "./icons";
 import s from "./footer.module.css";
 
 export function AWSServices() {
-  const services = ["API Gateway", "Lambdas", "DynamoDB", "S3"];
+  const services = ["API Gateway", "Lambda", "DynamoDB", "S3"];
 
   return (
     <div

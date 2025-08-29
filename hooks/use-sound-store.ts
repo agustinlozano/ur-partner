@@ -14,19 +14,21 @@ export const SOUNDS = {
 // Sound configuration: URL and default volume for each sound
 const SOUND_CONFIG: Record<SoundSlug, { url: string; volume?: number }> = {
   tap: {
-    url: "https://ur-partner.s3.us-east-2.amazonaws.com/assets/sounds/tap.wav",
+    url: process.env.NEXT_PUBLIC_TAP_SOUND || "/sounds/tap.mp3",
     volume: 0.7,
   },
   toggle_off: {
-    url: "https://ur-partner.s3.us-east-2.amazonaws.com/assets/sounds/toggle_off.wav",
+    url: process.env.NEXT_PUBLIC_TOGGLE_OFF_SOUND || "/sounds/toggle_off.mp3",
     volume: 0.8,
   },
   ui_feedback: {
-    url: "https://ur-partner.s3.us-east-2.amazonaws.com/assets/sounds/ui-minimal-feedback.wav",
+    url:
+      process.env.NEXT_PUBLIC_UI_FEEDBACK_SOUND ||
+      "/sounds/ui-minimal-feedback.mp3",
     volume: 0.6,
   },
   sparkles: {
-    url: "https://ur-partner.s3.us-east-2.amazonaws.com/assets/sounds/sparkly.wav",
+    url: process.env.NEXT_PUBLIC_SPARKLES_SOUND || "/sounds/sparkly.wav",
     volume: 0.3,
   },
 };

@@ -18,23 +18,21 @@ const videoSteps: VideoStep[] = [
     title: "Create Room",
     description:
       "Start by creating a new room and choosing your role and avatar",
-    videoUrl:
-      "https://ur-partner.s3.us-east-2.amazonaws.com/assets/1-creating-room.mp4",
+    videoUrl: process.env.NEXT_PUBLIC_VIDEO_CREATE as string,
     emoji: "🖤",
   },
   {
     id: 2,
     title: "Copy & Share Link",
     description: "Copy the room link to share with your partner",
-    videoUrl:
-      "https://ur-partner.s3.us-east-2.amazonaws.com/assets/2-copy-link.mp4",
+    videoUrl: process.env.NEXT_PUBLIC_VIDEO_SHARE as string,
     emoji: "🔗",
   },
   {
     id: 3,
     title: "Join Room",
     description: "Your partner joins using the shared room ID",
-    videoUrl: "https://ur-partner.s3.us-east-2.amazonaws.com/assets/3-join.mp4",
+    videoUrl: process.env.NEXT_PUBLIC_VIDEO_JOIN as string,
     emoji: "🤍",
   },
 ];

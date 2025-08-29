@@ -125,7 +125,7 @@ export default function HoverCardDemo({ className }: { className?: string }) {
                 transition={{ duration: 0.6, ease: "easeInOut" }}
               >
                 <source
-                  src="https://ur-partner.s3.us-east-2.amazonaws.com/assets/hover-card-demo.mp4"
+                  src={process.env.NEXT_PUBLIC_HOVER_CARD_DEMO_VIDEO}
                   type="video/mp4"
                 />
                 Your browser does not support the video tag.
